@@ -1,5 +1,5 @@
 # microprocessor
-small and simple processor, written in VHDL
+small and simple MIPS processor, written in VHDL
 
 * It fetches instructions during rinsig edge of clock, accesses register file, perform operations and accesses a D-cache (mini_ram),
 during the falling edge it will update the register file.
