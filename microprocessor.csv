@@ -1,0 +1,94 @@
+# Copyright (C) 2017  Intel Corporation. All rights reserved.
+# Your use of Intel Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Intel Program License 
+# Subscription Agreement, the Intel Quartus Prime License Agreement,
+# the Intel MegaCore Function License Agreement, or other 
+# applicable license agreement, including, without limitation, 
+# that your use is for the sole purpose of programming logic 
+# devices manufactured by Intel and sold by Intel or its 
+# authorized distributors.  Please refer to the applicable 
+# agreement for further details.
+
+# Quartus Prime Version 17.0.0 Build 595 04/25/2017 SJ Lite Edition
+# File: D:\Users\renan\Documents\FPGA projects\microprocessor\microprocessor.csv
+# Generated on: Mon Dec 10 21:22:48 2018
+
+# Note: The column header names should not be changed if you wish to import this .csv file into the Quartus Prime software.
+
+To,Direction,Location,I/O Bank,VREF Group,Fitter Location,I/O Standard,Reserved,Current Strength,Slew Rate,Differential Pair,Strict Preservation
+aluOp[1],Bidir,PIN_F18,7,B7_N1,PIN_F18,2.5 V,,,,,
+aluOp[0],Bidir,PIN_F21,7,B7_N0,PIN_F21,2.5 V,,,,,
+branch,Bidir,PIN_F19,7,B7_N0,PIN_F19,2.5 V,,,,,
+CLK,Input,PIN_AB28,5,B5_N1,PIN_AB28,2.5 V,,,,,
+instruction[31],Bidir,PIN_H15,7,B7_N2,PIN_H15,2.5 V,,,,,
+instruction[30],Bidir,PIN_G16,7,B7_N2,PIN_G16,2.5 V,,,,,
+instruction[29],Bidir,PIN_G15,7,B7_N2,PIN_G15,2.5 V,,,,,
+instruction[28],Bidir,PIN_F15,7,B7_N2,PIN_F15,2.5 V,,,,,
+instruction[27],Bidir,PIN_H17,7,B7_N2,PIN_H17,2.5 V,,,,,
+instruction[26],Bidir,PIN_J16,7,B7_N2,PIN_J16,2.5 V,,,,,
+instruction[25],Bidir,,,,PIN_J15,,,,,,
+instruction[24],Bidir,,,,PIN_R1,,,,,,
+instruction[23],Bidir,,,,PIN_D16,,,,,,
+instruction[22],Bidir,,,,PIN_C16,,,,,,
+instruction[21],Bidir,,,,PIN_F17,,,,,,
+instruction[20],Bidir,,,,PIN_Y12,,,,,,
+instruction[19],Bidir,,,,PIN_AC14,,,,,,
+instruction[18],Bidir,,,,PIN_W22,,,,,,
+instruction[17],Bidir,,,,PIN_B19,,,,,,
+instruction[16],Bidir,,,,PIN_E17,,,,,,
+instruction[15],Bidir,,,,PIN_F8,,,,,,
+instruction[14],Bidir,,,,PIN_D24,,,,,,
+instruction[13],Bidir,,,,PIN_C11,,,,,,
+instruction[12],Bidir,,,,PIN_AD4,,,,,,
+instruction[11],Bidir,,,,PIN_AB10,,,,,,
+instruction[10],Bidir,,,,PIN_AE18,,,,,,
+instruction[9],Bidir,,,,PIN_AF16,,,,,,
+instruction[8],Bidir,,,,PIN_AF27,,,,,,
+instruction[7],Bidir,,,,PIN_F11,,,,,,
+instruction[6],Bidir,,,,PIN_AC28,,,,,,
+instruction[5],Bidir,,,,PIN_AH3,,,,,,
+instruction[4],Bidir,,,,PIN_AC2,,,,,,
+instruction[3],Bidir,,,,PIN_E15,,,,,,
+instruction[2],Bidir,,,,PIN_L27,,,,,,
+instruction[1],Bidir,,,,PIN_AC3,,,,,,
+instruction[0],Bidir,,,,PIN_J17,,,,,,
+instruction_addr[31],Output,,,,PIN_L23,,,,,,
+instruction_addr[30],Output,,,,PIN_G28,,,,,,
+instruction_addr[29],Output,,,,PIN_M24,,,,,,
+instruction_addr[28],Output,,,,PIN_K28,,,,,,
+instruction_addr[27],Output,,,,PIN_N25,,,,,,
+instruction_addr[26],Output,,,,PIN_G27,,,,,,
+instruction_addr[25],Output,,,,PIN_N21,,,,,,
+instruction_addr[24],Output,,,,PIN_P25,,,,,,
+instruction_addr[23],Output,,,,PIN_M23,,,,,,
+instruction_addr[22],Output,,,,PIN_L24,,,,,,
+instruction_addr[21],Output,,,,PIN_P26,,,,,,
+instruction_addr[20],Output,,,,PIN_N26,,,,,,
+instruction_addr[19],Output,,,,PIN_J26,,,,,,
+instruction_addr[18],Output,,,,PIN_P27,,,,,,
+instruction_addr[17],Output,,,,PIN_M28,,,,,,
+instruction_addr[16],Output,,,,PIN_L25,,,,,,
+instruction_addr[15],Output,,,,PIN_M26,,,,,,
+instruction_addr[14],Output,,,,PIN_L26,,,,,,
+instruction_addr[13],Output,,,,PIN_M27,,,,,,
+instruction_addr[12],Output,,,,PIN_J25,,,,,,
+instruction_addr[11],Output,,,,PIN_K27,,,,,,
+instruction_addr[10],Output,,,,PIN_M21,,,,,,
+instruction_addr[9],Output,,,,PIN_M25,,,,,,
+instruction_addr[8],Output,,,,PIN_L28,,,,,,
+instruction_addr[7],Output,PIN_G21,7,B7_N1,PIN_G21,2.5 V,,,,,
+instruction_addr[6],Output,PIN_G22,7,B7_N2,PIN_G22,2.5 V,,,,,
+instruction_addr[5],Output,PIN_G20,7,B7_N1,PIN_G20,2.5 V,,,,,
+instruction_addr[4],Output,PIN_H21,7,B7_N2,PIN_H21,2.5 V,,,,,
+instruction_addr[3],Output,PIN_E24,7,B7_N1,PIN_E24,2.5 V,,,,,
+instruction_addr[2],Output,PIN_E25,7,B7_N1,PIN_E25,2.5 V,,,,,
+instruction_addr[1],Output,PIN_E22,7,B7_N0,PIN_E22,2.5 V,,,,,
+instruction_addr[0],Output,PIN_E21,7,B7_N0,PIN_E21,2.5 V,,,,,
+jump,Bidir,PIN_G19,7,B7_N2,PIN_G19,2.5 V,,,,,
+memRead,Bidir,PIN_E18,7,B7_N1,PIN_E18,2.5 V,,,,,
+memWrite,Bidir,PIN_J19,7,B7_N2,PIN_J19,2.5 V,,,,,
+ZF,Bidir,PIN_E19,7,B7_N0,PIN_E19,2.5 V,,,,,
