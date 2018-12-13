@@ -64,7 +64,7 @@ begin
 
     end process;
 	 
-	 flags.ZF <= '1' when (Res = "00000000000000000000000000000000") else '0';
+	 flags.ZF <= '1' when (Res = x"0000_0000") else '0';
 	 --ZF <= nor (Res);--uses VHDL-2008 unary operators
 	 
 end behv;
