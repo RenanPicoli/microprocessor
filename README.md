@@ -11,3 +11,5 @@ during the falling edge it will update the register file.
 * My project is built inside Quartus Prime Lite and I am using Modelsim for simulation (although I did not get the processor to work in simulation).
 
 * I am using Altera DE2-115 board for the tests. 
+
+* For more information, go to the Wiki https://github.com/RenanPicoli/microprocessor/wiki
