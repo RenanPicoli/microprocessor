@@ -1,6 +1,8 @@
 # microprocessor
 small and simple MIPS processor, written in VHDL
 
+* Single cycle datapath.
+
 * It fetches instructions during rinsig edge of clock, accesses register file, perform operations and accesses a D-cache (mini_ram),
 during the falling edge it will update the register file.
 
