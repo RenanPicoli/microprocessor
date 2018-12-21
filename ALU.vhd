@@ -46,15 +46,17 @@ begin
 	-- different operations of ALU
 
 	case Sel is
-	   when "0010" =>
-			Res <= A + B;
-	   when "0110" =>						
-			Res <= A + (not B) + 1;-- A-B
       when "0000" =>
 			Res <= A and B;
 	   when "0001" =>	 
 			Res <= A or B;
-	   when "0111" =>	 
+	   when "0010" =>
+			Res <= A + B;
+		when "0011" =>
+			Res <= A xor B;
+	   when "0110" =>						
+			Res <= A + (not B) + 1;-- A-B
+		when "0111" =>	 
 			Res <= (0 => lsb, others => '0');-- set on less than
 		when "1100" =>
 			Res <= A nor B;

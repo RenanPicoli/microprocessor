@@ -92,7 +92,9 @@ end component;
 component mini_ram
 	port (--CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
 			ADDR: in std_logic_vector(3 downto 0);--addr é endereço de byte, mas os Lsb são 00
+			write_data: in std_logic_vector(31 downto 0);
 			rden: in std_logic;--habilita leitura
+			wren: in std_logic;--habilita escrita
 			Q:	out std_logic_vector(31 downto 0)
 			);
 end component;
@@ -230,7 +232,9 @@ begin--note this: port map uses ',' while port uses ';'
 --											q			=> data_memory_output);
 											
 	data_memory: mini_ram port map(ADDR	=> alu_result(5 downto 2),
+											write_data => read_data_2,
 											rden	=> memRead,
+											wren	=> memWrite,
 											Q		=> data_memory_output);
 	
 	write_data <= 	data_memory_output when memtoReg='1' else
