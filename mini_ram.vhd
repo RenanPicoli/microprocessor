@@ -27,7 +27,7 @@ architecture memArch of mini_ram is
 	x"0000_0001",
 	x"0000_0002",
 	x"0000_0000",
-	others => x"0000_000F"
+	others 	=> x"0000_000F"
 	);
 	
 	--lembrar de desabilitar auto RAM replacement em compiler settings>advanced settings (synthesis)

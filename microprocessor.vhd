@@ -15,7 +15,7 @@ use work.my_types.all;
 ---------------------------------------------------
 
 entity microprocessor is
-port (CLK: in std_logic;
+port (CLK_50M: in std_logic;
 		data_memory_output: buffer std_logic_vector(31 downto 0);
 		instruction_addr: out std_logic_vector (31 downto 0)--AKA read address
 );
@@ -24,6 +24,8 @@ end entity;
 architecture proc of microprocessor is
 signal pc_in: 	std_logic_vector (31 downto 0);
 signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
+signal CLK: std_logic;
+signal count: std_logic_vector(25 downto 0);
 component d_flip_flop
 	port (D:	in std_logic_vector(31 downto 0);
 			CLK:in std_logic;
@@ -284,5 +286,12 @@ begin--note this: port map uses ',' while port uses ';'
 												regWrite => regWrite);
 
 
+	prescaler: process(CLK_50M)
+	begin
+		if(CLK_50M'event and CLK_50M='1') then
+			count <= count + 1;
+		end if;
+	CLK <= count(25);
+	end process;
 end proc;
 
