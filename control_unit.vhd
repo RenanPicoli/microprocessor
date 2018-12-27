@@ -43,8 +43,12 @@ signal branch_type: std_logic;
 signal load_type: std_logic;
 signal store_type: std_logic;
 signal addi: std_logic;
+signal subi: std_logic;
+signal andi: std_logic;
 signal ori:	 std_logic;
 signal xori: std_logic;
+signal nori: std_logic;
+signal slti: std_logic;
 
 	begin
 
@@ -62,27 +66,36 @@ store_type 	<= '1' when opcode="101011" else '0';--instrucao de store
 branch 	<= '1' when (branch_type='1') else '0';
 jump 		<= '1' when (jump_type='1') else '0';
 addi 		<= '1' when opcode="001000" else '0';
+subi		<= '1' when opcode="001001" else '0';
+andi		<= '1' when opcode="000011" else '0';
+ori		<= '1' when opcode="000001" else '0';
 xori		<=	'1' when opcode="010000" else	'0';
+nori		<= '1' when opcode="010100" else '0';
+slti 		<= '1' when opcode="010101" else '0';
 
 regDst 	<= R_type;--usa rd (para escrita) só em instrucao tipo R
 memRead 	<= load_type;
 memWrite <= store_type;
 memtoReg <= load_type;
-aluSrc 	<= load_type or store_type or addi or ori or xori;--'1' operando 2 da ALU é imediato com extensão de sinal
-regWrite <= R_type or load_type or addi or ori or xori;--addi tambem escreve em registrador, como R-type
+aluSrc 	<= load_type or store_type or addi or subi or andi or ori or xori or nori or slti;--'1' operando 2 da ALU é imediato com extensão de sinal
+regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori;--addi tambem escreve em registrador, como R-type
 
 AluOp <= "00" when (load_type='1' or store_type='1' or addi='1') else--load/store/addi require addition
 			"01" when (branch_type='1') else--branch requires subctration
 			"10" when (R_type='1') else--R-type requires access to any arith operation
-			"11" when (addi='1' or ori='1' or xori='1') else
+			"11" when (addi='1' or subi='1' or andi='1' or ori='1' or xori='1' or nori='1' or slti='1') else--these I-type ops require access to any arith operation
 			"XX";
 
 aluControl <= 	"0010" when (AluOp = "00") else--add
 					"0110" when (AluOp = "01") else--subtract
 					--for I-type
-					"0010" when (AluOp = "11" and opcode ="001000") else--addi
-					"0001" when (AluOp = "11" and opcode = "000001") else--ori
-					"0011" when (AluOp = "11" and opcode = "010000") else--xori
+					"0010" when (AluOp = "11" and addi='1') else--addi
+					"0110" when (AluOp = "11" and subi='1') else--subi
+					"0000" when (AluOp = "11" and andi='1') else--andi
+					"0001" when (AluOp = "11" and ori='1')  else--ori
+					"0011" when (AluOp = "11" and xori='1') else--xori
+					"1100" when (AluOp = "11" and nori='1') else--nori
+					"0111" when (AluOp = "11" and slti='1') else--slti
 					--for R-type
 					"0010" when (AluOp = "10" and funct = "100000") else--add
 					"0110" when (AluOp = "10" and funct = "100010") else--subtract
