@@ -19,19 +19,14 @@ signal	branch: std_logic;
 signal  jump:std_logic;
 signal  instruction:std_logic_vector(31 downto 0);
 signal  instruction_addr:std_logic_vector(31 downto 0);
+signal	data_memory_output:std_logic_vector(31 downto 0);
 
 begin
 
 	DUT: entity work.microprocessor
-	port map(CLK					=>	clock_50MHz,
-				memRead				=>	memRead,
-				memWrite			=>	memWrite,
-				aluOp				=>	aluOp,
-				ZF					=>	ZF,
-				branch				=>	branch,
-				jump				=>	jump,
-				instruction			=>	instruction,
-				instruction_addr	=>	instruction_addr
+	port map(CLK => clock_50MHz,
+			data_memory_output => data_memory_output,
+			instruction_addr => instruction_addr --AKA read address
 	);
 	
 	CLOCK: process

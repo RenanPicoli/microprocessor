@@ -1,12 +1,27 @@
+# Compile of ALU.vhd was successful.
+# Compile of control_unit.vhd was successful.
+# Compile of d_flip_flop.vhd was successful.
+# Compile of demux.vhd was successful.
+# Compile of microprocessor.vhd failed with 2 errors.
+# Compile of mini_ram.vhd was successful.
+# Compile of mini_rom.vhd was successful.
+# Compile of mux.vhd was successful.
+# Compile of my_types.vhd was successful.
+# Compile of reg_file.vhd was successful.
 # Compile of testbench.vhd was successful.
-# Compile of rom.vhd was successful.
+# 11 compiles, 1 failed with 2 errors.
+# Compile of microprocessor.vhd was successful.
+# Load canceled
 # Compile of ALU.vhd was successful.
 # Compile of control_unit.vhd was successful.
 # Compile of d_flip_flop.vhd was successful.
 # Compile of demux.vhd was successful.
 # Compile of microprocessor.vhd was successful.
+# Compile of mini_ram.vhd was successful.
+# Compile of mini_rom.vhd was successful.
 # Compile of mux.vhd was successful.
-# Compile of ram.vhd was successful.
+# Compile of my_types.vhd was successful.
 # Compile of reg_file.vhd was successful.
-# 10 compiles, 0 failed with no errors.
+# Compile of testbench.vhd was successful.
+# 11 compiles, 0 failed with no errors.
 vsim -gui -l msim_transcript work.testbench

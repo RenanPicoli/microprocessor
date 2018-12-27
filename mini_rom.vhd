@@ -25,7 +25,7 @@ architecture memArch of mini_rom is
 	constant rom: memory := (
 	x"0021_0827",--xor r1 r1 r1 zera r1
 	x"8C20_0000",--lw [r1+0] r0
-	x"4000_000F",--xori r0 r0 0x000F inverte a nibble menos significativa 
+	x"4000_000A",--xori r0 r0 0x000A inverte alguns bits da nibble menos significativa 
 	x"AC20_0000",--sw [r1+0] r0 armazena r0 na memória
 	x"0800_0001",--jmp 1
 	others => x"0800_0005" --jmp 5

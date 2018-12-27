@@ -186,6 +186,8 @@ signal branch_address: std_logic_vector (31 downto 0);--(addressRelativeExtended
 signal branch_or_next: std_logic;--branch and ZF
 signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & addressAbsolute & "00"
 
+signal reg_clk: std_logic;--register file clock signal
+
 begin--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
 										D => pc_in,
@@ -200,8 +202,9 @@ begin--note this: port map uses ',' while port uses ';'
 	writeLoc <=	rd when regDst='1' else
 					rt;
 
-	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA	
-	register_file: reg_file port map (	CLK => not CLK,
+	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
+	reg_clk <= not CLK;
+	register_file: reg_file port map (	CLK => reg_clk,
 											read_reg_1 => rs,
 											read_reg_2 => rt,
 											write_reg  => writeLoc,
@@ -285,6 +288,14 @@ begin--note this: port map uses ',' while port uses ';'
 												aluSrc => aluSrc,
 												regWrite => regWrite);
 
+--	wren_gen: process (CLK,memWrite)
+--	begin
+--		if (CLK'event and CLK='0') then
+--			wren <= '0';
+--		elsif (CLK'event and CLK='1') then
+--			wren <= memWrite;
+--		end if;
+--	end process;
 
 --	prescaler: process(CLK_50M)
 --	begin

@@ -1,4 +1,14 @@
-{D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd}
+{D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity d_flip_flop
+-- Compiling architecture behv of d_flip_flop
+
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -9,27 +19,19 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling entity mini_rom
 -- Compiling architecture memArch of mini_rom
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd}
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd} {0 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
 -- Loading package std_logic_arith
 -- Loading package STD_LOGIC_UNSIGNED
--- Compiling entity ALU
--- Compiling architecture behv of ALU
+** Error: (vcom-11) Could not find work.my_types.
+** Error (suppressible): D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd(18): (vcom-1195) Cannot find expanded name "work.my_types".
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd(18): Unknown expanded name.
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd(24): VHDL Compiler exiting
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd}
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package std_logic_arith
--- Loading package STD_LOGIC_UNSIGNED
--- Compiling entity d_flip_flop
--- Compiling architecture behv of d_flip_flop
-
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd}
+} {8.0 9.0 10.0 12.0} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd} {0 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -40,13 +42,38 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling architecture structure5 of mux5
 -- Compiling entity mux32
 -- Compiling architecture structure32 of mux32
--- Compiling package my_array
--- Loading package my_array
+** Error: (vcom-11) Could not find work.my_types.
+** Error (suppressible): D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd(46): (vcom-1195) Cannot find expanded name "work.my_types".
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd(46): Unknown expanded name.
 -- Loading package NUMERIC_STD
--- Compiling entity mux32x32
--- Compiling architecture structure32x32 of mux32x32
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd(52): VHDL Compiler exiting
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd}
+} {12.0 13.0 14.0 15.0 16.0 17.0} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd} {0 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Loading package NUMERIC_STD
+** Error: (vcom-11) Could not find work.my_types.
+** Error (suppressible): D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd(6): (vcom-1195) Cannot find expanded name "work.my_types".
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd(6): Unknown expanded name.
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd(8): VHDL Compiler exiting
+
+} {9.0 10.0 11.0 13.0} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd} {0 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+** Error: (vcom-11) Could not find work.my_types.
+** Error (suppressible): D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd(10): (vcom-1195) Cannot find expanded name "work.my_types".
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd(10): Unknown expanded name.
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd(17): VHDL Compiler exiting
+
+} {8.0 9.0 10.0 12.0} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -54,32 +81,6 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Loading package altera_mf_components
 -- Compiling entity rom
 -- Compiling architecture SYN of rom
-
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd}
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package std_logic_arith
--- Loading package STD_LOGIC_UNSIGNED
--- Loading package NUMERIC_STD
--- Loading package my_array
--- Compiling entity demux32x32
--- Compiling architecture structure32x32 of demux32x32
--- Compiling entity demux1x32
--- Compiling architecture structure1x32 of demux1x32
-
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd}
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package NUMERIC_STD
--- Compiling entity testbench
--- Compiling architecture test of testbench
--- Loading package std_logic_arith
--- Loading package STD_LOGIC_UNSIGNED
--- Loading entity microprocessor
 
 } {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/control_unit.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/control_unit.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
@@ -100,15 +101,39 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling entity ram
 -- Compiling architecture SYN of ram
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd}
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd} {0 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package NUMERIC_STD
+-- Compiling entity testbench
+-- Compiling architecture test of testbench
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Loading entity microprocessor
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd(28): (vcom-1484) Unknown formal identifier "data_memory_output".
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd(40): VHDL Compiler exiting
+
+} {12.0 14.0} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd} {0 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
 -- Loading package std_logic_arith
 -- Loading package STD_LOGIC_UNSIGNED
--- Loading package my_array
--- Compiling entity reg_file
--- Compiling architecture func_reg_file of reg_file
+** Error: (vcom-11) Could not find work.my_types.
+** Error (suppressible): D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd(13): (vcom-1195) Cannot find expanded name "work.my_types".
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd(13): Unknown expanded name.
+** Error: D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd(17): VHDL Compiler exiting
+
+} {8.0 9.0 10.0 12.0} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/my_types.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/my_types.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling package my_types
 
 } {} {}}
