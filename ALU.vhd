@@ -26,7 +26,6 @@ entity ALU is
 port(	A:	in std_logic_vector(31 downto 0);
 		B:	in std_logic_vector(31 downto 0);
 		Sel:	in std_logic_vector(3 downto 0);
-		--ZF: out std_logic;
 		flags: out eflags;
 		Res:	buffer std_logic_vector(31 downto 0)  
 );

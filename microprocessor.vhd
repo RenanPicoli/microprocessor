@@ -2,10 +2,9 @@
 --microprocessor implementation
 --by Renan Picoli de Souza
 --supports instructions on page 23 and 28 of chapter 4 slides
---I added support for addi
---(does not accept immediates for ALU operations)
+--I added support for addi,subi,andi,ori,xori,nori,slti
 ---------------------------------------------------
---don't know what they are, I'm only including them
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -37,6 +36,7 @@ end component;
 
 component reg_file
 	port (CLK: in std_logic;
+			RST: in std_logic;
 			read_reg_1: in std_logic_vector (4 downto 0);--reg1 addr
 			read_reg_2: in std_logic_vector (4 downto 0);--reg2 addr
 			write_reg : in std_logic_vector (4 downto 0);--reg to be written
@@ -180,14 +180,12 @@ signal store_type: std_logic;
 
 --signal data_memory_output: std_logic_vector (31 downto 0);
 signal instruction: std_logic_vector (31 downto 0);--next instruction to execute
---signal ZF: std_logic;--flag de zero da ALU
 signal flags: eflags;--flags da ALU
 signal muxNextInstrOutput: std_logic_vector (31 downto 0);
 signal pc_incremented: std_logic_vector (31 downto 0);--pc+4
 signal branch_address: std_logic_vector (31 downto 0);--(addressRelativeExtended(29 downto 0)&"00")+pc_out
 signal branch_or_next: std_logic;--branch and ZF
 signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & addressAbsolute & "00"
---signal next_pc			: std_logic_vector(31 downto 0);--next pc input if not reset
 
 signal reg_clk: std_logic;--register file clock signal
 
@@ -209,20 +207,21 @@ begin--note this: port map uses ',' while port uses ';'
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	reg_clk <= not CLK;
 	register_file: reg_file port map (	CLK => reg_clk,
-											read_reg_1 => rs,
-											read_reg_2 => rt,
-											write_reg  => writeLoc,
-											write_data => write_data,
-											regWrite => regWrite,
-											read_data_1 => read_data_1,
-											read_data_2 =>read_data_2
+													RST => rst,
+													read_reg_1 => rs,
+													read_reg_2 => rt,
+													write_reg  => writeLoc,
+													write_data => write_data,
+													regWrite => regWrite,
+													read_data_1 => read_data_1,
+													read_data_2 => read_data_2
 											);
 											
 	arith_logic_unity: alu port map ( 	A => read_data_1,
 													B => aluOp2,
 													sel => aluControl,
 													flags => flags,
-													Res => alu_result------------TODO
+													Res => alu_result
 												);
 								
 --	data_memory: data_mem port map ( CLK => CLK,
@@ -246,7 +245,7 @@ begin--note this: port map uses ',' while port uses ';'
 											wren	=> memWrite,
 											Q		=> data_memory_output);
 	
-	write_data <= 	data_memory_output when memtoReg='1' else
+	write_data <= 	data_memory_output when memtoReg='1' else--for register write
 						alu_result;
 												
 	pc_incremented <= (pc_out+4);
@@ -291,24 +290,6 @@ begin--note this: port map uses ',' while port uses ';'
 												memWrite => memWrite,
 												aluSrc => aluSrc,
 												regWrite => regWrite);
-
---	reset: process (rst,next_pc)
---	begin
---		if rst='1' then
---			pc_in <= (others=>'0');
---		else
---			pc_in <= next_pc;
---		end if;
---	end process;
-	
---	wren_gen: process (CLK,memWrite)
---	begin
---		if (CLK'event and CLK='0') then
---			wren <= '0';
---		elsif (CLK'event and CLK='1') then
---			wren <= memWrite;
---		end if;
---	end process;
 
 --	prescaler: process(CLK_50M)
 --	begin

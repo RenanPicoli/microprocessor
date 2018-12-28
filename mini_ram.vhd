@@ -4,7 +4,7 @@
 --supports only 32 bit instructions
 --(all instructions are word-aligned)
 ---------------------------------------------------
---don't know what they are, I'm only including them
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;

@@ -2,7 +2,7 @@
 --register file implementation
 --by Renan Picoli de Souza
 ---------------------------------------------------
---don't know what they are, I'm only including them
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
@@ -16,6 +16,7 @@ use work.my_types.all;
 
 entity reg_file is
 	port (CLK: in std_logic;
+			RST: in std_logic;
 			read_reg_1: in std_logic_vector (4 downto 0);--reg1 addr
 			read_reg_2: in std_logic_vector (4 downto 0);--reg2 addr
 			write_reg : in std_logic_vector (4 downto 0);--reg to be written
@@ -58,7 +59,7 @@ architecture func_reg_file of reg_file is
 
 	registers: for i in 0 to 31 generate-- i is the row index, the register number
 		regx: d_flip_flop port map(Q => registers_Q(i),
-											RST => '0',
+											RST => RST,
 											CLK => registers_clk(i),--CLK and registers_write_en(i),
 											D => write_data
 											);
