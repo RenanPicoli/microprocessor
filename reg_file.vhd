@@ -30,6 +30,7 @@ architecture func_reg_file of reg_file is
 
 	component d_flip_flop
 		port (D:	in std_logic_vector(31 downto 0);
+				RST: in std_logic;
 				CLK:in std_logic;
 				Q:	out std_logic_vector(31 downto 0)  
 				);
@@ -57,6 +58,7 @@ architecture func_reg_file of reg_file is
 
 	registers: for i in 0 to 31 generate-- i is the row index, the register number
 		regx: d_flip_flop port map(Q => registers_Q(i),
+											RST => '0',
 											CLK => registers_clk(i),--CLK and registers_write_en(i),
 											D => write_data
 											);

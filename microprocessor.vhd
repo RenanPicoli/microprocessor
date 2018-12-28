@@ -16,6 +16,7 @@ use work.my_types.all;
 
 entity microprocessor is
 port (CLK: in std_logic;
+		rst: in std_logic;
 		data_memory_output: buffer std_logic_vector(31 downto 0);
 		instruction_addr: out std_logic_vector (31 downto 0)--AKA read address
 );
@@ -28,6 +29,7 @@ signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
 --signal count: std_logic_vector(25 downto 0);
 component d_flip_flop
 	port (D:	in std_logic_vector(31 downto 0);
+			rst:	in std_logic;--synchronous reset
 			CLK:in std_logic;
 			Q:	out std_logic_vector(31 downto 0)  
 			);
@@ -185,11 +187,13 @@ signal pc_incremented: std_logic_vector (31 downto 0);--pc+4
 signal branch_address: std_logic_vector (31 downto 0);--(addressRelativeExtended(29 downto 0)&"00")+pc_out
 signal branch_or_next: std_logic;--branch and ZF
 signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & addressAbsolute & "00"
+--signal next_pc			: std_logic_vector(31 downto 0);--next pc input if not reset
 
 signal reg_clk: std_logic;--register file clock signal
 
 begin--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
+										RST => rst,
 										D => pc_in,
 										Q => pc_out);
 										
@@ -250,7 +254,7 @@ begin--note this: port map uses ',' while port uses ';'
 	branch_or_next <= branch and flags.ZF;
 	addressAbsolute <= instruction(25 downto 0);
 	jump_address <= pc_out(31 downto 28) & addressAbsolute & "00";--TODO: é pc_incremented em vez de pc_out CHECAR
-	pc_in <= jump_address when (jump='1') else
+	pc_in <= jump_address when (jump='1') else--next pc_out if not reset
 				branch_address when (branch_or_next='1') else
 				pc_incremented;
 
@@ -288,6 +292,15 @@ begin--note this: port map uses ',' while port uses ';'
 												aluSrc => aluSrc,
 												regWrite => regWrite);
 
+--	reset: process (rst,next_pc)
+--	begin
+--		if rst='1' then
+--			pc_in <= (others=>'0');
+--		else
+--			pc_in <= next_pc;
+--		end if;
+--	end process;
+	
 --	wren_gen: process (CLK,memWrite)
 --	begin
 --		if (CLK'event and CLK='0') then

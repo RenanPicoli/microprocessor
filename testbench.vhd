@@ -11,6 +11,7 @@ architecture test of testbench is
 constant TIME_DELTA : time := 10 ns;
 
 signal  clock_50MHz:std_logic;
+signal	rst: std_logic;
 signal	memWrite:std_logic;
 signal	memRead: std_logic;
 signal	aluOp: std_logic_vector(1 downto 0);
@@ -25,6 +26,7 @@ begin
 
 	DUT: entity work.microprocessor
 	port map(CLK => clock_50MHz,
+			rst	 => rst,
 			data_memory_output => data_memory_output,
 			instruction_addr => instruction_addr --AKA read address
 	);
@@ -36,5 +38,7 @@ begin
 		clock_50MHz <= '1';
 		wait for 10 ns;
 	end process CLOCK;
+	
+	rst <= '1', '0' after 15 ns;
 	
 end architecture test;
