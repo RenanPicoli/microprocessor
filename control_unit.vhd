@@ -78,7 +78,7 @@ memRead 	<= load_type;
 memWrite <= store_type;
 memtoReg <= load_type;
 aluSrc 	<= load_type or store_type or addi or subi or andi or ori or xori or nori or slti;--'1' operando 2 da ALU é imediato com extensão de sinal
-regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori;--addi tambem escreve em registrador, como R-type
+regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori or slti;--addi tambem escreve em registrador, como R-type
 
 AluOp <= "00" when (load_type='1' or store_type='1' or addi='1') else--load/store/addi require addition
 			"01" when (branch_type='1') else--branch requires subctration
