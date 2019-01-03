@@ -63,7 +63,7 @@ architecture func_reg_file of reg_file is
 											CLK => registers_clk(i),--CLK and registers_write_en(i),
 											D => write_data
 											);
-		clocks: registers_clk(i) <= CLK and registers_write_en(i);
+		clocks: registers_clk(i) <= CLK and (registers_write_en(i) or RST);
 	end generate registers;
 
 		--escolhe qual registrador é lido

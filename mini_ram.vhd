@@ -24,10 +24,10 @@ architecture memArch of mini_ram is
 
 	type memory is array (0 to 3) of std_logic_vector(31 downto 0);
 	constant initial_values: memory := (
-	x"0000_0000",
+	x"0000_000F",
 	x"0000_0002",
-	x"0000_0000",
-	others 	=> x"0000_000F"
+	x"0000_0001",
+	others 	=> x"0000_0000"
 	);
 	
 	--lembrar de desabilitar auto RAM replacement em compiler settings>advanced settings (synthesis)

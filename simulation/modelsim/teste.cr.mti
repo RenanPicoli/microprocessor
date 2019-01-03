@@ -8,7 +8,18 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling entity d_flip_flop
 -- Compiling architecture behv of d_flip_flop
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:\Users\renan\Documents\FPGA projects\microprocessor\ALU.vhd}
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Loading package NUMERIC_STD
+-- Compiling entity mini_rom
+-- Compiling architecture memArch of mini_rom
+
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -36,7 +47,7 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling entity mux32x32
 -- Compiling architecture structure32x32 of mux32x32
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:\Users\renan\Documents\FPGA projects\microprocessor\demux.vhd}
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -50,16 +61,16 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling entity demux1x32
 -- Compiling architecture structure1x32 of demux1x32
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:\Users\renan\Documents\FPGA projects\microprocessor\reg_file.vhd}
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
 -- Loading package std_logic_arith
 -- Loading package STD_LOGIC_UNSIGNED
--- Loading package my_types
--- Compiling entity reg_file
--- Compiling architecture func_reg_file of reg_file
+-- Loading package NUMERIC_STD
+-- Compiling entity mini_ram
+-- Compiling architecture memArch of mini_ram
 
 } {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
@@ -70,7 +81,7 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling entity rom
 -- Compiling architecture SYN of rom
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:\Users\renan\Documents\FPGA projects\microprocessor\testbench.vhd}
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -83,6 +94,16 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Loading package my_types
 -- Loading entity microprocessor
 
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/control_unit.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/control_unit.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity control_unit
+-- Compiling architecture control of control_unit
+
 } {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
@@ -92,16 +113,7 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling entity ram
 -- Compiling architecture SYN of ram
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/my_types.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:\Users\renan\Documents\FPGA projects\microprocessor\my_types.vhd}
-Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
--- Loading package STANDARD
--- Loading package TEXTIO
--- Loading package std_logic_1164
--- Loading package std_logic_arith
--- Loading package STD_LOGIC_UNSIGNED
--- Compiling package my_types
-
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:\Users\renan\Documents\FPGA projects\microprocessor\microprocessor.vhd}
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
@@ -111,5 +123,14 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Loading package my_types
 -- Compiling entity microprocessor
 -- Compiling architecture proc of microprocessor
+
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/my_types.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/my_types.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling package my_types
 
 } {} {}}
