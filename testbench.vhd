@@ -39,6 +39,6 @@ begin
 		wait for 10 ns;
 	end process CLOCK;
 	
-	rst <= '1', '0' after 25 ns;
+	rst <= '1', '0' after 15 ns;
 	
 end architecture test;

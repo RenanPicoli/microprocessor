@@ -94,7 +94,7 @@ end component;
 --end component;
 
 component mini_ram
-	port (--CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
+	port (CLK: in std_logic;--borda de subida para escrita, memória pode ser lida a qq momento desde que rden=1
 			ADDR: in std_logic_vector(1 downto 0);--addr é endereço de byte, mas os Lsb são 00
 			write_data: in std_logic_vector(31 downto 0);
 			rden: in std_logic;--habilita leitura
@@ -188,6 +188,7 @@ signal branch_or_next: std_logic;--branch and ZF
 signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & addressAbsolute & "00"
 
 signal reg_clk: std_logic;--register file clock signal
+signal ram_clk: std_logic;--data memory clock signal
 
 begin--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
@@ -238,8 +239,11 @@ begin--note this: port map uses ',' while port uses ';'
 --											address	=> alu_result(9 downto 2),
 --											data		=> read_data_2,
 --											q			=> data_memory_output);
-											
-	data_memory: mini_ram port map(ADDR	=> alu_result(3 downto 2),
+
+	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR Na MEMÓRIA NA BORDA DE DESCIDA
+	ram_clk <= not CLK;											
+	data_memory: mini_ram port map(CLK	=> ram_clk,
+											ADDR	=> alu_result(3 downto 2),
 											write_data => read_data_2,
 											rden	=> memRead,
 											wren	=> memWrite,
