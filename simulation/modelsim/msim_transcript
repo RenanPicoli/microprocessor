@@ -2829,3 +2829,547 @@ run 130 ns
 #    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
 # ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
 #    Time: 130 ns  Iteration: 8  Instance: /testbench/DUT/arith_logic_unity
+run 130 ns
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 150 ns  Iteration: 4  Instance: /testbench/DUT/control
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 150 ns  Iteration: 6  Instance: /testbench/DUT/data_memory
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 190 ns  Iteration: 7  Instance: /testbench/DUT/data_memory
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 190 ns  Iteration: 7  Instance: /testbench/DUT/arith_logic_unity
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 230 ns  Iteration: 6  Instance: /testbench/DUT/arith_logic_unity
+run 10 ns
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 8  Instance: /testbench/DUT/arith_logic_unity
+# Compile of mini_ram.vhd was successful.
+# Compile of mini_rom.vhd was successful.
+# 2 compiles, 0 failed with no errors.
+restart -f
+# Loading work.mini_ram(memarch)
+# Loading work.mini_rom(memarch)
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved1, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved1.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved2, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved2.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved3, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved3.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved4, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved4.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved5, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved5.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved6, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved6.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved7, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved7.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved8, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved8.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved9, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved9.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved10, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved10.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved11, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved11.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved12, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved12.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved13, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved13.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved14, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved14.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved15, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved15.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved16, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved16.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved17, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved17.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved18, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved18.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved19, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved19.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved20, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved20.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved21, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved21.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved22, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved22.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved23, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved23.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved24, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved24.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved25, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved25.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved26, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved26.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved27, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved27.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved28, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved28.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved29, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved29.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved30, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved30.
+# ** Warning: (vsim-8684) No drivers exist on out port /testbench/DUT/arith_logic_unity/flags.reserved31, and its initial value is not used.
+# Therefore, simulation behavior may occur that is not in compliance with
+# the VHDL standard as the initial values come from the base signal /testbench/DUT/flags.reserved31.
+run 130 ns
+# GetModuleFileName: Não foi possível encontrar o módulo especificado.
+# 
+# 
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/control
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/instruction_memory
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/data_memory
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/arith_logic_unity
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/arith_logic_unity
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/arith_logic_unity
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/mux2
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 0  Instance: /testbench/DUT/register_file/mux1
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/data_memory
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 1  Instance: /testbench/DUT/arith_logic_unity
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/register_file/demux_write
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 2  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 0 ps  Iteration: 3  Instance: /testbench/DUT
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 0 ps  Iteration: 4  Instance: /testbench/DUT/data_memory
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 50 ns  Iteration: 7  Instance: /testbench/DUT/data_memory
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 50 ns  Iteration: 7  Instance: /testbench/DUT/arith_logic_unity
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 90 ns  Iteration: 6  Instance: /testbench/DUT/arith_logic_unity
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 130 ns  Iteration: 8  Instance: /testbench/DUT/arith_logic_unity
+run 140 ns
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 150 ns  Iteration: 6  Instance: /testbench/DUT/data_memory
+# ** Warning: NUMERIC_STD.TO_INTEGER: metavalue detected, returning 0
+#    Time: 190 ns  Iteration: 7  Instance: /testbench/DUT/data_memory
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 190 ns  Iteration: 7  Instance: /testbench/DUT/arith_logic_unity
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 230 ns  Iteration: 6  Instance: /testbench/DUT/arith_logic_unity
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 6  Instance: /testbench/DUT/control
+# ** Warning: There is an 'U'|'X'|'W'|'Z'|'-' in an arithmetic operand, the result will be 'X'(es).
+#    Time: 270 ns  Iteration: 8  Instance: /testbench/DUT/arith_logic_unity
