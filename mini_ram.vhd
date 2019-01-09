@@ -12,7 +12,7 @@ use ieee.numeric_std.all;--to_integer
 
 entity mini_ram is
 	port (CLK: in std_logic;--borda de subida para escrita, memória pode ser lida a qq momento desde que rden=1
-			ADDR: in std_logic_vector(1 downto 0);--addr é endereço de byte, mas os Lsb são 00
+			ADDR: in std_logic_vector(3 downto 0);--addr é endereço de byte, mas os Lsb são 00
 			write_data: in std_logic_vector(31 downto 0);
 			rden: in std_logic;--habilita leitura
 			wren: in std_logic;--habilita escrita
@@ -22,7 +22,7 @@ end mini_ram;
 
 architecture memArch of mini_ram is
 
-	type memory is array (0 to 3) of std_logic_vector(31 downto 0);
+	type memory is array (0 to 15) of std_logic_vector(31 downto 0);
 	constant initial_values: memory := (
 	x"0000_0005",
 	x"0000_0003",
