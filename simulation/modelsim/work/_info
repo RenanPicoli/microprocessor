@@ -25,9 +25,9 @@ Vnk2A]_MY:GWD><H2I]7MO0
 !s100 ;J<Rfk6Q;WHLE3dHcIdf?0
 Z10 OV;C;10.5b;63
 32
-Z11 !s110 1546904729
+Z11 !s110 1547175099
 !i10b 1
-Z12 !s108 1546904728.000000
+Z12 !s108 1547175099.000000
 Z13 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd|
 Z14 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd|
 !i113 1
@@ -70,11 +70,11 @@ VgXoD6@do3KNNo>0?PINHh3
 !s100 FFJY`dmnUNFleTbIFZLK82
 R10
 32
-R11
+Z20 !s110 1547175100
 !i10b 1
-Z20 !s108 1546904729.000000
-Z21 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/control_unit.vhd|
-Z22 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/control_unit.vhd|
+Z21 !s108 1547175100.000000
+Z22 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/control_unit.vhd|
+Z23 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/control_unit.vhd|
 !i113 1
 R15
 R16
@@ -90,34 +90,34 @@ VE[UizT_0CSVPXKDI>UfTd0
 !s100 21cO9_SMWla7DLolIXYVY1
 R10
 32
-R11
-!i10b 1
 R20
+!i10b 1
 R21
 R22
+R23
 !i113 1
 R15
 R16
 Ed_flip_flop
-Z23 w1545957005
+Z24 w1545957005
 R4
 R5
 R6
 R7
 R0
-Z24 8D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd
-Z25 FD:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd
+Z25 8D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd
+Z26 FD:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd
 l0
 L12
 V5KzZOFj9=N1aE[MCiIWV10
 !s100 icI8F1;^IebB8_V79bdQV3
 R10
 32
-R11
-!i10b 1
 R20
-Z26 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd|
-Z27 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd|
+!i10b 1
+R21
+Z27 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd|
+Z28 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/d_flip_flop.vhd|
 !i113 1
 R15
 R16
@@ -133,11 +133,11 @@ Vog`T?7@V[P8b@cQAMJ;>@0
 !s100 oZS9^2MW4<OMX9FDeR_`a0
 R10
 32
-R11
-!i10b 1
 R20
-R26
+!i10b 1
+R21
 R27
+R28
 !i113 1
 R15
 R16
@@ -166,7 +166,7 @@ R10
 R15
 R16
 Edemux1x32
-Z28 w1544731416
+Z29 w1544731416
 R3
 R2
 R4
@@ -174,19 +174,19 @@ R5
 R6
 R7
 R0
-Z29 8D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd
-Z30 FD:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd
+Z30 8D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd
+Z31 FD:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd
 l0
 L37
 Vaf:T@KXKQ=nn0cmD?URMX3
 !s100 iKP9OTEa]T0Ma^70^DM^H2
 R10
 32
-Z31 !s110 1546904730
+R20
 !i10b 1
-Z32 !s108 1546904730.000000
-Z33 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd|
-Z34 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd|
+R21
+Z32 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd|
+Z33 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/demux.vhd|
 !i113 1
 R15
 R16
@@ -204,16 +204,16 @@ VI2FUQGOdH1Od5fT6CdAlH2
 !s100 mlUXQm48oggRIlKCA0a?:0
 R10
 32
-R31
+R20
 !i10b 1
+R21
 R32
 R33
-R34
 !i113 1
 R15
 R16
 Edemux32x32
-R28
+R29
 R3
 R2
 R4
@@ -221,19 +221,19 @@ R5
 R6
 R7
 R0
-R29
 R30
+R31
 l0
 L8
 VFA^ME>;=iLb8blfcdnXJ^2
 !s100 PSc=3=Lc8K9@OC=?AFL7Y1
 R10
 32
-R31
+R20
 !i10b 1
+R21
 R32
 R33
-R34
 !i113 1
 R15
 R16
@@ -251,11 +251,11 @@ ViN?^aERmdlnYeBHK_kaU>1
 !s100 k>Kf36ISUdnY@=JI>H;GA2
 R10
 32
-R31
+R20
 !i10b 1
+R21
 R32
 R33
-R34
 !i113 1
 R15
 R16
@@ -291,8 +291,8 @@ R5
 R6
 R7
 DEx4 work 9 instr_mem 0 22 znEcNmA@I=D;e8eAK4Wlf2
-Z35 8D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd
-Z36 FD:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd
+Z34 8D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd
+Z35 FD:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd
 l52
 L24
 V<i:d@`HncVDdfZdMFMiT:0
@@ -302,32 +302,32 @@ R10
 !s110 1544482482
 !i10b 1
 !s108 1544482482.000000
-Z37 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd|
-Z38 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd|
+Z36 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd|
+Z37 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd|
 !i113 1
 R15
 R16
 Emicroprocessor
-Z39 w1546903231
+Z38 w1546999907
 R3
 R4
 R5
 R6
 R7
 R0
-Z40 8D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd
-Z41 FD:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd
+Z39 8D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd
+Z40 FD:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd
 l0
 L16
 VGWeBelTQcT:nbRZ5Q^2ZK1
 !s100 F>]]G3B32VVi:alFFH4P?3
 R10
 32
-R31
+R20
 !i10b 1
-R32
-Z42 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd|
-Z43 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd|
+R21
+Z41 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd|
+Z42 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/microprocessor.vhd|
 !i113 1
 R15
 R16
@@ -337,42 +337,42 @@ R4
 R5
 R6
 R7
-Z44 DEx4 work 14 microprocessor 0 22 GWeBelTQcT:nbRZ5Q^2ZK1
+Z43 DEx4 work 14 microprocessor 0 22 GWeBelTQcT:nbRZ5Q^2ZK1
 l193
 L24
-Vk`A^z3A?5V?J>jdB>JCTE0
-!s100 :eW3McARBCVXOT4fXl6oQ3
+V_lP[]IC`mYNYVKPQL[zK90
+!s100 3ZBQb[eULc^le=:NBGJC`3
 R10
 32
-R31
+R20
 !i10b 1
-R32
+R21
+R41
 R42
-R43
 !i113 1
 R15
 R16
 Emini_ram
-Z45 w1546915159
+Z44 w1547174162
 R2
 R4
 R5
 R6
 R7
 R0
-Z46 8D:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd
-Z47 FD:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd
+Z45 8D:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd
+Z46 FD:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd
 l0
 L13
-VF3PD<icQ73L^W733V8VHL3
-!s100 c:g0D@_jZm0[D6nHTGg650
+VRNXk[:@=I93oc_F8jR`zH1
+!s100 2Z;lDYT?fA@okF7k1=kO;1
 R10
 32
-Z48 !s110 1546915178
+Z47 !s110 1547175101
 !i10b 1
-Z49 !s108 1546915178.000000
-Z50 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd|
-Z51 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd|
+Z48 !s108 1547175101.000000
+Z49 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd|
+Z50 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/mini_ram.vhd|
 !i113 1
 R15
 R16
@@ -382,42 +382,42 @@ R4
 R5
 R6
 R7
-DEx4 work 8 mini_ram 0 22 F3PD<icQ73L^W733V8VHL3
-l36
+DEx4 work 8 mini_ram 0 22 RNXk[:@=I93oc_F8jR`zH1
+l34
 L23
-VjAj]`DA@2Lo8M1STEbZ`D3
-!s100 bnRzaZ@6<iENQkdB`zX6F1
+V[;Qk47i;NalfX;ndbW6G70
+!s100 kFKI4N7V0UC2i5DCFQ7][3
 R10
 32
-R48
+R47
 !i10b 1
+R48
 R49
 R50
-R51
 !i113 1
 R15
 R16
 Emini_rom
-Z52 w1546916482
+Z51 w1547175137
 R2
 R4
 R5
 R6
 R7
 R0
+R34
 R35
-R36
 l0
 L14
 VfgnV?anKiTDK`K5TQYIa<2
 !s100 kgQC?H9AfBXXXjOmeceok1
 R10
 32
-Z53 !s110 1546917674
+Z52 !s110 1547175148
 !i10b 1
-Z54 !s108 1546917674.000000
+Z53 !s108 1547175148.000000
+R36
 R37
-R38
 !i113 1
 R15
 R16
@@ -427,41 +427,41 @@ R4
 R5
 R6
 R7
-Z55 DEx4 work 8 mini_rom 0 22 fgnV?anKiTDK`K5TQYIa<2
-l34
+Z54 DEx4 work 8 mini_rom 0 22 fgnV?anKiTDK`K5TQYIa<2
+l39
 L21
-V2b[cUgNBPB4]9`k]DaW>M2
-!s100 nGK`VW8W1Q:Z]Zimm=E]]0
+VVS26jbTEZ2E>JR25JA2?P1
+!s100 a2ln4`RWJz^o]hTAg8d8?3
 R10
 32
-R53
+R52
 !i10b 1
-R54
+R53
+R36
 R37
-R38
 !i113 1
 R15
 R16
 Emux32
-Z56 w1544731423
+Z55 w1544731423
 R4
 R5
 R6
 R7
 R0
-Z57 8D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd
-Z58 FD:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd
+Z56 8D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd
+Z57 FD:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd
 l0
 L30
 VBWDXHgGMbZ6Fee:[AlVFS0
 !s100 KdJ]f?:9`195f2lnBgX]U1
 R10
 32
-Z59 !s110 1546904732
+R47
 !i10b 1
-Z60 !s108 1546904732.000000
-Z61 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd|
-Z62 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd|
+R48
+Z58 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd|
+Z59 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd|
 !i113 1
 R15
 R16
@@ -477,16 +477,16 @@ V6HWfZjJHBW:dLNa_HTfH01
 !s100 P[P:ZXV4`0eP;3dW_e<Cf3
 R10
 32
-R59
+R47
 !i10b 1
-R60
-R61
-R62
+R48
+R58
+R59
 !i113 1
 R15
 R16
 Emux32x32
-R56
+R55
 R2
 R4
 R5
@@ -494,19 +494,19 @@ R6
 R7
 R3
 R0
+R56
 R57
-R58
 l0
 L52
 VFk1oQOgfL03AgAVmR99:V2
 !s100 0Aa>FR`DbeH?`87fW[d701
 R10
 32
-R59
+R47
 !i10b 1
-R60
-R61
-R62
+R48
+R58
+R59
 !i113 1
 R15
 R16
@@ -524,34 +524,34 @@ VFI7Q@e?9l5FmZA=@n=9YH0
 !s100 G_5n]Ugj_URkHo_:R>6703
 R10
 32
-R59
+R47
 !i10b 1
-R60
-R61
-R62
+R48
+R58
+R59
 !i113 1
 R15
 R16
 Emux5
-R56
+R55
 R4
 R5
 R6
 R7
 R0
+R56
 R57
-R58
 l0
 L10
 VMCnZ_bcQ5DHQXQnKZ5L1o2
 !s100 03QN_VP5PzWh0a;Do6Lj53
 R10
 32
-R59
+R47
 !i10b 1
-R60
-R61
-R62
+R48
+R58
+R59
 !i113 1
 R15
 R16
@@ -567,11 +567,11 @@ VFScUaViG:`8M6<4MbacF<0
 !s100 ZSdWk6]gcH?lf?PWkfP=c1
 R10
 32
-R59
+R47
 !i10b 1
-R60
-R61
-R62
+R48
+R58
+R59
 !i113 1
 R15
 R16
@@ -582,8 +582,8 @@ R6
 R7
 w1518890539
 R0
+R56
 R57
-R58
 l0
 L50
 V8A2dGzdiM8ecnMH4KoYmA2
@@ -593,8 +593,8 @@ R10
 !s110 1544483072
 !i10b 1
 !s108 1544483072.000000
-R61
-R62
+R58
+R59
 !i113 1
 R15
 R16
@@ -613,38 +613,38 @@ V1^3C^bCbfZ9d3eA;z=HEk3
 !s100 ^`6ec7_Pkdl8zo0m1Qi1e3
 R10
 32
-R59
+R47
 !i10b 1
-R60
+R48
 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/my_types.vhd|
 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/my_types.vhd|
 !i113 1
 R15
 R16
 Eram
-Z63 w1544022045
-Z64 DPx9 altera_mf 20 altera_mf_components 0 22 :YRc5<ojH^WgP]^Vezi9c1
+Z60 w1544022045
+Z61 DPx9 altera_mf 20 altera_mf_components 0 22 :YRc5<ojH^WgP]^Vezi9c1
 R6
 R7
 R0
-Z65 8D:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd
-Z66 FD:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd
+Z62 8D:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd
+Z63 FD:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd
 l0
 L43
 VPmLig2=YNKa3bN32]U[H^0
 !s100 e`zd]bMLWnBBOFYjIbC0A3
 R10
 32
-Z67 !s110 1546037639
+Z64 !s110 1546037639
 !i10b 1
-Z68 !s108 1546037639.000000
-Z69 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd|
-Z70 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd|
+Z65 !s108 1546037639.000000
+Z66 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd|
+Z67 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/ram.vhd|
 !i113 1
 R15
 R16
 Asyn
-R64
+R61
 R6
 R7
 DEx4 work 3 ram 0 22 PmLig2=YNKa3bN32]U[H^0
@@ -654,35 +654,35 @@ V<:@[V5C__S8FFEfL<oRMi1
 !s100 aT[Ueh`=9aIkBR:d>5bX?1
 R10
 32
-R67
+R64
 !i10b 1
-R68
-R69
-R70
+R65
+R66
+R67
 !i113 1
 R15
 R16
 Ereg_file
-Z71 w1546449574
+Z68 w1546449574
 R3
 R4
 R5
 R6
 R7
 R0
-Z72 8D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd
-Z73 FD:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd
+Z69 8D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd
+Z70 FD:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd
 l0
 L17
 V=`OUi`1hNJI<;gagX=kHV2
 !s100 jF]i^LC3?_CdYkbUeIj^?0
 R10
 32
-Z74 !s110 1546904733
+R47
 !i10b 1
-R60
-Z75 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd|
-Z76 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd|
+R48
+Z71 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd|
+Z72 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/reg_file.vhd|
 !i113 1
 R15
 R16
@@ -699,38 +699,38 @@ V]CDaAYn4NiVSJ>`d`0Ri;0
 !s100 2^WB8OoQDFPCR04kMK;Ni2
 R10
 32
-R74
+R47
 !i10b 1
-R60
-R75
-R76
+R48
+R71
+R72
 !i113 1
 R15
 R16
 Erom
-Z77 w1544031762
-R64
+Z73 w1544031762
+R61
 R6
 R7
 R0
-Z78 8D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd
-Z79 FD:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd
+Z74 8D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd
+Z75 FD:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd
 l0
 L43
 VTXCl<cmjSIz`_kOJ?=:cX1
 !s100 ^LB96KcWOj5a8H[6F6ZP>3
 R10
 32
-Z80 !s110 1546037640
+Z76 !s110 1546037640
 !i10b 1
-Z81 !s108 1546037640.000000
-Z82 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd|
-Z83 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd|
+Z77 !s108 1546037640.000000
+Z78 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd|
+Z79 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/rom.vhd|
 !i113 1
 R15
 R16
 Asyn
-R64
+R61
 R6
 R7
 DEx4 work 3 rom 0 22 TXCl<cmjSIz`_kOJ?=:cX1
@@ -740,33 +740,33 @@ V=DI:QBmX<hEbWdZi4en_P1
 !s100 ZMQgH]IiKLY9`8`YBDBk[2
 R10
 32
-R80
+R76
 !i10b 1
-R81
-R82
-R83
+R77
+R78
+R79
 !i113 1
 R15
 R16
 Etestbench
-Z84 w1546906160
+Z80 w1546906160
 R2
 R6
 R7
 R0
-Z85 8D:\Users\renan\Documents\FPGA projects\microprocessor\testbench.vhd
-Z86 FD:\Users\renan\Documents\FPGA projects\microprocessor\testbench.vhd
+Z81 8D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd
+Z82 FD:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd
 l0
 L6
 V3eJ2o_G5i?6JWgREn@^HL2
 !s100 ^<[gLB4gLLO@:IV8a>gon3
 R10
 32
-Z87 !s110 1546906194
+R11
 !i10b 1
-Z88 !s108 1546906194.000000
-Z89 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:\Users\renan\Documents\FPGA projects\microprocessor\testbench.vhd|
-Z90 !s107 D:\Users\renan\Documents\FPGA projects\microprocessor\testbench.vhd|
+R12
+Z83 !s90 -reportprogress|300|-work|work|-2002|-explicit|-stats=none|D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd|
+Z84 !s107 D:/Users/renan/Documents/FPGA projects/microprocessor/testbench.vhd|
 !i113 1
 R15
 R16
@@ -774,7 +774,7 @@ Atest
 R3
 R4
 R5
-R44
+R43
 R2
 R6
 R7
@@ -785,11 +785,11 @@ V;X0DLCaa>9j]K`AEUB:0J2
 !s100 RSTMQAKU^MPUB[a0S`A<73
 R10
 32
-R87
+R11
 !i10b 1
-R88
-R89
-R90
+R12
+R83
+R84
 !i113 1
 R15
 R16

@@ -22,13 +22,18 @@ architecture memArch of mini_rom is
 
 	type memory is array (0 to 15) of std_logic_vector(31 downto 0);
 	constant rom: memory := (--asm approx. follows Intel syntax: destination before source
-	x"8C01_0000",--lw [r0+0] r1
-	x"8C02_0004",--lw [r0+4] r2
-	x"0041_1820",--add r3 r2 r1
-	x"AC03_0008",--sw [r0+8] r3 armazena soma na memória
-	x"8C03_0008",--lw [r0+8] r3 confere a soma
+--	x"8C01_0000",--lw [r0+0] r1
+--	x"8C02_0004",--lw [r0+4] r2
+--	x"0041_1820",--add r3 r2 r1
+--	x"AC03_0008",--sw [r0+8] r3 armazena soma na memória
+--	x"8C03_0008",--lw [r0+8] r3 confere a soma
+--	x"0800_0000",--jmp 0
+	x"8C20_0000",--lw [r1+0] r0
+	x"1002_0001",--beq r0 r2 1 salta para a instrucao após a de baixo
+	x"0800_0002",--jmp 2 (loop infinito)
+	x"2021_0004",--addi r1 r1 4 (somo 4 para pular para a proxima palavra de 32bits)
 	x"0800_0000",--jmp 0
-	others => x"0800_0006" --jmp 6
+	others => x"0800_0005" --jmp 5
 	);
 	
 	begin
