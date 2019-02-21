@@ -10,16 +10,16 @@ architecture test of testbench is
 -- "Time" that will elapse between test vectors we submit to the component.
 constant TIME_DELTA : time := 10 ns;
 
-signal  clock_50MHz:std_logic;
+signal  	clock_50MHz:std_logic;
 signal	rst: std_logic;
 signal	memWrite:std_logic;
 signal	memRead: std_logic;
 signal	aluOp: std_logic_vector(1 downto 0);
 signal	ZF: std_logic;
 signal	branch: std_logic;
-signal  jump:std_logic;
-signal  instruction:std_logic_vector(31 downto 0);
-signal  instruction_addr:std_logic_vector(31 downto 0);
+signal  	jump:std_logic;
+signal  	instruction:std_logic_vector(31 downto 0);
+signal  	instruction_addr:std_logic_vector(31 downto 0);
 signal	data_memory_output:std_logic_vector(31 downto 0);
 
 begin

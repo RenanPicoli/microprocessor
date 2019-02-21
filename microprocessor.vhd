@@ -8,6 +8,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;--to_integer
 
 use work.my_types.all;
 
@@ -47,26 +48,11 @@ component reg_file
 			);
 end component;
 
-component mux5 is
-	port(	A: in std_logic_vector (4 downto 0);
-			B: in std_logic_vector (4 downto 0);
-			sel: in std_logic;
-			Q: out std_logic_vector (4 downto 0)
-			);
-end component;
-
-component mux32 is
-	port(	A: in std_logic_vector (31 downto 0);
-			B: in std_logic_vector (31 downto 0);
-			sel: in std_logic;
-			Q: out std_logic_vector (31 downto 0)
-			);
-end component;
-
 component alu is
 	port(	A:	in std_logic_vector(31 downto 0);
 			B:	in std_logic_vector(31 downto 0);
 			Sel:	in std_logic_vector(3 downto 0);
+			CLK: in std_logic;
 			--ZF: out std_logic;
 			flags: out eflags;
 			Res:	buffer std_logic_vector(31 downto 0)  
@@ -128,7 +114,7 @@ end component;
 
 component control_unit
 	port (instruction: in std_logic_vector (31 downto 0);
-			regDst: out std_logic;
+			regDst: out std_logic_vector(1 downto 0);
 			branch: out std_logic;
 			jump: out std_logic;
 			memRead: out std_logic;
@@ -142,7 +128,7 @@ component control_unit
 end component;
 
 --signals driven by control unit
-signal regDst: std_logic;
+signal regDst: std_logic_vector(1 downto 0);
 signal branch: std_logic;
 signal jump: std_logic;
 signal memRead: std_logic;
@@ -189,6 +175,7 @@ signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & add
 
 signal reg_clk: std_logic;--register file clock signal
 signal ram_clk: std_logic;--data memory clock signal
+signal alu_clk: std_logic;--alu clock signal
 
 begin--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
@@ -201,9 +188,10 @@ begin--note this: port map uses ',' while port uses ';'
 	rs <= instruction(25 downto 21);
 	rt <= instruction(20 downto 16);
 	rd <= instruction(15 downto 11);
-	
-	writeLoc <=	rd when regDst='1' else
-					rt;
+
+	writeLoc <=	rd when regDst="01" else
+					rt when regDst="00" else
+					rs;--only for mflo, mfhi
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	reg_clk <= not CLK;
@@ -218,9 +206,11 @@ begin--note this: port map uses ',' while port uses ';'
 													read_data_2 => read_data_2
 											);
 											
+	alu_clk <= not CLK;
 	arith_logic_unity: alu port map ( 	A => read_data_1,
 													B => aluOp2,
 													sel => aluControl,
+													CLK => alu_clk,
 													flags => flags,
 													Res => alu_result
 												);

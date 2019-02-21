@@ -8,12 +8,12 @@ use ieee.std_logic_unsigned.all;
 
 entity control_unit is
 	port (instruction: in std_logic_vector (31 downto 0);
-			regDst: out std_logic;
+			regDst: out std_logic_vector(1 downto 0);
 			branch: out std_logic;
 			jump: out std_logic;
 			memRead: out std_logic;
 			memtoReg: out std_logic;
-			aluOp: buffer std_logic_vector (1  downto 0);--auxiliary signal for alu control
+			aluOp: buffer std_logic_vector (1 downto 0);--auxiliary signal for alu control
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
 			memWrite: out std_logic;
 			aluSrc: out std_logic;
@@ -27,9 +27,6 @@ architecture control of control_unit is
 
 --Instruction fields
 signal opcode: std_logic_vector (5 downto 0);
-signal rs: std_logic_vector (4 downto 0);
-signal rt: std_logic_vector (4 downto 0);
-signal rd: std_logic_vector (4 downto 0);
 signal shamt: std_logic_vector (4 downto 0);
 signal funct: std_logic_vector (5 downto 0);
 signal addressRelative: std_logic_vector (15 downto 0);--for load, store, branch
@@ -49,6 +46,9 @@ signal ori:	 std_logic;
 signal xori: std_logic;
 signal nori: std_logic;
 signal slti: std_logic;
+signal mult: std_logic;--unsigned multiplication
+signal mflo: std_logic;--load lower half of product into register
+signal mfhi: std_logic;--load upper half of product into register
 
 	begin
 
@@ -72,19 +72,26 @@ ori		<= '1' when opcode="000001" else '0';
 xori		<=	'1' when opcode="010000" else	'0';
 nori		<= '1' when opcode="010100" else '0';
 slti 		<= '1' when opcode="010101" else '0';
+mult		<= '1' when opcode="000101" else '0';
+mflo		<= '1' when opcode="100101" else '0';
+mfhi		<= '1' when opcode="101101" else '0';
 
-regDst 	<= R_type;--usa rd (para escrita) só em instrucao tipo R
+regDst 	<= "01" when R_type='1' else--usa rd (para escrita) só em instrucao tipo R
+				"10" when (mfhi='1' or mflo='1') else--apenas mflo mfhi escrevem no rs
+				"00";--demais instrucoes escrevem no rt
 memRead 	<= load_type;
 memWrite <= store_type;
-memtoReg <= load_type;
-aluSrc 	<= load_type or store_type or addi or subi or andi or ori or xori or nori or slti;--'1' operando 2 da ALU é imediato com extensão de sinal
-regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori or slti;--addi tambem escreve em registrador, como R-type
+memtoReg <= load_type;--1: loads memory content to register; 0: saves alu result to register
+aluSrc 	<= load_type or store_type or addi or subi or andi or ori or xori or nori or slti;--'1': operando 2 da ALU é imediato com extensão de sinal
+regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori or slti or mfhi or mflo;--addi tambem escreve no register file, como R-type
 
-AluOp <= "00" when (load_type='1' or store_type='1' or addi='1') else--load/store/addi require addition
+AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require addition
 			"01" when (branch_type='1') else--branch requires subctration
 			"10" when (R_type='1') else--R-type requires access to any arith operation
-			"11" when (addi='1' or subi='1' or andi='1' or ori='1' or xori='1' or nori='1' or slti='1') else--these I-type ops require access to any arith operation
-			"XX";
+			"11" when (addi='1' or subi='1' or andi='1' or--these I-type ops require access to any arith operation
+							ori='1' or xori='1' or nori='1' or
+							slti='1' or mult='1' or mfhi='1' or mflo='1')
+			else "XX";
 
 aluControl <= 	"0010" when (AluOp = "00") else--add
 					"0110" when (AluOp = "01") else--subtract
@@ -92,10 +99,13 @@ aluControl <= 	"0010" when (AluOp = "00") else--add
 					"0010" when (AluOp = "11" and addi='1') else--addi
 					"0110" when (AluOp = "11" and subi='1') else--subi
 					"0000" when (AluOp = "11" and andi='1') else--andi
-					"0001" when (AluOp = "11" and ori='1')  else--ori
+					"0001" when (AluOp = "11" and ori ='1') else--ori
 					"0011" when (AluOp = "11" and xori='1') else--xori
 					"1100" when (AluOp = "11" and nori='1') else--nori
 					"0111" when (AluOp = "11" and slti='1') else--slti
+					"1000" when (AluOp = "11" and mult='1') else--mult (immediate is ignored)
+					"1001" when (AluOp = "11" and mfhi='1') else--mfhi
+					"1010" when (AluOp = "11" and mflo='1') else--mflo
 					--for R-type
 					"0010" when (AluOp = "10" and funct = "100000") else--add
 					"0110" when (AluOp = "10" and funct = "100010") else--subtract
