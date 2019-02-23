@@ -8,16 +8,17 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Compiling entity d_flip_flop
 -- Compiling architecture behv of d_flip_flop
 
-} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd}
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/multiplier.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/multiplier.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
 -- Loading package STANDARD
 -- Loading package TEXTIO
 -- Loading package std_logic_1164
 -- Loading package std_logic_arith
 -- Loading package STD_LOGIC_UNSIGNED
--- Loading package NUMERIC_STD
--- Compiling entity mini_rom
--- Compiling architecture memArch of mini_rom
+-- Compiling entity multiplier
+-- Compiling architecture bhv of multiplier
+-- Compiling entity generic_multiplier
+-- Compiling architecture gen_bhv of generic_multiplier
 
 } {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/ALU.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
@@ -30,6 +31,30 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Loading package NUMERIC_STD
 -- Compiling entity ALU
 -- Compiling architecture behv of ALU
+
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/mini_rom.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Loading package NUMERIC_STD
+-- Loading package my_types
+-- Compiling entity mini_rom
+-- Compiling architecture memArch of mini_rom
+
+} {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/full_adder.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/full_adder.vhd}
+Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
+-- Loading package STANDARD
+-- Loading package TEXTIO
+-- Loading package std_logic_1164
+-- Loading package std_logic_arith
+-- Loading package STD_LOGIC_UNSIGNED
+-- Compiling entity FA
+-- Compiling architecture add_bhv of FA
+-- Compiling entity singlebit_FA
+-- Compiling architecture bhv of singlebit_FA
 
 } {} {}} {D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd} {1 {vcom -work work -2002 -explicit -stats=none {D:/Users/renan/Documents/FPGA projects/microprocessor/mux.vhd}
 Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  5 2016
@@ -131,6 +156,7 @@ Model Technology ModelSim - Intel FPGA Edition vcom 10.5b Compiler 2016.10 Oct  
 -- Loading package std_logic_1164
 -- Loading package std_logic_arith
 -- Loading package STD_LOGIC_UNSIGNED
+-- Loading package NUMERIC_STD
 -- Loading package my_types
 -- Compiling entity microprocessor
 -- Compiling architecture proc of microprocessor

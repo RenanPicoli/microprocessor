@@ -53,6 +53,7 @@ component alu is
 			B:	in std_logic_vector(31 downto 0);
 			Sel:	in std_logic_vector(3 downto 0);
 			CLK: in std_logic;
+			RST: in std_logic;
 			--ZF: out std_logic;
 			flags: out eflags;
 			Res:	buffer std_logic_vector(31 downto 0)  
@@ -211,6 +212,7 @@ begin--note this: port map uses ',' while port uses ';'
 													B => aluOp2,
 													sel => aluControl,
 													CLK => alu_clk,
+													RST => rst,
 													flags => flags,
 													Res => alu_result
 												);
