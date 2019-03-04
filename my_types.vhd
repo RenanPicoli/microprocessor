@@ -45,6 +45,7 @@ package my_types is
 	constant sw:		std_logic_vector(5 downto 0) := "101011";
 	constant beq: 		std_logic_vector(5 downto 0) := "000100";
 	constant mult:		std_logic_vector(5 downto 0) := "000101";
+	constant imul:		std_logic_vector(5 downto 0) := "001101";
 	constant mflo:		std_logic_vector(5 downto 0) := "100101";
 	constant mfhi:		std_logic_vector(5 downto 0) := "101101";
 	constant jmp: 		std_logic_vector(5 downto 0) := "000010";

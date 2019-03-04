@@ -47,6 +47,7 @@ signal xori: std_logic;
 signal nori: std_logic;
 signal slti: std_logic;
 signal mult: std_logic;--unsigned multiplication
+signal imul: std_logic;--signed multiplication
 signal mflo: std_logic;--load lower half of product into register
 signal mfhi: std_logic;--load upper half of product into register
 
@@ -73,6 +74,7 @@ xori		<=	'1' when opcode="010000" else	'0';
 nori		<= '1' when opcode="010100" else '0';
 slti 		<= '1' when opcode="010101" else '0';
 mult		<= '1' when opcode="000101" else '0';
+imul		<= '1' when opcode="001101" else '0';
 mflo		<= '1' when opcode="100101" else '0';
 mfhi		<= '1' when opcode="101101" else '0';
 
@@ -90,7 +92,8 @@ AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require ad
 			"10" when (R_type='1') else--R-type requires access to any arith operation
 			"11" when (addi='1' or subi='1' or andi='1' or--these I-type ops require access to any arith operation
 							ori='1' or xori='1' or nori='1' or
-							slti='1' or mult='1' or mfhi='1' or mflo='1')
+							slti='1' or mult='1' or imul='1' or
+							mfhi='1' or mflo='1')
 			else "XX";
 
 aluControl <= 	"0010" when (AluOp = "00") else--add
@@ -104,6 +107,7 @@ aluControl <= 	"0010" when (AluOp = "00") else--add
 					"1100" when (AluOp = "11" and nori='1') else--nori
 					"0111" when (AluOp = "11" and slti='1') else--slti
 					"1000" when (AluOp = "11" and mult='1') else--mult (immediate is ignored)
+					"1011" when (AluOp = "11" and imul='1') else--imul
 					"1001" when (AluOp = "11" and mfhi='1') else--mfhi
 					"1010" when (AluOp = "11" and mflo='1') else--mflo
 					--for R-type
