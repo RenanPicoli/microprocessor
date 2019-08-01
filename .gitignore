@@ -1,0 +1,8 @@
+*.bak
+*.pdf
+*.csv
+db/
+incremental_db/
+simulation/
+output_files/
+greybox_tmp/

@@ -1,0 +1,4 @@
+[submodule "fpu_single_precision"]
+	path = fpu_single_precision
+	url = http://github.com/RenanPicoli/fpu_single_precision
+	branch = master
