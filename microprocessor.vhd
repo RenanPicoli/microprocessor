@@ -1,9 +1,9 @@
---------------------------------------------------
+-------------------------------------------------------------
 --microprocessor implementation
 --by Renan Picoli de Souza
 --supports instructions on page 23 and 28 of chapter 4 slides
 --I added support for addi,subi,andi,ori,xori,nori,slti
----------------------------------------------------
+-------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -60,6 +60,18 @@ component alu is
 			);
 end component;
 
+component fpu is
+port (
+	A: in std_logic_vector(31 downto 0);--supposed to be normalized
+	B: in std_logic_vector(31 downto 0);--supposed to be normalized
+	op:in std_logic_vector(1  downto 0);--4 operations: add,subtract, multiply,divide
+	divideByZero:	out std_logic;
+	overflow:		out std_logic;
+	underflow:		out std_logic;
+	result:out std_logic_vector(31 downto 0)
+);
+end component;
+
 --component data_mem
 --	port (	D:	in std_logic_vector(31 downto 0);--data to be written
 --				CLK:	in std_logic;
@@ -68,16 +80,6 @@ end component;
 --				MemRead:  in std_logic;
 --				Q:	out std_logic_vector(31 downto 0)
 --				);
---end component;
-
---component ram
---	port (address		: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
---			clock		: IN STD_LOGIC  := '1';
---			data		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
---			rden		: IN STD_LOGIC  := '1';
---			wren		: IN STD_LOGIC ;
---			q		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
---	);
 --end component;
 
 component mini_ram
@@ -99,13 +101,6 @@ end component;
 --			);
 --end component;
 
---component rom
---	port (address		: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
---			clock		: IN STD_LOGIC  := '1';
---			q		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
---	);
---end component;
-
 component mini_rom
 	port (--CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
 			ADDR: in std_logic_vector(3 downto 0);--addr é endereço de byte, mas os Lsb são 00
@@ -119,9 +114,11 @@ component control_unit
 			branch: out std_logic;
 			jump: out std_logic;
 			memRead: out std_logic;
-			memtoReg: out std_logic;
-			aluOp: buffer std_logic_vector (1  downto 0);--auxiliary signal for ALU control
+			reg_data_src: out std_logic_vector(1 downto 0);--selects which data is to be written to reg file
+			mem_data_src: out std_logic;--selects which data is to be written to data memory
+--			aluOp: buffer std_logic_vector (1  downto 0);--auxiliary signal for ALU control
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
+			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
 			memWrite: out std_logic;
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
@@ -133,19 +130,23 @@ signal regDst: std_logic_vector(1 downto 0);
 signal branch: std_logic;
 signal jump: std_logic;
 signal memRead: std_logic;
-signal memtoReg: std_logic;
-signal aluOp: std_logic_vector (1  downto 0);--auxiliary signal for alu control
+signal reg_data_src: std_logic_vector(1 downto 0);
+signal mem_data_src: std_logic;
+--signal aluOp: std_logic_vector (1  downto 0);--auxiliary signal for alu control
 signal aluControl: std_logic_vector (3 downto 0);--ALU operation selector
+signal fpuControl: std_logic_vector (1 downto 0);--FPU operation selector
 signal memWrite: std_logic;
 signal aluSrc: std_logic;
 signal regWrite: std_logic;
 
 signal writeLoc: std_logic_vector (4  downto 0);
-signal write_data: std_logic_vector (31  downto 0);
+signal reg_write_data: std_logic_vector (31  downto 0);--data to be written to register file
+signal mem_write_data: std_logic_vector (31  downto 0);--data to be written to data memory
 signal aluOp2: std_logic_vector (31  downto 0);
 signal read_data_1: std_logic_vector (31 downto 0);--from register_file
 signal read_data_2: std_logic_vector (31 downto 0);--from register_file
 signal alu_result: std_logic_vector (31 downto 0);
+signal fpu_result: std_logic_vector (31 downto 0);
 
 --Instruction fields
 signal opcode: std_logic_vector (5 downto 0);
@@ -167,7 +168,8 @@ signal store_type: std_logic;
 
 --signal data_memory_output: std_logic_vector (31 downto 0);
 signal instruction: std_logic_vector (31 downto 0);--next instruction to execute
-signal flags: eflags;--flags da ALU
+signal alu_flags: eflags;--flags da ALU
+signal fpu_flags: std_logic_vector(31 downto 0);--flags da FPU
 signal muxNextInstrOutput: std_logic_vector (31 downto 0);
 signal pc_incremented: std_logic_vector (31 downto 0);--pc+4
 signal branch_address: std_logic_vector (31 downto 0);--(addressRelativeExtended(29 downto 0)&"00")+pc_out
@@ -201,7 +203,7 @@ begin--note this: port map uses ',' while port uses ';'
 													read_reg_1 => rs,
 													read_reg_2 => rt,
 													write_reg  => writeLoc,
-													write_data => write_data,
+													write_data => reg_write_data,
 													regWrite => regWrite,
 													read_data_1 => read_data_1,
 													read_data_2 => read_data_2
@@ -213,9 +215,19 @@ begin--note this: port map uses ',' while port uses ';'
 													sel => aluControl,
 													CLK => alu_clk,
 													RST => rst,
-													flags => flags,
+													flags => alu_flags,
 													Res => alu_result
 												);
+												
+	floating_point_unity: fpu port map (A => read_data_1,
+													B => read_data_2,
+													op=> fpuControl,
+													divideByZero => fpu_flags(0),
+													overflow	=> fpu_flags(1),
+													underflow=> fpu_flags(2),
+													result	=> fpu_result
+												);
+	fpu_flags(31 downto 3) <= (others=>'0');
 								
 --	data_memory: data_mem port map ( CLK => CLK,
 --												MemWrite => memWrite,
@@ -224,29 +236,26 @@ begin--note this: port map uses ',' while port uses ';'
 --												D => read_data_2, --store operations
 --												Q => data_memory_output
 --	);
-	
---	data_memory: ram port map (	clock 	=> CLK,
---											wren		=> memWrite,
---											rden		=> memRead,
---											address	=> alu_result(9 downto 2),
---											data		=> read_data_2,
---											q			=> data_memory_output);
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR Na MEMÓRIA NA BORDA DE DESCIDA
 	ram_clk <= not CLK;											
 	data_memory: mini_ram port map(CLK	=> ram_clk,
 											ADDR	=> alu_result(5 downto 2),
-											write_data => read_data_2,
+											write_data => mem_write_data,
 											rden	=> memRead,
 											wren	=> memWrite,
 											Q		=> data_memory_output);
 	
-	write_data <= 	data_memory_output when memtoReg='1' else--for register write
-						alu_result;
+	reg_write_data <= data_memory_output when reg_data_src="01" else--for register write
+							alu_result when reg_data_src="00" else
+							fpu_result;
+						
+	mem_write_data <= read_data_2 when mem_data_src='1' else
+							fpu_result;
 												
 	pc_incremented <= (pc_out+4);
 	branch_address <= (addressRelativeExtended(29 downto 0)&"00")+pc_incremented;
-	branch_or_next <= branch and flags.ZF;
+	branch_or_next <= branch and alu_flags.ZF;
 	addressAbsolute <= instruction(25 downto 0);
 	jump_address <= pc_out(31 downto 28) & addressAbsolute & "00";--TODO: é pc_incremented em vez de pc_out CHECAR
 	pc_in <= jump_address when (jump='1') else--next pc_out if not reset
@@ -258,11 +267,6 @@ begin--note this: port map uses ',' while port uses ';'
 --														D => (others=>'0'), --need define how to load program
 --														--MEM_WRITE => '0',--a principio não vamos alterar o programa
 --														Q => instruction);
-														
---	instruction_memory: rom port map (address => pc_out(9 downto 2),
---												 --clock => CLK,
---												 q => instruction
---												 );
 
 	instruction_memory: mini_rom port map(	--CLK => CLK,
 														ADDR=> pc_out(5 downto 2),
@@ -280,9 +284,11 @@ begin--note this: port map uses ',' while port uses ';'
 												branch => branch,
 												jump => jump,
 												memRead => memRead,
-												memtoReg => memtoReg,
-												aluOp => aluOp,
+												reg_data_src => reg_data_src,
+												mem_data_src => mem_data_src,
+--												aluOp => aluOp,
 												aluControl => aluControl,
+												fpuControl => fpuControl,
 												memWrite => memWrite,
 												aluSrc => aluSrc,
 												regWrite => regWrite);

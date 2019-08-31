@@ -12,9 +12,14 @@ entity control_unit is
 			branch: out std_logic;
 			jump: out std_logic;
 			memRead: out std_logic;
-			memtoReg: out std_logic;
-			aluOp: buffer std_logic_vector (1 downto 0);--auxiliary signal for alu control
+--			memtoReg: out std_logic;
+			reg_data_src: out std_logic_vector(1 downto 0);--selects which data is to be written to reg file
+			mem_data_src: out std_logic;--selects which data is to be written to data memory
+--			aluOp: buffer std_logic_vector (1 downto 0);--auxiliary signal for alu control
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
+			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
+			fpuResult_or_read_data_2: out std_logic;--selects which data is to be written to memory
+			
 			memWrite: out std_logic;
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
@@ -24,6 +29,7 @@ end entity;
 
 architecture control of control_unit is
 --signals
+signal aluOp: std_logic_vector (1 downto 0);--auxiliary signal for alu control
 
 --Instruction fields
 signal opcode: std_logic_vector (5 downto 0);
@@ -77,13 +83,15 @@ mult		<= '1' when opcode="000101" else '0';
 imul		<= '1' when opcode="001101" else '0';
 mflo		<= '1' when opcode="100101" else '0';
 mfhi		<= '1' when opcode="101101" else '0';
+-------floating point instructions------------
+
 
 regDst 	<= "01" when R_type='1' else--usa rd (para escrita) só em instrucao tipo R
 				"10" when (mfhi='1' or mflo='1') else--apenas mflo mfhi escrevem no rs
 				"00";--demais instrucoes escrevem no rt
 memRead 	<= load_type;
 memWrite <= store_type;
-memtoReg <= load_type;--1: loads memory content to register; 0: saves alu result to register
+reg_data_src <= '0'& load_type;--01: loads memory content to register; 00: saves alu result to register
 aluSrc 	<= load_type or store_type or addi or subi or andi or ori or xori or nori or slti;--'1': operando 2 da ALU é imediato com extensão de sinal
 regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori or slti or mfhi or mflo;--addi tambem escreve no register file, como R-type
 
