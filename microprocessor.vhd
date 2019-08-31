@@ -116,7 +116,6 @@ component control_unit
 			memRead: out std_logic;
 			reg_data_src: out std_logic_vector(1 downto 0);--selects which data is to be written to reg file
 			mem_data_src: out std_logic;--selects which data is to be written to data memory
---			aluOp: buffer std_logic_vector (1  downto 0);--auxiliary signal for ALU control
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
 			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
 			memWrite: out std_logic;
@@ -132,7 +131,6 @@ signal jump: std_logic;
 signal memRead: std_logic;
 signal reg_data_src: std_logic_vector(1 downto 0);
 signal mem_data_src: std_logic;
---signal aluOp: std_logic_vector (1  downto 0);--auxiliary signal for alu control
 signal aluControl: std_logic_vector (3 downto 0);--ALU operation selector
 signal fpuControl: std_logic_vector (1 downto 0);--FPU operation selector
 signal memWrite: std_logic;
