@@ -142,8 +142,10 @@ begin
 
     end process;
 	 
+	 flags <= (ZF => 'Z',others=>'0');
 	 flags.ZF <= '1' when ((Res = x"0000_0000") and (Sel/="1000")) or (product = x"0000_0000_0000_0000" and Sel = "1000") else '0';
 	 --ZF <= nor (Res);--uses VHDL-2008 unary operators
+	 
 	 
 end behv;
 

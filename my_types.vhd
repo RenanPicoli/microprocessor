@@ -58,6 +58,19 @@ package my_types is
 	constant slti:		std_logic_vector(5 downto 0) := "010101";
 	constant R_type:	std_logic_vector(5 downto 0) := "000000";
 	
+	--funct codes: USE only with R_type
+	constant add_funct:	std_logic_vector(5 downto 0):= "100000";
+	constant sub_funct:	std_logic_vector(5 downto 0):= "100010";
+	constant and_funct:	std_logic_vector(5 downto 0):= "100100";
+	constant or_funct:	std_logic_vector(5 downto 0):= "100101";
+	constant xor_funct:	std_logic_vector(5 downto 0):= "100111";
+	constant nor_funct:	std_logic_vector(5 downto 0):= "101000";
+	constant slt_funct:	std_logic_vector(5 downto 0):= "101010";
+	constant fadd_funct:	std_logic_vector(5 downto 0):= "000000";
+	constant fsub_funct:	std_logic_vector(5 downto 0):= "000010";
+	constant fmul_funct:	std_logic_vector(5 downto 0):= "000001";
+	constant fdiv_funct:	std_logic_vector(5 downto 0):= "000011";
+
 	--register codes
 	constant r0:	std_logic_vector(4 downto 0)	:= "00000";
 	constant r1:	std_logic_vector(4 downto 0)	:= "00001";

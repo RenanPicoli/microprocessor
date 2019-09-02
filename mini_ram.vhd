@@ -24,8 +24,12 @@ architecture memArch of mini_ram is
 
 	type memory is array (0 to 15) of std_logic_vector(31 downto 0);
 	constant initial_values: memory := (
-	0 => x"ABCD_EF12",
-	1 => x"1234_5678",
+--	0 => x"FFFF_FFFE",-- (-2)
+--	0 => x"0000_0002",-- 2
+--	1 => x"FFFF_FFF6",-- (-10)
+--	1 => x"0000_0003",-- +3
+	0 => x"3FC00000",-- 1.5
+	1 => x"3B03126F",-- 0.002
 	others 	=> x"0000_0000"
 	);
 	
