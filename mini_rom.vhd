@@ -30,6 +30,15 @@ architecture memArch of mini_rom is
 	R_type & r1 & r2 & r3 & "00000" & fadd_funct,--fadd r1 r2 r3
 	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
 	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
+	R_type & r1 & r2 & r3 & "00000" & fsub_funct,--fsub r1 r2 r3
+	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
+	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
+	R_type & r1 & r2 & r3 & "00000" & fmul_funct,--fmul r1 r2 r3
+	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
+	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
+	R_type & r1 & r2 & r3 & "00000" & fdiv_funct,--fdiv r1 r2 r3
+	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
+	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
 	jmp & "00" & x"000000",--jmp 0
 	others => x"0000_0000"
 	
