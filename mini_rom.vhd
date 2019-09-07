@@ -15,14 +15,14 @@ use work.my_types.all;--opcode and register "defines"
 
 entity mini_rom is
 	port (--CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
-			ADDR: in std_logic_vector(3 downto 0);--addr é endereço de byte, mas os Lsb são 00
+			ADDR: in std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
 			Q:	out std_logic_vector(31 downto 0)
 			);
 end mini_rom;
 
 architecture memArch of mini_rom is
 
-	type memory is array (0 to 15) of std_logic_vector(31 downto 0);
+	type memory is array (0 to 31) of std_logic_vector(31 downto 0);
 	constant rom: memory := (--asm approx. follows Intel syntax: destination before source
 	--loads 2 floats from memory, add them, save result to memory, load it.
 	lw & r0 & r1 & x"0000",--lw [r0+0] r1

@@ -103,7 +103,7 @@ end component;
 
 component mini_rom
 	port (--CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
-			ADDR: in std_logic_vector(3 downto 0);--addr é endereço de byte, mas os Lsb são 00
+			ADDR: in std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
 			Q:	out std_logic_vector(31 downto 0)
 			);
 end component;
@@ -267,7 +267,7 @@ begin--note this: port map uses ',' while port uses ';'
 --														Q => instruction);
 
 	instruction_memory: mini_rom port map(	--CLK => CLK,
-														ADDR=> pc_out(5 downto 2),
+														ADDR=> pc_out(6 downto 2),
 														Q	 => instruction
 	);
 	
