@@ -24,23 +24,45 @@ architecture memArch of mini_rom is
 
 	type memory is array (0 to 31) of std_logic_vector(31 downto 0);
 	constant rom: memory := (--asm approx. follows Intel syntax: destination before source
-	--loads 2 floats from memory, add them, save result to memory, load it.
-	lw & r0 & r1 & x"0000",--lw [r0+0] r1
-	lw & r0 & r2 & x"0004",--lw [r0+4] r2
+	--IIR filter: y(n)=[x(n)+y(n-1)]/2
+	--initialize
+	R_type & r0 & r0 & r0 & "00000" & xor_funct,--xor r0 r0 r0: zera r0
+	lw & r0 & r4 & x"0000",--lw [r0+0] r4: r4 <- x"4000000" (2.0)
+	addi & r0 & r0 & x"0004",--addi r0 r0 x"0004": r0 <- x"0004"
+	R_type & r5 & r5 & r5 & "00000" & xor_funct,--xor r5 r5 r5: zera r5
+	addi & r5 & r5 & x"0020",--addi r5 r5 x"0020": r5 <- 8*4
+	
+	--main
+	lw & r0 & r1 & x"0000",--lw [r0+0] r1: x(n) é carregado
+	lw & r0 & r2 & x"001C",--lw [r0+7*4] r2: y(n-1) é carregado
 	R_type & r1 & r2 & r3 & "00000" & fadd_funct,--fadd r1 r2 r3
-	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
-	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
-	R_type & r1 & r2 & r3 & "00000" & fsub_funct,--fsub r1 r2 r3
-	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
-	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
-	R_type & r1 & r2 & r3 & "00000" & fmul_funct,--fmul r1 r2 r3
-	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
-	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
-	R_type & r1 & r2 & r3 & "00000" & fdiv_funct,--fdiv r1 r2 r3
-	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
-	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
-	jmp & "00" & x"000000",--jmp 0
-	others => x"0000_0000"
+	R_type & r3 & r4 & r3 & "00000" & fdiv_funct,--fdiv r3 r4 r3: r3 <- r3/r4 (r3<=y(n))
+	sw & r0 & r3 & x"0020",--sw [r0+8*4] r3 armazena resultado na memória
+	lw & r0 & r3 & x"0020",--lw [r0+8*4] r3 confere valor do resultado
+	addi & r0 & r0 & x"0004",--addi r0 r0 4: r0<-r0+4
+	--branch para testar se leu todas as entradas
+	beq & r0 & r5 & x"FFFF",--beq r0 r5 (-1): if r0==8*4, remain on this instruction
+	jmp & "00" & x"000005",--jmp 5 (main), 26 bits de enedereço de palavra
+	others => x"0000_0000"	
+	
+	
+	--loads 2 floats from memory, add them, save result to memory, load it.
+--	lw & r0 & r1 & x"0000",--lw [r0+0] r1
+--	lw & r0 & r2 & x"0004",--lw [r0+4] r2
+--	R_type & r1 & r2 & r3 & "00000" & fadd_funct,--fadd r1 r2 r3
+--	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
+--	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
+--	R_type & r1 & r2 & r3 & "00000" & fsub_funct,--fsub r1 r2 r3
+--	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
+--	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
+--	R_type & r1 & r2 & r3 & "00000" & fmul_funct,--fmul r1 r2 r3
+--	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
+--	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
+--	R_type & r1 & r2 & r3 & "00000" & fdiv_funct,--fdiv r1 r2 r3
+--	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
+--	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
+--	jmp & "00" & x"000000",--jmp 0
+--	others => x"0000_0000"
 	
 	----loads 2 numbers from memory, multiply them as signed, save lo and hi to memory, load them.
 --	lw & r0 & r1 & x"0000",--lw [r0+0] r1

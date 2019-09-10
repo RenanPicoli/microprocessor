@@ -126,7 +126,7 @@ aluControl <= 	"0010" when (AluOp = "00") else--add
 					"XXXX";
 					
 fpuControl	<=	"00" when (R_type = '1' and funct = "000000") else--addition
-					"01" when (R_type = '1' and funct = "000010") else--subctration
+					"01" when (R_type = '1' and funct = "000010") else--subtraction
 					"10" when (R_type = '1' and funct = "000001") else--multiplication
 					"11" when (R_type = '1' and funct = "000011") else--division
 					"XX";
