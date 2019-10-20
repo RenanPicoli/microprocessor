@@ -4,6 +4,8 @@ use ieee.std_logic_unsigned.all;
 
 package my_types is
 	type array32 is array (integer range <>) of std_logic_vector (31 downto 0);
+	type array4 is array (integer range <>) of std_logic_vector (3 downto 0);
+	type array7 is array (integer range <>) of std_logic_vector (6 downto 0);
 	
 	type eflags is record
 	ZF			:std_logic;
@@ -39,6 +41,25 @@ package my_types is
 	reserved30:std_logic;
 	reserved31:std_logic;
 	end record eflags;
+	
+	constant code_for_7seg: array (0 to 15) of std_logic_vector(6 downto 0) :=
+		(	"0111111",-- digit "0"
+			"0000110",-- digit "1"
+			"1011011",-- digit "2"
+			"1001111",-- digit "3"
+			"1100110",-- digit "4"
+			"1101101",-- digit "5"
+			"1111101",-- digit "6"
+			"0000111",-- digit "7"
+			"1111111",-- digit "8"
+			"1100111",-- digit "9"
+			"1110111",-- digit "A"
+			"1111100",-- digit "b"
+			"0111001",-- digit "C"
+			"1011110",-- digit "d"
+			"1111001",-- digit "E"
+			"1110001" -- digit "F"
+		);
 	
 	--opcodes
 	constant lw: 		std_logic_vector(5 downto 0) := "100011";
