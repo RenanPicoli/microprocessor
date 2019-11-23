@@ -42,7 +42,9 @@ package my_types is
 	reserved31:std_logic;
 	end record eflags;
 	
-	constant code_for_7seg: array (0 to 15) of std_logic_vector(6 downto 0) :=
+	constant log_10_2 : std_logic_vector(31 downto 0) := x"3E9A209B";
+	
+	constant code_for_7seg: array7 (0 to 15) :=
 		(	"0111111",-- digit "0"
 			"0000110",-- digit "1"
 			"1011011",-- digit "2"

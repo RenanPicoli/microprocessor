@@ -291,13 +291,6 @@ begin--note this: port map uses ',' while port uses ';'
 												aluSrc => aluSrc,
 												regWrite => regWrite);
 
---	prescaler: process(CLK_50M)
---	begin
---		if(CLK_50M'event and CLK_50M='1') then
---			count <= count + 1;
---		end if;
---	CLK <= count(25);
---	CLK <= CLK_50M;--no prescaler
---	end process;
+
 end proc;
 
