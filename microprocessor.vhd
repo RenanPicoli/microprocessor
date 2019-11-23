@@ -84,7 +84,7 @@ end component;
 
 component mini_ram
 	port (CLK: in std_logic;--borda de subida para escrita, memória pode ser lida a qq momento desde que rden=1
-			ADDR: in std_logic_vector(3 downto 0);--addr é endereço de byte, mas os Lsb são 00
+			ADDR: in std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
 			write_data: in std_logic_vector(31 downto 0);
 			rden: in std_logic;--habilita leitura
 			wren: in std_logic;--habilita escrita
@@ -238,7 +238,7 @@ begin--note this: port map uses ',' while port uses ';'
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR Na MEMÓRIA NA BORDA DE DESCIDA
 	ram_clk <= not CLK;											
 	data_memory: mini_ram port map(CLK	=> ram_clk,
-											ADDR	=> alu_result(5 downto 2),
+											ADDR	=> alu_result(6 downto 2),
 											write_data => mem_write_data,
 											rden	=> memRead,
 											wren	=> memWrite,
@@ -290,7 +290,6 @@ begin--note this: port map uses ',' while port uses ';'
 												memWrite => memWrite,
 												aluSrc => aluSrc,
 												regWrite => regWrite);
-
 
 end proc;
 
