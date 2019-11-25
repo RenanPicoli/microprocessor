@@ -18,7 +18,9 @@ entity microprocessor is
 port (CLK: in std_logic;
 		rst: in std_logic;
 		data_memory_output: buffer std_logic_vector(31 downto 0);
-		instruction_addr: out std_logic_vector (31 downto 0)--AKA read address
+		instruction_addr: out std_logic_vector (31 downto 0);--AKA read address
+		ADDR_rom: out std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
+		Q_rom:	in std_logic_vector(31 downto 0)
 );
 end entity;
 
@@ -72,26 +74,6 @@ port (
 );
 end component;
 
---component data_mem
---	port (	D:	in std_logic_vector(31 downto 0);--data to be written
---				CLK:	in std_logic;
---				ADDR: in std_logic_vector(31 downto 0);
---				MemWrite: in std_logic;
---				MemRead:  in std_logic;
---				Q:	out std_logic_vector(31 downto 0)
---				);
---end component;
-
---component mini_ram
---	port (CLK: in std_logic;--borda de subida para escrita, memória pode ser lida a qq momento desde que rden=1
---			ADDR: in std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
---			write_data: in std_logic_vector(31 downto 0);
---			rden: in std_logic;--habilita leitura
---			wren: in std_logic;--habilita escrita
---			Q:	out std_logic_vector(31 downto 0)
---			);
---end component;
-
 component parallel_load_cache
 	generic (N: integer);--size in bits of address 
 	port (CLK: in std_logic;--borda de subida para escrita, memória pode ser lida a qq momento desde que rden=1
@@ -101,22 +83,6 @@ component parallel_load_cache
 			fill_cache: in std_logic;
 			rden: in std_logic;--habilita leitura
 			wren: in std_logic;--habilita escrita
-			Q:	out std_logic_vector(31 downto 0)
-			);
-end component;
-
---component instr_mem
---	port (CLK: in std_logic;
---			ADDR: in std_logic_vector(31 downto 0);
---			D: in std_logic_vector(31 downto 0);--para que algum código novo seja gravado nela, deixar em 0
---			--MEM_WRITE: in std_logic;--habilita escrita, se desativado, memória é lida a cada clock
---			Q:	out std_logic_vector(31 downto 0)
---			);
---end component;
-
-component mini_rom
-	port (--CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
-			ADDR: in std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
 			Q:	out std_logic_vector(31 downto 0)
 			);
 end component;
@@ -276,16 +242,12 @@ begin--note this: port map uses ',' while port uses ';'
 				branch_address when (branch_or_next='1') else
 				pc_incremented;
 
---	instruction_memory: instr_mem port map (CLK => '0',--could be ROM, stores program, 0: read only
---														ADDR => pc_out,
---														D => (others=>'0'), --need define how to load program
---														--MEM_WRITE => '0',--a principio não vamos alterar o programa
---														Q => instruction);
-
-	instruction_memory: mini_rom port map(	--CLK => CLK,
-														ADDR=> pc_out(6 downto 2),
-														Q	 => instruction
-	);
+--	instruction_memory: mini_rom port map(	--CLK => CLK,
+--														ADDR=> pc_out(6 downto 2),
+--														Q	 => instruction
+--	);
+	ADDR_rom <= pc_out(6 downto 2);
+	instruction <= Q_rom;
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
 	addressRelativeExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
