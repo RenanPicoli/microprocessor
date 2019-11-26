@@ -15,12 +15,21 @@ use work.my_types.all;
 ---------------------------------------------------
 
 entity microprocessor is
+generic (N: integer);--size in bits of data addresses 
 port (CLK: in std_logic;
 		rst: in std_logic;
 		data_memory_output: buffer std_logic_vector(31 downto 0);
 		instruction_addr: out std_logic_vector (31 downto 0);--AKA read address
+		-----ROM----------
 		ADDR_rom: out std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
-		Q_rom:	in std_logic_vector(31 downto 0)
+		Q_rom:	in std_logic_vector(31 downto 0);
+		-----RAM-----------
+		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
+		write_data_ram: out std_logic_vector(31 downto 0);
+		fill_cache_ram: out std_logic;
+		rden_ram: out std_logic;--habilita leitura
+		wren_ram: out std_logic;--habilita escrita
+		Q_ram:in std_logic_vector(31 downto 0)
 );
 end entity;
 
@@ -72,19 +81,6 @@ port (
 	underflow:		out std_logic;
 	result:out std_logic_vector(31 downto 0)
 );
-end component;
-
-component parallel_load_cache
-	generic (N: integer);--size in bits of address 
-	port (CLK: in std_logic;--borda de subida para escrita, memória pode ser lida a qq momento desde que rden=1
-			ADDR: in std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
-			write_data: in std_logic_vector(31 downto 0);
-			parallel_write_data: in array32 (0 to 2**N-1);
-			fill_cache: in std_logic;
-			rden: in std_logic;--habilita leitura
-			wren: in std_logic;--habilita escrita
-			Q:	out std_logic_vector(31 downto 0)
-			);
 end component;
 
 component control_unit
@@ -154,7 +150,6 @@ signal branch_or_next: std_logic;--branch and ZF
 signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & addressAbsolute & "00"
 
 signal reg_clk: std_logic;--register file clock signal
-signal ram_clk: std_logic;--data memory clock signal
 signal alu_clk: std_logic;--alu clock signal
 
 begin--note this: port map uses ',' while port uses ';'
@@ -206,25 +201,23 @@ begin--note this: port map uses ',' while port uses ';'
 												);
 	fpu_flags(31 downto 3) <= (others=>'0');
 								
---	data_memory: data_mem port map ( CLK => CLK,
---												MemWrite => memWrite,
---												MemRead => memRead,
---												ADDR => alu_result,
---												D => read_data_2, --store operations
---												Q => data_memory_output
---	);
-
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR Na MEMÓRIA NA BORDA DE DESCIDA
-	ram_clk <= not CLK;											
-	data_memory: parallel_load_cache generic map (N => 5)
-												port map(CLK	=> ram_clk,
-															ADDR	=> alu_result(6 downto 2),
-															write_data => mem_write_data,
-															parallel_write_data => (others=>(others=>'0')),
-															fill_cache => '0',
-															rden	=> memRead,
-															wren	=> memWrite,
-															Q		=> data_memory_output);
+--	ram_clk <= not CLK;											
+--	ram: parallel_load_cache generic map (N => 5)
+--									port map(CLK	=> ram_clk,
+--												ADDR	=> alu_result(6 downto 2),
+--												write_data => mem_write_data,
+--												parallel_write_data => (others=>(others=>'0')),
+--												fill_cache => '0',
+--												rden	=> memRead,
+--												wren	=> memWrite,
+--												Q		=> data_memory_output);
+	ADDR_ram <= alu_result(6 downto 2);
+	write_data_ram <= mem_write_data;
+	fill_cache_ram <= '0';
+	rden_ram <= memRead;
+	wren_ram <= memWrite;
+	data_memory_output	<= Q_ram;
 	
 	reg_write_data <= data_memory_output when reg_data_src="01" else--for register write
 							alu_result when reg_data_src="00" else
