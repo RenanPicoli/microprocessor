@@ -16,9 +16,10 @@ use work.my_types.all;
 
 entity microprocessor is
 generic (N: integer);--size in bits of data addresses 
-port (CLK: in std_logic;
+port (CLK_IN: in std_logic;
 		rst: in std_logic;
-		data_memory_output: buffer std_logic_vector(31 downto 0);
+		irq: in std_logic;--interrupt request
+		iack: out std_logic;--interrupt acknowledgement
 		instruction_addr: out std_logic_vector (31 downto 0);--AKA read address
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
@@ -26,14 +27,15 @@ port (CLK: in std_logic;
 		-----RAM-----------
 		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		write_data_ram: out std_logic_vector(31 downto 0);
-		fill_cache_ram: out std_logic;
 		rden_ram: out std_logic;--habilita leitura
 		wren_ram: out std_logic;--habilita escrita
+		send_cache_request: out std_logic;
 		Q_ram:in std_logic_vector(31 downto 0)
 );
 end entity;
 
 architecture proc of microprocessor is
+signal CLK: std_logic;
 signal pc_in: 	std_logic_vector (31 downto 0);
 signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
 --signal CLK: std_logic;
@@ -86,6 +88,9 @@ end component;
 component control_unit
 	port (instruction: in std_logic_vector (31 downto 0);
 			regDst: out std_logic_vector(1 downto 0);
+			halt: out std_logic;
+			iack: buffer std_logic;
+			imask: out std_logic;--interrupt mask: disables all interrupts
 			branch: out std_logic;
 			jump: out std_logic;
 			memRead: out std_logic;
@@ -94,6 +99,7 @@ component control_unit
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
 			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
 			memWrite: out std_logic;
+			send_cache_request: out std_logic;
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
 			);
@@ -109,6 +115,7 @@ signal mem_data_src: std_logic;
 signal aluControl: std_logic_vector (3 downto 0);--ALU operation selector
 signal fpuControl: std_logic_vector (1 downto 0);--FPU operation selector
 signal memWrite: std_logic;
+signal cache_request: std_logic;
 signal aluSrc: std_logic;
 signal regWrite: std_logic;
 
@@ -120,6 +127,9 @@ signal read_data_1: std_logic_vector (31 downto 0);--from register_file
 signal read_data_2: std_logic_vector (31 downto 0);--from register_file
 signal alu_result: std_logic_vector (31 downto 0);
 signal fpu_result: std_logic_vector (31 downto 0);
+
+signal halt: std_logic;
+signal clk_hold: std_logic;
 
 --Instruction fields
 signal opcode: std_logic_vector (5 downto 0);
@@ -139,7 +149,7 @@ signal branch_type: std_logic;
 signal load_type: std_logic;
 signal store_type: std_logic;
 
---signal data_memory_output: std_logic_vector (31 downto 0);
+signal data_memory_output: std_logic_vector (31 downto 0);
 signal instruction: std_logic_vector (31 downto 0);--next instruction to execute
 signal alu_flags: eflags;--flags da ALU
 signal fpu_flags: std_logic_vector(31 downto 0);--flags da FPU
@@ -152,7 +162,13 @@ signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & add
 signal reg_clk: std_logic;--register file clock signal
 signal alu_clk: std_logic;--alu clock signal
 
-begin--note this: port map uses ',' while port uses ';'
+begin
+	CLK <= CLK_IN when clk_hold='0' else CLK;
+	clk_hold <= halt and (not irq);
+	
+	
+
+	--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
 										D => pc_in,
@@ -214,7 +230,6 @@ begin--note this: port map uses ',' while port uses ';'
 --												Q		=> data_memory_output);
 	ADDR_ram <= alu_result(6 downto 2);
 	write_data_ram <= mem_write_data;
-	fill_cache_ram <= '0';
 	rden_ram <= memRead;
 	wren_ram <= memWrite;
 	data_memory_output	<= Q_ram;
@@ -242,6 +257,8 @@ begin--note this: port map uses ',' while port uses ';'
 	ADDR_rom <= pc_out(6 downto 2);
 	instruction <= Q_rom;
 	
+	send_cache_request <= cache_request;
+	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
 	addressRelativeExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
 	
@@ -250,6 +267,8 @@ begin--note this: port map uses ',' while port uses ';'
 										
 	control: control_unit port map (	instruction => instruction,
 												regDst => regDst,
+												halt => halt,
+												iack => iack,
 												branch => branch,
 												jump => jump,
 												memRead => memRead,
@@ -259,6 +278,7 @@ begin--note this: port map uses ',' while port uses ';'
 												aluControl => aluControl,
 												fpuControl => fpuControl,
 												memWrite => memWrite,
+												send_cache_request => cache_request,
 												aluSrc => aluSrc,
 												regWrite => regWrite);
 

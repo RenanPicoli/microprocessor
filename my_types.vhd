@@ -61,25 +61,35 @@ package my_types is
 			"1110001" -- digit "F"
 		);
 	
-	--opcodes
-	constant lw: 		std_logic_vector(5 downto 0) := "100011";
-	constant sw:		std_logic_vector(5 downto 0) := "101011";
+	--opcodes (keep it in ascending order)
+	
+	constant R_type:	std_logic_vector(5 downto 0) := "000000";
+	constant ori: 		std_logic_vector(5 downto 0) := "000001";
+	constant jmp: 		std_logic_vector(5 downto 0) := "000010";
+	constant andi:		std_logic_vector(5 downto 0) := "000011";
 	constant beq: 		std_logic_vector(5 downto 0) := "000100";
 	constant mult:		std_logic_vector(5 downto 0) := "000101";
-	constant imul:		std_logic_vector(5 downto 0) := "001101";
-	constant mflo:		std_logic_vector(5 downto 0) := "100101";
-	constant mfhi:		std_logic_vector(5 downto 0) := "101101";
-	constant jmp: 		std_logic_vector(5 downto 0) := "000010";
+	constant halt:		std_logic_vector(5 downto 0) := "000110";
+	constant cache_req:std_logic_vector(5 downto 0):= "000111";
+	
 	constant addi:		std_logic_vector(5 downto 0) := "001000";
 	constant subi:		std_logic_vector(5 downto 0) := "001001";
-	constant andi:		std_logic_vector(5 downto 0) := "000011";
-	constant ori: 		std_logic_vector(5 downto 0) := "000001";
+	constant iack:		std_logic_vector(5 downto 0) := "001010";
+	constant iret:		std_logic_vector(5 downto 0) := "001011";
+	constant ret:		std_logic_vector(5 downto 0) := "001100";
+	constant imul:		std_logic_vector(5 downto 0) := "001101";
+	
 	constant xori:		std_logic_vector(5 downto 0) := "010000";
 	constant nori:		std_logic_vector(5 downto 0) := "010100";
 	constant slti:		std_logic_vector(5 downto 0) := "010101";
-	constant R_type:	std_logic_vector(5 downto 0) := "000000";
 	
-	--funct codes: USE only with R_type
+	constant lw: 		std_logic_vector(5 downto 0) := "100011";
+	constant mflo:		std_logic_vector(5 downto 0) := "100101";
+	constant sw:		std_logic_vector(5 downto 0) := "101011";
+	constant mfhi:		std_logic_vector(5 downto 0) := "101101";
+	
+	
+	--funct codes: use only with R_type
 	constant add_funct:	std_logic_vector(5 downto 0):= "100000";
 	constant sub_funct:	std_logic_vector(5 downto 0):= "100010";
 	constant and_funct:	std_logic_vector(5 downto 0):= "100100";

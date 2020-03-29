@@ -51,7 +51,7 @@ architecture memArch of parallel_load_cache is
 		if (CLK'event and CLK='1') then
 			if (wren='1' and fill_cache='0') then --normal write operation
 				possible_outputs(to_integer(unsigned(ADDR))) <= write_data;
-			elsif (wren='1' and fill_cache='1') then--parallel write
+			elsif (fill_cache='1') then--processador não sabe exatamente quando ocorrerá a escrita paralela
 				possible_outputs <= parallel_write_data;
 			end if;
 		end if;

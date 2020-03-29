@@ -4,7 +4,7 @@
 --supports only 32 bit instructions
 --(all instructions are word-aligned)
 --64 bytes de ROM (como um I-cache)
----------------------------------------------------
+--------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -26,24 +26,30 @@ architecture memArch of mini_rom is
 	constant rom: memory := (--asm approx. follows Intel syntax: destination before source
 	--IIR filter: y(n)=[x(n)-y(n-1)]/2
 	--initialize
-	R_type & r0 & r0 & r0 & "00000" & xor_funct,--xor r0 r0 r0: zera r0
-	lw & r0 & r4 & x"0000",--lw [r0+0] r4: r4 <- x"4000000" (2.0)
-	addi & r0 & r0 & x"0004",--addi r0 r0 x"0004": r0 <- x"0004"
-	R_type & r5 & r5 & r5 & "00000" & xor_funct,--xor r5 r5 r5: zera r5
-	addi & r5 & r5 & x"0040",--addi r5 r5 x"0040": r5 <- 16*4 : endereço do primeiro y(n)
+	0=> R_type & r5 & r5 & r5 & "00000" & xor_funct,--xor r5 r5 r5: zera r5
+	1=> addi & r5 & r5 & x"0080",--addi r5 r5 x"0080": r5 <- 32*4 : endereço do primeiro y(n)
+	2=> R_type & r0 & r0 & r0 & "00000" & xor_funct,--xor r0 r0 r0: zera r0
+	3=> lw & r0 & r4 & x"0000",--lw [r0+0] r4: r4 <- x"4000000" (2.0)
+	4=> addi & r0 & r0 & x"0004",--addi r0 r0 4: r0<-r0+4: r0 aponta para a proxima posicao
+	5=> R_type & r2 & r2 & r2 & "00000" & xor_funct,--xor r2 r2 r2: r2 <- x"00000000" (initialize  y(n-1))
+	6=> jmp & "00" & x"000008",--jmp 8 (skips zeroing r0 below), 26 bits de endereço de palavra
+
+	7=> R_type & r0 & r0 & r0 & "00000" & xor_funct,--xor r0 r0 r0: zera r0
+	8=> cache_req & "00" & x"000000",--cache_req: sends a request to fill the D-cache, since we know it is empty
+	9=> halt & "00" & x"000000",--halt: stops processor clock until that request is cleared
 	
 	--main
-	lw & r0 & r1 & x"0000",--lw [r0+0] r1: x(n) é carregado
-	lw & r0 & r2 & x"003C",--lw [r0+15*4] r2: y(n-1) é carregado
-	R_type & r1 & r2 & r3 & "00000" & fsub_funct,--fsub r1 r2 r3: r3<- r1-r2
-	R_type & r3 & r4 & r3 & "00000" & fdiv_funct,--fdiv r3 r4 r3: r3 <- r3/r4 (r3<=y(n))
-	sw & r0 & r3 & x"0040",--sw [r0+16*4] r3 armazena resultado na memória
-	lw & r0 & r3 & x"0040",--lw [r0+16*4] r3 confere valor do resultado
-	addi & r0 & r0 & x"0004",--addi r0 r0 4: r0<-r0+4
+	10=> lw & r0 & r1 & x"0000",--lw [r0+0] r1: x(n) é carregado
+	11=> R_type & r1 & r2 & r3 & "00000" & fsub_funct,--fsub r1 r2 r3: r3<- r1-r2
+	12=> R_type & r3 & r4 & r3 & "00000" & fdiv_funct,--fdiv r3 r4 r3: r3 <- r3/r4 (r3<=y(n))
+	13=> sw & r0 & r3 & x"0000",--sw [r0+0] r3: armazena y(n) na memória, sobrescrevendo x(n)
+	14=> lw & r0 & r3 & x"0000",--lw [r0+0] r3 confere valor do resultado
+	15=> lw & r0 & r2 & x"0000",--lw [r0+0] r2: y(n) é carregado em r2 para ser usado no proximo ciclo
+	16=> addi & r0 & r0 & x"0004",--addi r0 r0 4: r0<-r0+4: r0 aponta para a proxima posicao
 	--branch para testar se leu todas as entradas
-	beq & r0 & r5 & x"FFFF",--beq r0 r5 (-1): if r0==16*4, remain on this instruction
-	jmp & "00" & x"000005",--jmp 5 (main), 26 bits de enedereço de palavra
-	others => x"0000_0000"	
+	17=> beq & r0 & r5 & x"FFF5",--beq r0 r5 (-11): if r0==32*4, resets r0 request fill cache and halts processor
+	18=> jmp & "00" & x"00000A",--jmp 10 (main), 26 bits de endereço de palavra
+	others => x"0000_0000"
 	
 	
 	--loads 2 floats from memory, add them, save result to memory, load it.
