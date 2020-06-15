@@ -22,6 +22,7 @@ entity control_unit is
 --			fpuResult_or_read_data_2: out std_logic;--selects which data is to be written to memory
 			
 			memWrite: out std_logic;
+			filterWrite: out std_logic;--write on filter coefficients
 			send_cache_request: out std_logic;
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
@@ -81,6 +82,7 @@ ret					<= '1' when opcode="001100" else '0';--return from normal function call
 send_cache_request<= '1' when opcode="000111" else '0';--instrucao de cache request
 load_type 			<= '1' when opcode="100011" else '0';--instrucao de load
 store_type 			<= '1' when opcode="101011" else '0';--instrucao de store
+filterWrite			<= '1' when opcode="001000" else '0';--instrucao de escrita nos coeficientes do filtro
 
 branch 	<= '1' when (branch_type='1') else '0';
 jump 		<= '1' when (jump_type='1') else '0';

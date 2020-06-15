@@ -71,6 +71,7 @@ package my_types is
 	constant mult:		std_logic_vector(5 downto 0) := "000101";
 	constant halt:		std_logic_vector(5 downto 0) := "000110";
 	constant cache_req:std_logic_vector(5 downto 0):= "000111";
+	constant filter_write:std_logic_vector(5 downto 0):= "001000";
 	
 	constant addi:		std_logic_vector(5 downto 0) := "001000";
 	constant subi:		std_logic_vector(5 downto 0) := "001001";

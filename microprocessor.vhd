@@ -27,8 +27,9 @@ port (CLK_IN: in std_logic;
 		-----RAM-----------
 		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		write_data_ram: out std_logic_vector(31 downto 0);
-		rden_ram: out std_logic;--habilita leitura
-		wren_ram: out std_logic;--habilita escrita
+		rden_ram: out std_logic;--habilita leitura na ram
+		wren_ram: out std_logic;--habilita escrita na ram
+		wren_filter: out std_logic;--habilita escrita nos coeficientes do filtro
 		send_cache_request: out std_logic;
 		Q_ram:in std_logic_vector(31 downto 0)
 );
@@ -99,6 +100,7 @@ component control_unit
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
 			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
 			memWrite: out std_logic;
+			filterWrite: out std_logic;--write on filter coefficients
 			send_cache_request: out std_logic;
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
@@ -115,6 +117,7 @@ signal mem_data_src: std_logic;
 signal aluControl: std_logic_vector (3 downto 0);--ALU operation selector
 signal fpuControl: std_logic_vector (1 downto 0);--FPU operation selector
 signal memWrite: std_logic;
+signal filterWrite: std_logic;--write on filter coefficients
 signal cache_request: std_logic;
 signal aluSrc: std_logic;
 signal regWrite: std_logic;
@@ -228,10 +231,11 @@ begin
 --												rden	=> memRead,
 --												wren	=> memWrite,
 --												Q		=> data_memory_output);
-	ADDR_ram <= alu_result(6 downto 2);
+	ADDR_ram <= alu_result(7 downto 2);
 	write_data_ram <= mem_write_data;
 	rden_ram <= memRead;
 	wren_ram <= memWrite;
+	wren_filter <= filterWrite;
 	data_memory_output	<= Q_ram;
 	
 	reg_write_data <= data_memory_output when reg_data_src="01" else--for register write
@@ -278,6 +282,7 @@ begin
 												aluControl => aluControl,
 												fpuControl => fpuControl,
 												memWrite => memWrite,
+												filterWrite => filterWrite,
 												send_cache_request => cache_request,
 												aluSrc => aluSrc,
 												regWrite => regWrite);
