@@ -231,7 +231,7 @@ begin
 --												rden	=> memRead,
 --												wren	=> memWrite,
 --												Q		=> data_memory_output);
-	ADDR_ram <= alu_result(7 downto 2);
+	ADDR_ram <= alu_result(N+1 downto 2);
 	write_data_ram <= mem_write_data;
 	rden_ram <= memRead;
 	wren_ram <= memWrite;
