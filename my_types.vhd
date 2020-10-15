@@ -3,9 +3,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all; 
 
 package my_types is
-	type array32 is array (integer range <>) of std_logic_vector (31 downto 0);
-	type array4 is array (integer range <>) of std_logic_vector (3 downto 0);
-	type array7 is array (integer range <>) of std_logic_vector (6 downto 0);
+	type array32 is array (natural range <>) of std_logic_vector (31 downto 0);
+	type array4 is array (natural range <>) of std_logic_vector (3 downto 0);
+	type array7 is array (natural range <>) of std_logic_vector (6 downto 0);
 	
 	type eflags is record
 	ZF			:std_logic;
