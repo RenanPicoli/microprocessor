@@ -24,24 +24,39 @@ architecture memArch of mini_rom is
 
 	type memory is array (0 to 31) of std_logic_vector(31 downto 0);
 	constant rom: memory := (--asm approx. follows Intel syntax: destination before source
+	--Feintuch’s Algorithm
 --	xor r0 r0 r0; zera r0
---	addi r0 r0 x"000B"; stores N=P+Q+1 in r0
+--	addi r0 r0 x"000B"; stores N=P+Q+1=11 in r0
 --	xor r1 r1 r1; zera r1, vai armazenar step
---	xor r2 r2 r2; zera r2, vai armazenar a cte 2.0
---	xor r3 r3 r3; zera r3, vai armazenar a cte 10E4
---	addi r2 r2 0x"40000000", armazenar a cte 2.0
---	addi r3 r3 0x"461C4000", armazenar a cte 10E4
---
+--	xor r2 r2 r2; zera r2, vai armazenar a cte 5E-5
+-- xor r3 r3 r3; zera r3, vai ser ponteiro nos loops de preenchimento da memória
+--	addi r3 r3 x"0080"; 32*4 é a posição 0 do cache
+--	lw [r3 + 0] r2; r2<- x"3851B717", armazena a cte 5E-5, na posição 0 do cache
+-- xor r4 r4 r4; zera r4, r4 será um segundo ponteiro nos loops em memória
+-- xor r7 r7 r7; zera r7, r7 será a constante 16
+-- addi r7 r7 x"0010"; r7 <- 16
+-- r5 será um registrador para carregamento temporário de dados
+-- r6 será um índice para a iteração nos loops
+
+
 --	Loop New_sample:
 --	%calculo do step
---
+-- xor r3 r3 r3; zera r3
+-- addi r3 r3 x"0100"; 64*4 é a posição 0 do inner_product
+-- addi r4 r4 x"0040"; 16*4 é a posição 0 do filter_xN
+-- xor r6 r6 r6; zera r6
+
 --	Loop xN_inner: carregar o produto interno com os xN
---
+-- lw [r4+0] r5; carrega r5 com um elemento de xN
+-- sw [r3+0] r5; armazena esse elemento de xN no inner_product
+-- addi r6 r6 x"0001"; r6++
+-- beq r6 r7 x"";
+-- jmp 
 --	End loop xN_inner
 --
---	; Stores one half of squared norm in r1
+--	; Stores squared norm in r1
 --
---	If -- testa se quem é maior: cte ou half squared norm
+--	If -- testa se quem é maior: cte ou squared norm, pega a MAIOR
 --	End if
 --
 --	Lê a resposta do filtro e armazena em registrador
@@ -80,38 +95,6 @@ architecture memArch of mini_rom is
 	17=> beq & r0 & r5 & x"FFF5",--beq r0 r5 (-11): if r0==32*4, resets r0 request fill cache and halts processor
 	18=> jmp & "00" & x"00000A",--jmp 10 (main), 26 bits de endereço de palavra
 	others => x"0000_0000"
-	
-	
-	--loads 2 floats from memory, add them, save result to memory, load it.
---	lw & r0 & r1 & x"0000",--lw [r0+0] r1
---	lw & r0 & r2 & x"0004",--lw [r0+4] r2
---	R_type & r1 & r2 & r3 & "00000" & fadd_funct,--fadd r1 r2 r3
---	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
---	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
---	R_type & r1 & r2 & r3 & "00000" & fsub_funct,--fsub r1 r2 r3
---	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
---	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
---	R_type & r1 & r2 & r3 & "00000" & fmul_funct,--fmul r1 r2 r3
---	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
---	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
---	R_type & r1 & r2 & r3 & "00000" & fdiv_funct,--fdiv r1 r2 r3
---	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena resultado na memória
---	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor do resultado
---	jmp & "00" & x"000000",--jmp 0
---	others => x"0000_0000"
-	
-	----loads 2 numbers from memory, multiply them as signed, save lo and hi to memory, load them.
---	lw & r0 & r1 & x"0000",--lw [r0+0] r1
---	lw & r0 & r2 & x"0004",--lw [r0+4] r2
---	imul & r1 & r2 & x"0000",--imul r1 r2
---	mflo & r3 & "00000" & x"0000",--mflo r3
---	sw & r0 & r3 & x"0008",--sw [r0+8] r3 armazena lo na memória
---	lw & r0 & r3 & x"0008",--lw [r0+8] r3 confere valor de lo
---	mfhi & r3 & "00000" & x"0000",--mfhi r3
---	sw & r0 & r3 & x"0010",--sw [r0+16] r3 armazena hi na memória
---	lw & r0 & r3 & x"0010",--lw [r0+16] r3 confere valor de hi
---	jmp & "00" & x"000000", --jmp 0
---	others => x"0000_0000"
 	);
 	
 	begin
