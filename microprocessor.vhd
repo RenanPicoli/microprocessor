@@ -30,6 +30,7 @@ port (CLK_IN: in std_logic;
 		rden_ram: out std_logic;--habilita leitura na ram
 		wren_ram: out std_logic;--habilita escrita na ram
 		wren_filter: out std_logic;--habilita escrita nos coeficientes do filtro
+		vmac_en: out std_logic;--multiply-accumulate enable
 		send_cache_request: out std_logic;
 		Q_ram:in std_logic_vector(31 downto 0)
 );
@@ -101,6 +102,7 @@ component control_unit
 			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
 			memWrite: out std_logic;
 			filterWrite: out std_logic;--write on filter coefficients
+			vmac: out std_logic;--multiply-accumulate
 			send_cache_request: out std_logic;
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
@@ -118,6 +120,7 @@ signal aluControl: std_logic_vector (3 downto 0);--ALU operation selector
 signal fpuControl: std_logic_vector (1 downto 0);--FPU operation selector
 signal memWrite: std_logic;
 signal filterWrite: std_logic;--write on filter coefficients
+signal vmac: std_logic;--enables multiply-accumulate
 signal cache_request: std_logic;
 signal aluSrc: std_logic;
 signal regWrite: std_logic;
@@ -236,6 +239,7 @@ begin
 	rden_ram <= memRead;
 	wren_ram <= memWrite;
 	wren_filter <= filterWrite;
+	vmac_en <= vmac;
 	data_memory_output	<= Q_ram;
 	
 	reg_write_data <= data_memory_output when reg_data_src="01" else--for register write
@@ -283,6 +287,7 @@ begin
 												fpuControl => fpuControl,
 												memWrite => memWrite,
 												filterWrite => filterWrite,
+												vmac => vmac,
 												send_cache_request => cache_request,
 												aluSrc => aluSrc,
 												regWrite => regWrite);

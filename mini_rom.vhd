@@ -24,6 +24,36 @@ architecture memArch of mini_rom is
 
 	type memory is array (0 to 31) of std_logic_vector(31 downto 0);
 	constant rom: memory := (--asm approx. follows Intel syntax: destination before source
+--	xor r0 r0 r0; zera r0
+--	addi r0 r0 x"000B"; stores N=P+Q+1 in r0
+--	xor r1 r1 r1; zera r1, vai armazenar step
+--	xor r2 r2 r2; zera r2, vai armazenar a cte 2.0
+--	xor r3 r3 r3; zera r3, vai armazenar a cte 10E4
+--	addi r2 r2 0x"40000000", armazenar a cte 2.0
+--	addi r3 r3 0x"461C4000", armazenar a cte 10E4
+--
+--	Loop New_sample:
+--	%calculo do step
+--
+--	Loop xN_inner: carregar o produto interno com os xN
+--
+--	End loop xN_inner
+--
+--	; Stores one half of squared norm in r1
+--
+--	If -- testa se quem é maior: cte ou half squared norm
+--	End if
+--
+--	Lê a resposta do filtro e armazena em registrador
+--
+--	Armazena a resposta desejada
+--
+--	Calcula e armazena o erro
+--
+--
+--
+--	End loop New_sample
+
 	--IIR filter: y(n)=[x(n)-y(n-1)]/2
 	--initialize
 	0=> R_type & r5 & r5 & r5 & "00000" & xor_funct,--xor r5 r5 r5: zera r5

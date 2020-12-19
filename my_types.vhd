@@ -66,31 +66,31 @@ package my_types is
 	
 	--opcodes (keep it in ascending order)
 	
-	constant R_type:	std_logic_vector(5 downto 0) := "000000";
-	constant ori: 		std_logic_vector(5 downto 0) := "000001";
-	constant jmp: 		std_logic_vector(5 downto 0) := "000010";
-	constant andi:		std_logic_vector(5 downto 0) := "000011";
-	constant beq: 		std_logic_vector(5 downto 0) := "000100";
-	constant mult:		std_logic_vector(5 downto 0) := "000101";
-	constant halt:		std_logic_vector(5 downto 0) := "000110";
-	constant cache_req:std_logic_vector(5 downto 0):= "000111";
-	constant filter_write:std_logic_vector(5 downto 0):= "001000";
+	constant R_type:			std_logic_vector(5 downto 0) 	:= "000000";
+	constant ori: 				std_logic_vector(5 downto 0) 	:= "000001";
+	constant jmp: 				std_logic_vector(5 downto 0) 	:= "000010";
+	constant andi:				std_logic_vector(5 downto 0) 	:= "000011";
+	constant beq: 				std_logic_vector(5 downto 0) 	:= "000100";
+	constant mult:				std_logic_vector(5 downto 0) 	:= "000101";
+	constant halt:				std_logic_vector(5 downto 0) 	:= "000110";
+	constant cache_req:		std_logic_vector(5 downto 0)	:= "000111";
+	constant addi:				std_logic_vector(5 downto 0)	:= "001000";
+	constant subi:				std_logic_vector(5 downto 0)	:= "001001";
+	constant iack:				std_logic_vector(5 downto 0)	:= "001010";
+	constant iret:				std_logic_vector(5 downto 0)	:= "001011";
+	constant ret:				std_logic_vector(5 downto 0)	:= "001100";
+	constant imul:				std_logic_vector(5 downto 0)	:= "001101";
+	constant filter_write:	std_logic_vector(5 downto 0)	:= "001110";
+	constant vmac:				std_logic_vector(5 downto 0)	:= "001111";
+	constant xori:				std_logic_vector(5 downto 0)	:= "010000";
 	
-	constant addi:		std_logic_vector(5 downto 0) := "001000";
-	constant subi:		std_logic_vector(5 downto 0) := "001001";
-	constant iack:		std_logic_vector(5 downto 0) := "001010";
-	constant iret:		std_logic_vector(5 downto 0) := "001011";
-	constant ret:		std_logic_vector(5 downto 0) := "001100";
-	constant imul:		std_logic_vector(5 downto 0) := "001101";
+	constant nori:				std_logic_vector(5 downto 0)	:= "010100";
+	constant slti:				std_logic_vector(5 downto 0)	:= "010101";
 	
-	constant xori:		std_logic_vector(5 downto 0) := "010000";
-	constant nori:		std_logic_vector(5 downto 0) := "010100";
-	constant slti:		std_logic_vector(5 downto 0) := "010101";
-	
-	constant lw: 		std_logic_vector(5 downto 0) := "100011";
-	constant mflo:		std_logic_vector(5 downto 0) := "100101";
-	constant sw:		std_logic_vector(5 downto 0) := "101011";
-	constant mfhi:		std_logic_vector(5 downto 0) := "101101";
+	constant lw: 				std_logic_vector(5 downto 0)	:= "100011";
+	constant mflo:				std_logic_vector(5 downto 0)	:= "100101";
+	constant sw:				std_logic_vector(5 downto 0)	:= "101011";
+	constant mfhi:				std_logic_vector(5 downto 0)	:= "101101";
 	
 	
 	--funct codes: use only with R_type

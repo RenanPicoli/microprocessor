@@ -23,6 +23,7 @@ entity control_unit is
 			
 			memWrite: out std_logic;
 			filterWrite: out std_logic;--write on filter coefficients
+			vmac: out std_logic;--multiply-accumulate
 			send_cache_request: out std_logic;
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
@@ -82,7 +83,10 @@ ret					<= '1' when opcode="001100" else '0';--return from normal function call
 send_cache_request<= '1' when opcode="000111" else '0';--instrucao de cache request
 load_type 			<= '1' when opcode="100011" else '0';--instrucao de load
 store_type 			<= '1' when opcode="101011" else '0';--instrucao de store
-filterWrite			<= '1' when opcode="001000" else '0';--instrucao de escrita nos coeficientes do filtro
+filterWrite			<= '1' when opcode="001110" else '0';--instrucao de escrita nos coeficientes do filtro
+
+--instrucao de multiply-accumulate (necessita vetores já carregados no periferico VMAC)
+vmac					<= '1' when opcode="001111" else '0';
 
 branch 	<= '1' when (branch_type='1') else '0';
 jump 		<= '1' when (jump_type='1') else '0';
