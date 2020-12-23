@@ -30,6 +30,9 @@ architecture memArch of parallel_load_cache is
 --	type memory is array (0 to 2**N-1) of std_logic_vector(31 downto 0);
 	constant initial_values: array32 (0 to 2**N-1) := (
 	0=> x"3851B717",--5E-5: a filter constant
+	1=> x"7FFFFFFF",-- constant for comparison
+	2=> x"3F000000",-- 0.5
+	3=> x"3F800000",-- 1.0
 	others 	=> x"0000_0000"
 	);
 	
