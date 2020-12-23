@@ -262,7 +262,7 @@ begin
 --														ADDR=> pc_out(6 downto 2),
 --														Q	 => instruction
 --	);
-	ADDR_rom <= pc_out(6 downto 2);
+	ADDR_rom <= pc_out(8 downto 2);
 	instruction <= Q_rom;
 	
 	send_cache_request <= cache_request;
