@@ -119,17 +119,32 @@ architecture memArch of mini_rom is
 																		--	End loop B
 
 	68=> vmac & "00" & x"000000",								-- vmac; enables accumulation in vector A of VMAC
-	69=> filter_write & "00" & x"000000",					-- filter_write; enables filter to update its components
-																		-- testar se já filtro já convergiu, caso tenha convergido, sair do loop
-	-- limpar o pending bit da IRQ do filtro				-- limpar o pending bit da IRQ do filtro
-	70=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
+	
+	69=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6,
+	70=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3, aponta para a posição 0 de filter coeffs
 	71=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	72=> addi & r4 & r4 & x"030C",							-- addi r4 r4 x"030C"; (xC3*4), r4 aponta a posição do reg do controlador de interrupção
-	73=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no reg de IRQ pendentes
+	72=> addi & r4 & r4 & x"0200",							-- addi r4 r4 x"0200"; x80*4, r4 aponta posição 0 do vmac
+	--	Loop A*:														--	Loop A*: ler o acumulador do VMAC e atualizar os coeficientes do filtro
+	73=> lw & r4 & r5 & x"0000",									-- lw [r4+0] r5; carrega r5 com um coeficiente do filtro
+	74=> sw & r3 & r5 & x"0000",									-- sw [r3+0] r5; armazena esse coeficiente do filtro no vmac
+	75=> addi & r3 & r3 & x"0004",								-- addi r3 r3 x"0004"; r3++; r3 is a pointer to word
+	76=> addi & r4 & r4 & x"0004",								-- addi r4 r4 x"0004"; r4++; r4 is a pointer to word
+	77=> addi & r6 & r6 & x"0001",								-- addi r6 r6 x"0001"; r6++
+	78=> beq & r6 & r7 & x"0001",									-- beq r6 r7 x"0001"; se r6 chega a 16, pula a próxima instrução e segue adiante
+	79=> jmp & "00" & x"000049",									-- jmp x"loop A*", jump 73: volta ao início desse loop
+																		--	End loop A*
+	
+	80=> filter_write & "00" & x"000000",					-- filter_write; enables filter to update its components (when filter_CLK rises)
+	-- TODO: se filtro já convergiu, sair do loop		-- TODO: se filtro já convergiu, sair do loop
+	-- limpar o pending bit da IRQ do filtro				-- limpar o pending bit da IRQ do filtro
+	81=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
+	82=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
+	83=> addi & r4 & r4 & x"030C",							-- addi r4 r4 x"030C"; (xC3*4), r4 aponta a posição do reg do controlador de interrupção
+	84=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no reg de IRQ pendentes
 																		
-	74=> iack & "00" & x"000000",								-- iack
-	75=> halt & "00" & x"000000",								-- halt; waits for interruption to be generated when filter_CLK rises (new sample)
-	76=> jmp & "00" & x"00000B",								-- jmp "New_sample"; jmp 11: volta pro início do loop de proc de amostra
+	85=> iack & "00" & x"000000",								-- iack
+	86=> halt & "00" & x"000000",								-- halt; waits for interruption to be generated when filter_CLK rises (new sample)
+	87=> jmp & "00" & x"00000B",								-- jmp "New_sample"; jmp 11: volta pro início do loop de proc de amostra
 																		--	End loop New_sample
 	others => x"0000_0000"
 	);
