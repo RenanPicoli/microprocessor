@@ -3,9 +3,12 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all; 
 
 package my_types is
-	type array32 is array (integer range <>) of std_logic_vector (31 downto 0);
-	type array4 is array (integer range <>) of std_logic_vector (3 downto 0);
-	type array7 is array (integer range <>) of std_logic_vector (6 downto 0);
+	type array32 is array (natural range <>) of std_logic_vector (31 downto 0);
+	type array4 is array (natural range <>) of std_logic_vector (3 downto 0);
+	type array7 is array (natural range <>) of std_logic_vector (6 downto 0);
+	
+	type tuple is array (natural range <>) of integer;--meant to be a list of addresses
+	type boundaries is array (natural range <>) of tuple (0 to 1);--meant to be a list of pair (start:0, end:1)
 	
 	type eflags is record
 	ZF			:std_logic;
@@ -61,25 +64,36 @@ package my_types is
 			"1110001" -- digit "F"
 		);
 	
-	--opcodes
-	constant lw: 		std_logic_vector(5 downto 0) := "100011";
-	constant sw:		std_logic_vector(5 downto 0) := "101011";
-	constant beq: 		std_logic_vector(5 downto 0) := "000100";
-	constant mult:		std_logic_vector(5 downto 0) := "000101";
-	constant imul:		std_logic_vector(5 downto 0) := "001101";
-	constant mflo:		std_logic_vector(5 downto 0) := "100101";
-	constant mfhi:		std_logic_vector(5 downto 0) := "101101";
-	constant jmp: 		std_logic_vector(5 downto 0) := "000010";
-	constant addi:		std_logic_vector(5 downto 0) := "001000";
-	constant subi:		std_logic_vector(5 downto 0) := "001001";
-	constant andi:		std_logic_vector(5 downto 0) := "000011";
-	constant ori: 		std_logic_vector(5 downto 0) := "000001";
-	constant xori:		std_logic_vector(5 downto 0) := "010000";
-	constant nori:		std_logic_vector(5 downto 0) := "010100";
-	constant slti:		std_logic_vector(5 downto 0) := "010101";
-	constant R_type:	std_logic_vector(5 downto 0) := "000000";
+	--opcodes (keep it in ascending order)
 	
-	--funct codes: USE only with R_type
+	constant R_type:			std_logic_vector(5 downto 0) 	:= "000000";
+	constant ori: 				std_logic_vector(5 downto 0) 	:= "000001";
+	constant jmp: 				std_logic_vector(5 downto 0) 	:= "000010";
+	constant andi:				std_logic_vector(5 downto 0) 	:= "000011";
+	constant beq: 				std_logic_vector(5 downto 0) 	:= "000100";
+	constant mult:				std_logic_vector(5 downto 0) 	:= "000101";
+	constant halt:				std_logic_vector(5 downto 0) 	:= "000110";
+	constant cache_req:		std_logic_vector(5 downto 0)	:= "000111";
+	constant addi:				std_logic_vector(5 downto 0)	:= "001000";
+	constant subi:				std_logic_vector(5 downto 0)	:= "001001";
+	constant iack:				std_logic_vector(5 downto 0)	:= "001010";
+	constant iret:				std_logic_vector(5 downto 0)	:= "001011";
+	constant ret:				std_logic_vector(5 downto 0)	:= "001100";
+	constant imul:				std_logic_vector(5 downto 0)	:= "001101";
+	constant filter_write:	std_logic_vector(5 downto 0)	:= "001110";
+	constant vmac:				std_logic_vector(5 downto 0)	:= "001111";
+	constant xori:				std_logic_vector(5 downto 0)	:= "010000";
+	
+	constant nori:				std_logic_vector(5 downto 0)	:= "010100";
+	constant slti:				std_logic_vector(5 downto 0)	:= "010101";
+	
+	constant lw: 				std_logic_vector(5 downto 0)	:= "100011";
+	constant mflo:				std_logic_vector(5 downto 0)	:= "100101";
+	constant sw:				std_logic_vector(5 downto 0)	:= "101011";
+	constant mfhi:				std_logic_vector(5 downto 0)	:= "101101";
+	
+	
+	--funct codes: use only with R_type
 	constant add_funct:	std_logic_vector(5 downto 0):= "100000";
 	constant sub_funct:	std_logic_vector(5 downto 0):= "100010";
 	constant and_funct:	std_logic_vector(5 downto 0):= "100100";

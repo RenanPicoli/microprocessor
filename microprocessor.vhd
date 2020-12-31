@@ -15,14 +15,29 @@ use work.my_types.all;
 ---------------------------------------------------
 
 entity microprocessor is
-port (CLK: in std_logic;
+generic (N: integer);--size in bits of data addresses 
+port (CLK_IN: in std_logic;
 		rst: in std_logic;
-		data_memory_output: buffer std_logic_vector(31 downto 0);
-		instruction_addr: out std_logic_vector (31 downto 0)--AKA read address
+		irq: in std_logic;--interrupt request
+		iack: out std_logic;--interrupt acknowledgement
+		instruction_addr: out std_logic_vector (31 downto 0);--AKA read address
+		-----ROM----------
+		ADDR_rom: out std_logic_vector(6 downto 0);--addr é endereço de byte, mas os Lsb são 00
+		Q_rom:	in std_logic_vector(31 downto 0);
+		-----RAM-----------
+		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
+		write_data_ram: out std_logic_vector(31 downto 0);
+		rden_ram: out std_logic;--habilita leitura na ram
+		wren_ram: out std_logic;--habilita escrita na ram
+		wren_filter: out std_logic;--habilita escrita nos coeficientes do filtro
+		vmac_en: out std_logic;--multiply-accumulate enable
+		send_cache_request: out std_logic;
+		Q_ram:in std_logic_vector(31 downto 0)
 );
 end entity;
 
 architecture proc of microprocessor is
+signal CLK: std_logic;
 signal pc_in: 	std_logic_vector (31 downto 0);
 signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
 --signal CLK: std_logic;
@@ -72,45 +87,12 @@ port (
 );
 end component;
 
---component data_mem
---	port (	D:	in std_logic_vector(31 downto 0);--data to be written
---				CLK:	in std_logic;
---				ADDR: in std_logic_vector(31 downto 0);
---				MemWrite: in std_logic;
---				MemRead:  in std_logic;
---				Q:	out std_logic_vector(31 downto 0)
---				);
---end component;
-
-component mini_ram
-	port (CLK: in std_logic;--borda de subida para escrita, memória pode ser lida a qq momento desde que rden=1
-			ADDR: in std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
-			write_data: in std_logic_vector(31 downto 0);
-			rden: in std_logic;--habilita leitura
-			wren: in std_logic;--habilita escrita
-			Q:	out std_logic_vector(31 downto 0)
-			);
-end component;
-
---component instr_mem
---	port (CLK: in std_logic;
---			ADDR: in std_logic_vector(31 downto 0);
---			D: in std_logic_vector(31 downto 0);--para que algum código novo seja gravado nela, deixar em 0
---			--MEM_WRITE: in std_logic;--habilita escrita, se desativado, memória é lida a cada clock
---			Q:	out std_logic_vector(31 downto 0)
---			);
---end component;
-
-component mini_rom
-	port (--CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
-			ADDR: in std_logic_vector(4 downto 0);--addr é endereço de byte, mas os Lsb são 00
-			Q:	out std_logic_vector(31 downto 0)
-			);
-end component;
-
 component control_unit
 	port (instruction: in std_logic_vector (31 downto 0);
 			regDst: out std_logic_vector(1 downto 0);
+			halt: out std_logic;
+			iack: buffer std_logic;
+			imask: out std_logic;--interrupt mask: disables all interrupts
 			branch: out std_logic;
 			jump: out std_logic;
 			memRead: out std_logic;
@@ -119,6 +101,9 @@ component control_unit
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
 			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
 			memWrite: out std_logic;
+			filterWrite: out std_logic;--write on filter coefficients
+			vmac: out std_logic;--multiply-accumulate
+			send_cache_request: out std_logic;
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
 			);
@@ -134,6 +119,9 @@ signal mem_data_src: std_logic;
 signal aluControl: std_logic_vector (3 downto 0);--ALU operation selector
 signal fpuControl: std_logic_vector (1 downto 0);--FPU operation selector
 signal memWrite: std_logic;
+signal filterWrite: std_logic;--write on filter coefficients
+signal vmac: std_logic;--enables multiply-accumulate
+signal cache_request: std_logic;
 signal aluSrc: std_logic;
 signal regWrite: std_logic;
 
@@ -145,6 +133,9 @@ signal read_data_1: std_logic_vector (31 downto 0);--from register_file
 signal read_data_2: std_logic_vector (31 downto 0);--from register_file
 signal alu_result: std_logic_vector (31 downto 0);
 signal fpu_result: std_logic_vector (31 downto 0);
+
+signal halt: std_logic;
+signal clk_hold: std_logic;
 
 --Instruction fields
 signal opcode: std_logic_vector (5 downto 0);
@@ -164,7 +155,7 @@ signal branch_type: std_logic;
 signal load_type: std_logic;
 signal store_type: std_logic;
 
---signal data_memory_output: std_logic_vector (31 downto 0);
+signal data_memory_output: std_logic_vector (31 downto 0);
 signal instruction: std_logic_vector (31 downto 0);--next instruction to execute
 signal alu_flags: eflags;--flags da ALU
 signal fpu_flags: std_logic_vector(31 downto 0);--flags da FPU
@@ -175,10 +166,15 @@ signal branch_or_next: std_logic;--branch and ZF
 signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & addressAbsolute & "00"
 
 signal reg_clk: std_logic;--register file clock signal
-signal ram_clk: std_logic;--data memory clock signal
 signal alu_clk: std_logic;--alu clock signal
 
-begin--note this: port map uses ',' while port uses ';'
+begin
+	CLK <= CLK_IN when clk_hold='0' else CLK;
+	clk_hold <= halt and (not irq);
+	
+	
+
+	--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
 										D => pc_in,
@@ -227,22 +223,24 @@ begin--note this: port map uses ',' while port uses ';'
 												);
 	fpu_flags(31 downto 3) <= (others=>'0');
 								
---	data_memory: data_mem port map ( CLK => CLK,
---												MemWrite => memWrite,
---												MemRead => memRead,
---												ADDR => alu_result,
---												D => read_data_2, --store operations
---												Q => data_memory_output
---	);
-
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR Na MEMÓRIA NA BORDA DE DESCIDA
-	ram_clk <= not CLK;											
-	data_memory: mini_ram port map(CLK	=> ram_clk,
-											ADDR	=> alu_result(6 downto 2),
-											write_data => mem_write_data,
-											rden	=> memRead,
-											wren	=> memWrite,
-											Q		=> data_memory_output);
+--	ram_clk <= not CLK;											
+--	ram: parallel_load_cache generic map (N => 5)
+--									port map(CLK	=> ram_clk,
+--												ADDR	=> alu_result(6 downto 2),
+--												write_data => mem_write_data,
+--												parallel_write_data => (others=>(others=>'0')),
+--												fill_cache => '0',
+--												rden	=> memRead,
+--												wren	=> memWrite,
+--												Q		=> data_memory_output);
+	ADDR_ram <= alu_result(N+1 downto 2);
+	write_data_ram <= mem_write_data;
+	rden_ram <= memRead;
+	wren_ram <= memWrite;
+	wren_filter <= filterWrite;
+	vmac_en <= vmac;
+	data_memory_output	<= Q_ram;
 	
 	reg_write_data <= data_memory_output when reg_data_src="01" else--for register write
 							alu_result when reg_data_src="00" else
@@ -260,16 +258,14 @@ begin--note this: port map uses ',' while port uses ';'
 				branch_address when (branch_or_next='1') else
 				pc_incremented;
 
---	instruction_memory: instr_mem port map (CLK => '0',--could be ROM, stores program, 0: read only
---														ADDR => pc_out,
---														D => (others=>'0'), --need define how to load program
---														--MEM_WRITE => '0',--a principio não vamos alterar o programa
---														Q => instruction);
-
-	instruction_memory: mini_rom port map(	--CLK => CLK,
-														ADDR=> pc_out(6 downto 2),
-														Q	 => instruction
-	);
+--	instruction_memory: mini_rom port map(	--CLK => CLK,
+--														ADDR=> pc_out(6 downto 2),
+--														Q	 => instruction
+--	);
+	ADDR_rom <= pc_out(8 downto 2);
+	instruction <= Q_rom;
+	
+	send_cache_request <= cache_request;
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
 	addressRelativeExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
@@ -279,6 +275,8 @@ begin--note this: port map uses ',' while port uses ';'
 										
 	control: control_unit port map (	instruction => instruction,
 												regDst => regDst,
+												halt => halt,
+												iack => iack,
 												branch => branch,
 												jump => jump,
 												memRead => memRead,
@@ -288,6 +286,9 @@ begin--note this: port map uses ',' while port uses ';'
 												aluControl => aluControl,
 												fpuControl => fpuControl,
 												memWrite => memWrite,
+												filterWrite => filterWrite,
+												vmac => vmac,
+												send_cache_request => cache_request,
 												aluSrc => aluSrc,
 												regWrite => regWrite);
 
