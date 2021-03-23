@@ -22,7 +22,7 @@ end mini_rom;
 
 architecture memArch of mini_rom is
 
-	type memory is array (0 to 128) of std_logic_vector(31 downto 0);
+	type memory is array (0 to 127) of std_logic_vector(31 downto 0);
 	constant rom: memory := (--asm approx. follows Intel syntax: destination before source
 	--Feintuch’s Algorithm
 	--initialize
@@ -83,7 +83,7 @@ architecture memArch of mini_rom is
 																		--	End if
 
 	40=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3
-	41=> addi & r3 & r3 & x"0180",							-- addi r3 r3 x"0180"; r3 aponta para o registrador da saída atual do filtro (x88*4)
+	41=> addi & r3 & r3 & x"01A0",							-- addi r3 r3 x"01A0"; r3 aponta para o registrador da saída atual do filtro (x68*4)
 	42=> lw & r3 & r8 & x"0000",								--	lw [r3+0] r8; lê a resposta do filtro e armazena em r8
 	43=> lw & r3 & r9 & x"0004",								-- lw [r3+4] r9; lê a resposta desejada e armazena em r9
 
@@ -141,7 +141,7 @@ architecture memArch of mini_rom is
 	-- limpar o pending bit da IRQ do filtro				-- limpar o pending bit da IRQ do filtro
 	83=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
 	84=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	85=> addi & r4 & r4 & x"018C",							-- addi r4 r4 x"018C"; (x63*4), r4 aponta a posição do reg do controlador de interrupção
+	85=> addi & r4 & r4 & x"01AC",							-- addi r4 r4 x"01AC"; (x6B*4), r4 aponta a posição do reg do controlador de interrupção
 	86=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no reg de IRQ pendentes
 																		
 	87=> iack & "00" & x"000000",								-- iack
