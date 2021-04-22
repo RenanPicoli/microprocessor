@@ -37,84 +37,91 @@ architecture memArch of mini_rom is
 	8=> R_type & r7 & r7 & r7 & "00000" & xor_funct,	-- xor r7 r7 r7; zera r7, r7 será a constante 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 	9=> addi & r7 & r7 & x"0008",								-- addi r7 r7 x"0010"; r7 <- 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 
---Audio codec configuration
-R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
-addi & r3 & r3 & x"0180", -- addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi & r5 & r5 & "00000_0_01_0011010_0", -- addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
-sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
-
---reset
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-addi & r5 & r5 & "0001111_0_0000_0000", -- addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
-sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
-sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
-halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
-
---power down
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-addi & r5 & r5 & "0000110_0_0111_0111", -- addi r5 r5 "0000110_0_0111_0111"; configura DR para escrever 0_0111_0111 no reg 06h (power down control)
-sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
-sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
-halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
-
---analogue audio path
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-addi & r5 & r5 & "0000100_0_0001_0010", -- addi r5 r5 "0000100_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 04h (analogue audio path)
-sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
-sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
-halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
-
---digital audio path
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-addi & r5 & r5 & "0000101_0_0000_0000", -- addi r5 r5 "0000101_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 05h (digital audio path)
-sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
-sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
-halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
-
---digital audio interface format
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-addi & r5 & r5 & "0000111_0_0001_0010", -- addi r5 r5 "0000111_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 07h (digital audio interface format, I2S)
-sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
-sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
-halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
-
---sampling control
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-addi & r5 & r5 & "0001000_0_0010_0011", -- addi r5 r5 "0001000_0_0010_0011"; configura DR para escrever 0_0010_0011 no reg 08h (sampling control, USB mode)
-sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
-sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
-halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
-
---active control
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-addi & r5 & r5 & "0001001_0_0000_0001", -- addi r5 r5 "0001001_0_0000_0001"; configura DR para escrever 0_0000_0001 no reg 09h (active control, ativa o codec)
-sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
-sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
-halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
-
---power down control
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-addi & r5 & r5 & "0000110_0_0110_0111", -- addi r5 r5 "0000110_0_0110_0111"; configura DR para escrever 0_0110_0111 no reg 06h (power down control, ativa a saída)
-sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
-R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
-sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
-halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
+----I2S configuration
+--R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+--addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "0000_0000_0_011_010_0", -- addi r5 r5 "0000_0000_0_011_010_0"; configura CR: seleciona left fifo, DS 16 bits, 2 frames, aguardando início
+--sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda	
+--	
+----Audio codec configuration
+--R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+--addi & r3 & r3 & x"0180", -- addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "00000_0_01_0011010_0", -- addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
+--sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
+--
+----reset
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+--addi & r5 & r5 & "0001111_0_0000_0000", -- addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
+--sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+--sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+--halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
+--
+----power down
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+--addi & r5 & r5 & "0000110_0_0111_0111", -- addi r5 r5 "0000110_0_0111_0111"; configura DR para escrever 0_0111_0111 no reg 06h (power down control)
+--sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+--sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+--halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
+--
+----analogue audio path
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+--addi & r5 & r5 & "0000100_0_0001_0010", -- addi r5 r5 "0000100_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 04h (analogue audio path)
+--sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+--sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+--halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
+--
+----digital audio path
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+--addi & r5 & r5 & "0000101_0_0000_0000", -- addi r5 r5 "0000101_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 05h (digital audio path)
+--sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+--sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+--halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
+--
+----digital audio interface format
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+--addi & r5 & r5 & "0000111_0_0001_0010", -- addi r5 r5 "0000111_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 07h (digital audio interface format, I2S)
+--sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+--sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+--halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
+--
+----sampling control
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+--addi & r5 & r5 & "0001000_0_0010_0011", -- addi r5 r5 "0001000_0_0010_0011"; configura DR para escrever 0_0010_0011 no reg 08h (sampling control, USB mode)
+--sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+--sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+--halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
+--
+----active control
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+--addi & r5 & r5 & "0001001_0_0000_0001", -- addi r5 r5 "0001001_0_0000_0001"; configura DR para escrever 0_0000_0001 no reg 09h (active control, ativa o codec)
+--sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+--sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+--halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
+--
+----power down control
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+--addi & r5 & r5 & "0000110_0_0110_0111", -- addi r5 r5 "0000110_0_0110_0111"; configura DR para escrever 0_0110_0111 no reg 06h (power down control, ativa a saída)
+--sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+--R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+--addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+--sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+--halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
 
 
 	10=> halt & "00" & x"000000",								-- halt; waits for interruption to be generated when filter_CLK rises (new sample)
@@ -123,6 +130,8 @@ halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C
 																		-- r8 será para armazenar a leitura da saída do filtro
 																		-- r9 será para armazenar a resposta desejada
 																		-- r10 será o erro (d-y)
+																		-- r11 será mais um registrador de carregamento temporário de dados
+																		-- r12 será uma máscara para a seleção do bit 7 (x"0008")
 
 	--	main: Loop New_sample:									--	main: Loop New_sample:
 																		--	%calculo do step
@@ -226,6 +235,31 @@ halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C
 	86=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no reg de IRQ pendentes
 																		
 	87=> iack & "00" & x"000000",								-- iack
+
+----I2S transmission (left fifo já foi selecionada antes do loop principal)
+----escreve 2x no DR (left fifo selectonada)
+----escreve 2x no DR (right fifo selectonada)
+----habilita a transmissão
+--R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+--addi & r3 & r3 & x"01E0", -- addi r3 r3 x"01E0"; x78*4 é a posição 0 do converted_output register
+--lw & r3 & r5 & x"0000",-- lw [r3+0] r5, loads r5 with filter response converted to 2's complement (CREATE REGISTER)
+--R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+--addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
+--sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
+--sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S de novo (uma forma de reduzir a frequência de amostragem)
+--
+----usar r11 para armazenar a configuração do I2S
+--lw & r3 & r11 & x"0000",-- lw [r3+0] r11, armazena em r11 a configuração do I2S (CR)
+--R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
+--addi & r12 & r12 & x"0008",--addi r12 r12 x"0008", r12 <- x0008
+--R_type & r11 & r12 & r11 & "00000" & xor_funct,--xor r11 r11 x"0008", inverte o bit de seleção da fifo
+--sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
+--sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S de novo (uma forma de reduzir a frequência de amostragem)
+--R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
+--addi & r12 & r12 & x"0001",--addi r12 r12 x"0001", r12 <- x0001 (máscara do bit 0)
+--R_type & r11 & r12 & r11 & "00000" & or_funct,--xor r11 r11 x"0001", ativa o bit I2S_EN (inicia transmissão)
+--halt & "00" & x"000000",								-- halt; waits for interruption (assumes sucess)
+
 	88=> halt & "00" & x"000000",								-- halt; waits for interruption to be generated when filter_CLK rises (new sample)
 	89=> jmp & "00" & x"00000B",								-- jmp "New_sample"; jmp 11: volta pro início do loop de proc de amostra
 																		--	End loop New_sample
