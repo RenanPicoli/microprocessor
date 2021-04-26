@@ -22,7 +22,7 @@ port (CLK_IN: in std_logic;
 		iack: out std_logic;--interrupt acknowledgement
 		instruction_addr: out std_logic_vector (31 downto 0);--AKA read address
 		-----ROM----------
-		ADDR_rom: out std_logic_vector(6 downto 0);--addr é endereço de byte, mas os Lsb são 00
+		ADDR_rom: out std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		Q_rom:	in std_logic_vector(31 downto 0);
 		-----RAM-----------
 		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
@@ -262,7 +262,7 @@ begin
 --														ADDR=> pc_out(6 downto 2),
 --														Q	 => instruction
 --	);
-	ADDR_rom <= pc_out(8 downto 2);
+	ADDR_rom <= pc_out(9 downto 2);
 	instruction <= Q_rom;
 	
 	send_cache_request <= cache_request;

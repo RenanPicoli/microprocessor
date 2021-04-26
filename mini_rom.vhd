@@ -15,14 +15,14 @@ use work.my_types.all;--opcode and register "defines"
 
 entity mini_rom is
 	port (--CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
-			ADDR: in std_logic_vector(6 downto 0);--addr é endereço de byte, mas os Lsb são 00
+			ADDR: in std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
 			Q:	out std_logic_vector(31 downto 0)
 			);
 end mini_rom;
 
 architecture memArch of mini_rom is
 
-	type memory is array (0 to 127) of std_logic_vector(31 downto 0);
+	type memory is array (0 to 255) of std_logic_vector(31 downto 0);
 	constant rom: memory := (--asm approx. follows Intel syntax: destination before source
 	--Feintuch’s Algorithm
 	--initialize
@@ -37,94 +37,94 @@ architecture memArch of mini_rom is
 	8=> R_type & r7 & r7 & r7 & "00000" & xor_funct,	-- xor r7 r7 r7; zera r7, r7 será a constante 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 	9=> addi & r7 & r7 & x"0008",								-- addi r7 r7 x"0010"; r7 <- 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 
-----I2S configuration
---R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
---addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "0000_0000_0_011_010_0", -- addi r5 r5 "0000_0000_0_011_010_0"; configura CR: seleciona left fifo, DS 16 bits, 2 frames, aguardando início
---sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda	
---	
-----Audio codec configuration
---R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
---addi & r3 & r3 & x"0180", -- addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "00000_0_01_0011010_0", -- addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
---sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
---
-----reset
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
---addi & r5 & r5 & "0001111_0_0000_0000", -- addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
---sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
---sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
---halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
---
-----power down
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
---addi & r5 & r5 & "0000110_0_0111_0111", -- addi r5 r5 "0000110_0_0111_0111"; configura DR para escrever 0_0111_0111 no reg 06h (power down control)
---sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
---sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
---halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
---
-----analogue audio path
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
---addi & r5 & r5 & "0000100_0_0001_0010", -- addi r5 r5 "0000100_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 04h (analogue audio path)
---sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
---sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
---halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
---
-----digital audio path
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
---addi & r5 & r5 & "0000101_0_0000_0000", -- addi r5 r5 "0000101_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 05h (digital audio path)
---sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
---sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
---halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
---
-----digital audio interface format
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
---addi & r5 & r5 & "0000111_0_0001_0010", -- addi r5 r5 "0000111_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 07h (digital audio interface format, I2S)
---sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
---sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
---halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
---
-----sampling control
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
---addi & r5 & r5 & "0001000_0_0010_0011", -- addi r5 r5 "0001000_0_0010_0011"; configura DR para escrever 0_0010_0011 no reg 08h (sampling control, USB mode)
---sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
---sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
---halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
---
-----active control
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
---addi & r5 & r5 & "0001001_0_0000_0001", -- addi r5 r5 "0001001_0_0000_0001"; configura DR para escrever 0_0000_0001 no reg 09h (active control, ativa o codec)
---sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
---sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
---halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
---
-----power down control
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
---addi & r5 & r5 & "0000110_0_0110_0111", -- addi r5 r5 "0000110_0_0110_0111"; configura DR para escrever 0_0110_0111 no reg 06h (power down control, ativa a saída)
---sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
---R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---addi & r5 & r5 & "00000_1_01_0011010_0", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
---sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
---halt & "00" & x"000000", -- halt; waits for iterruption to be generated when I2C transmission ends (assumes sucess)
+	--I2S configuration
+	10=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+	11=> addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
+	12=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	13=> addi & r5 & r5 & "0000000000110100", -- addi r5 r5 "0000_0000_0_011_010_0"; configura CR: seleciona left fifo, DS 16 bits, 2 frames, aguardando início
+	14=> sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda	
+		
+	--Audio codec configuration
+	15=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+	16=> addi & r3 & r3 & x"0180", -- addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
+	17=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	18=> addi & r5 & r5 & "0000000000110100", -- addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
+	19=> sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
+
+	--reset
+	20=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	21=> addi & r5 & r5 & "0001111000000000", -- addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
+	22=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+	23=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	24=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+	25=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+	26=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
+
+	--power down
+	27=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	28=> addi & r5 & r5 & "0000110001110111", -- addi r5 r5 "0000110_0_0111_0111"; configura DR para escrever 0_0111_0111 no reg 06h (power down control)
+	29=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+	30=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	31=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+	32=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+	33=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
+
+	--analogue audio path
+	34=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	35=> addi & r5 & r5 & "0000100000010010", -- addi r5 r5 "0000100_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 04h (analogue audio path)
+	36=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+	37=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	38=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+	39=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+	40=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
+
+	--digital audio path
+	41=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	42=> addi & r5 & r5 & "0000101000000000", -- addi r5 r5 "0000101_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 05h (digital audio path)
+	43=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+	44=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	45=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+	46=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+	47=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
+
+	--digital audio interface format
+	48=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	49=> addi & r5 & r5 & "0000111000010010", -- addi r5 r5 "0000111_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 07h (digital audio interface format, I2S)
+	50=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+	51=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	52=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+	53=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+	54=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
+
+	--sampling control
+	55=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	56=> addi & r5 & r5 & "0001000000100011", -- addi r5 r5 "0001000_0_0010_0011"; configura DR para escrever 0_0010_0011 no reg 08h (sampling control, USB mode)
+	57=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+	58=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	59=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+	60=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+	61=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
+
+	--active control
+	62=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	63=> addi & r5 & r5 & "0001001000000001", -- addi r5 r5 "0001001_0_0000_0001"; configura DR para escrever 0_0000_0001 no reg 09h (active control, ativa o codec)
+	64=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+	65=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	66=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+	67=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+	68=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
+
+	--power down control
+	69=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	70=> addi & r5 & r5 & "0000110001100111", -- addi r5 r5 "0000110_0_0110_0111"; configura DR para escrever 0_0110_0111 no reg 06h (power down control, ativa a saída)
+	71=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+	72=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	73=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+	74=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+	75=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
 
 
-	10=> halt & "00" & x"000000",								-- halt; waits for interruption to be generated when filter_CLK rises (new sample)
+	76=> halt & "00" & x"000000",								-- halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
 																		-- r5 será um registrador para carregamento temporário de dados
 																		-- r6 será um índice para a iteração nos loops
 																		-- r8 será para armazenar a leitura da saída do filtro
@@ -135,133 +135,133 @@ architecture memArch of mini_rom is
 
 	--	main: Loop New_sample:									--	main: Loop New_sample:
 																		--	%calculo do step
-	11=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
-	12=> addi & r3 & r3 & x"0080",							-- addi r3 r3 x"0080"; x20*4 é a posição 0 do inner_product
-	13=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera r4
-	14=> addi & r4 & r4 & x"0020",							-- addi r4 r4 x"0020"; 8*4 é a posição 0 do filter_xN
-	15=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera r6
+	77=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+	78=> addi & r3 & r3 & x"0080",							-- addi r3 r3 x"0080"; x20*4 é a posição 0 do inner_product
+	79=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera r4
+	80=> addi & r4 & r4 & x"0020",							-- addi r4 r4 x"0020"; 8*4 é a posição 0 do filter_xN
+	81=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera r6
 
 																		--	Loop xN_inner: carregar o produto interno com os xN
-	16=> lw & r4 & r5 & x"0000",									-- lw [r4+0] r5; carrega r5 com um elemento de xN
-	17=> sw & r3 & r5 & x"0000",									-- sw [r3+0] r5; armazena esse elemento de xN no A do inner_product
-	18=> sw & r3 & r5 & x"0020",									-- sw [r3+8*4] r5; armazena esse mesmo elemento no B do inner_product
-	19=> addi & r3 & r3 & x"0004",								-- addi r3 r3 x"0004"; r3++; r3 is a pointer to word
-	20=> addi & r4 & r4 & x"0004",								-- addi r4 r4 x"0004"; r4++; r4 is a pointer to word
-	21=> addi & r6 & r6 & x"0001",								-- addi r6 r6 x"0001"; r6++
-	22=> beq & r6 & r7 & x"0001",									-- beq r6 r7 x"0001"; se r6 chega a 8, pula a próxima instrução e segue adiante
-	23=> jmp & "00" & x"000010",									-- jmp x"xN_inner", volta ao início desse loop
+	82=> lw & r4 & r5 & x"0000",									-- lw [r4+0] r5; carrega r5 com um elemento de xN
+	83=> sw & r3 & r5 & x"0000",									-- sw [r3+0] r5; armazena esse elemento de xN no A do inner_product
+	84=> sw & r3 & r5 & x"0020",									-- sw [r3+8*4] r5; armazena esse mesmo elemento no B do inner_product
+	85=> addi & r3 & r3 & x"0004",								-- addi r3 r3 x"0004"; r3++; r3 is a pointer to word
+	86=> addi & r4 & r4 & x"0004",								-- addi r4 r4 x"0004"; r4++; r4 is a pointer to word
+	87=> addi & r6 & r6 & x"0001",								-- addi r6 r6 x"0001"; r6++
+	88=> beq & r6 & r7 & x"0001",									-- beq r6 r7 x"0001"; se r6 chega a 8, pula a próxima instrução e segue adiante
+	89=> jmp & "00" & x"000052",									-- jmp x"xN_inner", volta ao início desse loop
 																		--	End loop xN_inner
 
-	24=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
-	25=> addi & r3 & r3 & x"0080",							-- addi r3 r3 x"0080"; x20*4 é a posição 0 do inner_product
-	26=> lw & r3 & r1 & x"0040",								--	lw [r3+ 16*4] r1; stores squared norm in r1
-	27=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
-	28=> addi & r3 & r3 & x"0040",							-- addi r3 r3 x"0040"; x10*4 é a posição 0 do cache
+	90=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+	91=> addi & r3 & r3 & x"0080",							-- addi r3 r3 x"0080"; x20*4 é a posição 0 do inner_product
+	92=> lw & r3 & r1 & x"0040",								--	lw [r3+ 16*4] r1; stores squared norm in r1
+	93=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+	94=> addi & r3 & r3 & x"0040",							-- addi r3 r3 x"0040"; x10*4 é a posição 0 do cache
 
 																		--	If -- testa se quem é maior: cte ou squared norm, pega a MAIOR
-	29=> R_type & r1 & r2 & r5 & "00000" & fsub_funct,		-- fsub r1 r2 r5; usa r5 para armazenar a diferença squared norm - 5E-5
-	30=> R_type & r6 & r6 & r6 & "00000" & xor_funct,		-- xor r6 r6 r6; zera r6, será usado temporariamente
-	31=> lw & r3 & r6 & x"0004",									-- lw [r3 + 4] r6; r6 <- x"7FFFFFFF", a constante estava no cache
-	32=> R_type & r5 & r6 & r5 & "00000" & slt_funct,		-- slt r5 r6 r5; se r5 for negativo (sq norm < 5E-5), r5 <- x"00000000" se não, recebe x"00000001"
-	33=> R_type & r6 & r6 & r6 & "00000" & xor_funct,		-- xor r6 r6 r6; zera r6
-	34=> beq & r5 & r6 & x"0003",									-- beq r5 r6 x"0003"; se r5 = r6 =0, pula as 3 instrucoes abaixo, r1 deve receber 1/(2*sq norm)
-	35=> lw & r3 & r6 & x"000C",									-- lw [r3+12] r6; r6 <- 1.0
-	36=> R_type & r6 & r1 & r1 & "00000" & fdiv_funct,		-- fdiv r6 r1 r1; r1 <- 1/(sq norm), r1*erro será o escalar na atualização do filtro
-	37=> jmp & "00" & x"000028",									-- jmp EndIF (jump 40: jump to outside if)
-	38=> lw & r3 & r6 & x"000C",									-- lw[r3+12] r6; r6 <- 1.0
-	39=> R_type & r6 & r2 & r1 & "00000" & fdiv_funct,		-- fdiv r6 r2 r1; r1 <- 1/(5E-5), r1*erro será o escalar na atualização do filtro
+	95=> R_type & r1 & r2 & r5 & "00000" & fsub_funct,		-- fsub r1 r2 r5; usa r5 para armazenar a diferença squared norm - 5E-5
+	96=> R_type & r6 & r6 & r6 & "00000" & xor_funct,		-- xor r6 r6 r6; zera r6, será usado temporariamente
+	97=> lw & r3 & r6 & x"0004",									-- lw [r3 + 4] r6; r6 <- x"7FFFFFFF", a constante estava no cache
+	98=> R_type & r5 & r6 & r5 & "00000" & slt_funct,		-- slt r5 r6 r5; se r5 for negativo (sq norm < 5E-5), r5 <- x"00000000" se não, recebe x"00000001"
+	99=> R_type & r6 & r6 & r6 & "00000" & xor_funct,		-- xor r6 r6 r6; zera r6
+	100=> beq & r5 & r6 & x"0003",									-- beq r5 r6 x"0003"; se r5 = r6 =0, pula as 3 instrucoes abaixo, r1 deve receber 1/(2*sq norm)
+	101=> lw & r3 & r6 & x"000C",									-- lw [r3+12] r6; r6 <- 1.0
+	102=> R_type & r6 & r1 & r1 & "00000" & fdiv_funct,		-- fdiv r6 r1 r1; r1 <- 1/(sq norm), r1*erro será o escalar na atualização do filtro
+	103=> jmp & "00" & x"00006A",									-- jmp EndIF (jump 106: jump to outside if)
+	104=> lw & r3 & r6 & x"000C",									-- lw[r3+12] r6; r6 <- 1.0
+	105=> R_type & r6 & r2 & r1 & "00000" & fdiv_funct,		-- fdiv r6 r2 r1; r1 <- 1/(5E-5), r1*erro será o escalar na atualização do filtro
 																		--	End if
 
-	40=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3
-	41=> addi & r3 & r3 & x"01C0",							-- addi r3 r3 x"01C0"; r3 aponta para o registrador da saída atual do filtro (x70*4)
-	42=> lw & r3 & r8 & x"0000",								--	lw [r3+0] r8; lê a resposta do filtro e armazena em r8
-	43=> lw & r3 & r9 & x"0004",								-- lw [r3+4] r9; lê a resposta desejada e armazena em r9
+	106=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3
+	107=> addi & r3 & r3 & x"01C0",							-- addi r3 r3 x"01C0"; r3 aponta para o registrador da saída atual do filtro (x70*4)
+	108=> lw & r3 & r8 & x"0000",								--	lw [r3+0] r8; lê a resposta do filtro e armazena em r8
+	109=> lw & r3 & r9 & x"0004",								-- lw [r3+4] r9; lê a resposta desejada e armazena em r9
 
-	44=> R_type & r9 & r8 & r10 & "00000" & fsub_funct,--	fsub r9 r8 r10; Calcula e armazena o erro (d-y) em r10
-	45=> R_type & r1 & r10 & r1 & "00000" & fmul_funct,-- fmul r1 r10 r1 ; r1 <- (2*step)*erro
-	46=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	47=> addi & r4 & r4 & x"0100",							-- addi r4 r4 x"0100"; x40*4, r4 aponta posição 0 do vmac
-	48=> sw & r4 & r1 & x"0040",								-- sw [r4 + 64] r1; armazena step*erro no lambda
+	110=> R_type & r9 & r8 & r10 & "00000" & fsub_funct,--	fsub r9 r8 r10; Calcula e armazena o erro (d-y) em r10
+	111=> R_type & r1 & r10 & r1 & "00000" & fmul_funct,-- fmul r1 r10 r1 ; r1 <- (2*step)*erro
+	112=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
+	113=> addi & r4 & r4 & x"0100",							-- addi r4 r4 x"0100"; x40*4, r4 aponta posição 0 do vmac
+	114=> sw & r4 & r1 & x"0040",								-- sw [r4 + 64] r1; armazena step*erro no lambda
 
-	49=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6,
-	50=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3, aponta para a posição 0 de filter coeffs
+	115=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6,
+	116=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3, aponta para a posição 0 de filter coeffs
 	--	Loop A:														--	Loop A: carregar VMAC com as componentes do filtro atual
-	51=> lw & r3 & r5 & x"0000",									-- lw [r3+0] r5; carrega r5 com um coeficiente do filtro
-	52=> sw & r4 & r5 & x"0000",									-- sw [r4+0] r5; armazena esse coeficiente do filtro no vmac
-	53=> addi & r3 & r3 & x"0004",								-- addi r3 r3 x"0004"; r3++; r3 is a pointer to word
-	54=> addi & r4 & r4 & x"0004",								-- addi r4 r4 x"0004"; r4++; r4 is a pointer to word
-	55=> addi & r6 & r6 & x"0001",								-- addi r6 r6 x"0001"; r6++
-	56=> beq & r6 & r7 & x"0001",									-- beq r6 r7 x"0001"; se r6 chega a 8, pula a próxima instrução e segue adiante
-	57=> jmp & "00" & x"000033",									-- jmp x"loop A", jump 51: volta ao início desse loop
+	117=> lw & r3 & r5 & x"0000",									-- lw [r3+0] r5; carrega r5 com um coeficiente do filtro
+	118=> sw & r4 & r5 & x"0000",									-- sw [r4+0] r5; armazena esse coeficiente do filtro no vmac
+	119=> addi & r3 & r3 & x"0004",								-- addi r3 r3 x"0004"; r3++; r3 is a pointer to word
+	120=> addi & r4 & r4 & x"0004",								-- addi r4 r4 x"0004"; r4++; r4 is a pointer to word
+	121=> addi & r6 & r6 & x"0001",								-- addi r6 r6 x"0001"; r6++
+	122=> beq & r6 & r7 & x"0001",									-- beq r6 r7 x"0001"; se r6 chega a 8, pula a próxima instrução e segue adiante
+	123=> jmp & "00" & x"000075",									-- jmp x"loop A", jump 117: volta ao início desse loop
 																		--	End loop A
 
-	58=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6,
-	59=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3,
-	60=> addi & r3 & r3 & x"0020",							-- addi r3 r3 x"0020" aponta para a posição 0 de xN
-	61=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	62=> addi & r4 & r4 & x"0120",							-- addi r4 r4 x"0120"; (x40+x08)*4, r4 aponta posição x8 do vmac, vetor B
+	124=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6,
+	125=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3,
+	126=> addi & r3 & r3 & x"0020",							-- addi r3 r3 x"0020" aponta para a posição 0 de xN
+	127=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
+	128=> addi & r4 & r4 & x"0120",							-- addi r4 r4 x"0120"; (x40+x08)*4, r4 aponta posição x8 do vmac, vetor B
 	--	Loop B:														--	Loop B: carregar VMAC com as componentes de [alfa beta] approx xN (Feintuch)
-	63=> lw & r3 & r5 & x"0000",									-- lw [r3+0] r5; carrega r5 com um elemento de xN
-	64=> sw & r4 & r5 & x"0000",									-- sw [r4+0] r5; armazena esse elemento de xN no vmac
-	65=> addi & r3 & r3 & x"0004",								-- addi r3 r3 x"0004"; r3++; r3 is a pointer to word
-	66=> addi & r4 & r4 & x"0004",								-- addi r4 r4 x"0004"; r4++; r4 is a pointer to word
-	67=> addi & r6 & r6 & x"0001",								-- addi r6 r6 x"0001"; r6++
-	68=> beq & r6 & r7 & x"0001",									-- beq r6 r7 x"0001"; se r6 chega a 8, pula a próxima instrução e segue adiante
-	69=> jmp & "00" & x"00003F",									-- jmp x"loop B", jump 63: volta ao início desse loop
+	129=> lw & r3 & r5 & x"0000",									-- lw [r3+0] r5; carrega r5 com um elemento de xN
+	130=> sw & r4 & r5 & x"0000",									-- sw [r4+0] r5; armazena esse elemento de xN no vmac
+	131=> addi & r3 & r3 & x"0004",								-- addi r3 r3 x"0004"; r3++; r3 is a pointer to word
+	132=> addi & r4 & r4 & x"0004",								-- addi r4 r4 x"0004"; r4++; r4 is a pointer to word
+	133=> addi & r6 & r6 & x"0001",								-- addi r6 r6 x"0001"; r6++
+	134=> beq & r6 & r7 & x"0001",									-- beq r6 r7 x"0001"; se r6 chega a 8, pula a próxima instrução e segue adiante
+	135=> jmp & "00" & x"000081",									-- jmp x"loop B", jump 129: volta ao início desse loop
 																		--	End loop B
 
-	70=> vmac & "00" & x"000000",								-- vmac; enables accumulation in vector A of VMAC
+	136=> vmac & "00" & x"000000",								-- vmac; enables accumulation in vector A of VMAC
 	
-	71=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6,
-	72=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3, aponta para a posição 0 de filter coeffs
-	73=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	74=> addi & r4 & r4 & x"0100",							-- addi r4 r4 x"0100"; x40*4, r4 aponta posição 0 do vmac
+	137=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6,
+	138=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3, aponta para a posição 0 de filter coeffs
+	139=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
+	140=> addi & r4 & r4 & x"0100",							-- addi r4 r4 x"0100"; x40*4, r4 aponta posição 0 do vmac
 	--	Loop A*:														--	Loop A*: ler o acumulador do VMAC e atualizar os coeficientes do filtro
-	75=> lw & r4 & r5 & x"0000",									-- lw [r4+0] r5; carrega r5 com um resultado do vmac
-	76=> sw & r3 & r5 & x"0000",									-- sw [r3+0] r5; armazena esse coeficiente no filter coeffs
-	77=> addi & r3 & r3 & x"0004",								-- addi r3 r3 x"0004"; r3++; r3 is a pointer to word
-	78=> addi & r4 & r4 & x"0004",								-- addi r4 r4 x"0004"; r4++; r4 is a pointer to word
-	79=> addi & r6 & r6 & x"0001",								-- addi r6 r6 x"0001"; r6++
-	80=> beq & r6 & r7 & x"0001",									-- beq r6 r7 x"0001"; se r6 chega a 8, pula a próxima instrução e segue adiante
-	81=> jmp & "00" & x"00004B",									-- jmp x"loop A*", jump 75: volta ao início desse loop
+	141=> lw & r4 & r5 & x"0000",									-- lw [r4+0] r5; carrega r5 com um resultado do vmac
+	142=> sw & r3 & r5 & x"0000",									-- sw [r3+0] r5; armazena esse coeficiente no filter coeffs
+	143=> addi & r3 & r3 & x"0004",								-- addi r3 r3 x"0004"; r3++; r3 is a pointer to word
+	144=> addi & r4 & r4 & x"0004",								-- addi r4 r4 x"0004"; r4++; r4 is a pointer to word
+	145=> addi & r6 & r6 & x"0001",								-- addi r6 r6 x"0001"; r6++
+	146=> beq & r6 & r7 & x"0001",									-- beq r6 r7 x"0001"; se r6 chega a 8, pula a próxima instrução e segue adiante
+	147=> jmp & "00" & x"00008D",									-- jmp x"loop A*", jump 141: volta ao início desse loop
 																		--	End loop A*
 	
-	82=> filter_write & "00" & x"000000",					-- filter_write; enables filter to update its components (when filter_CLK rises)
+	148=> filter_write & "00" & x"000000",					-- filter_write; enables filter to update its components (when filter_CLK rises)
 	-- TODO: se filtro já convergiu, sair do loop		-- TODO: se filtro já convergiu, sair do loop
 	-- limpar o pending bit da IRQ do filtro				-- limpar o pending bit da IRQ do filtro
-	83=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
-	84=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	85=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição do reg do controlador de interrupção
-	86=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no reg de IRQ pendentes
+	149=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
+	150=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
+	151=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição do reg do controlador de interrupção
+	152=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no reg de IRQ pendentes
 																		
-	87=> iack & "00" & x"000000",								-- iack
+	153=> iack & "00" & x"000000",								-- iack
 
-----I2S transmission (left fifo já foi selecionada antes do loop principal)
-----escreve 2x no DR (left fifo selectonada)
-----escreve 2x no DR (right fifo selectonada)
-----habilita a transmissão
---R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
---addi & r3 & r3 & x"01E0", -- addi r3 r3 x"01E0"; x78*4 é a posição 0 do converted_output register
---lw & r3 & r5 & x"0000",-- lw [r3+0] r5, loads r5 with filter response converted to 2's complement (CREATE REGISTER)
---R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
---addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
---sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
---sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S de novo (uma forma de reduzir a frequência de amostragem)
---
-----usar r11 para armazenar a configuração do I2S
---lw & r3 & r11 & x"0000",-- lw [r3+0] r11, armazena em r11 a configuração do I2S (CR)
---R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
---addi & r12 & r12 & x"0008",--addi r12 r12 x"0008", r12 <- x0008
---R_type & r11 & r12 & r11 & "00000" & xor_funct,--xor r11 r11 x"0008", inverte o bit de seleção da fifo
---sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
---sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S de novo (uma forma de reduzir a frequência de amostragem)
---R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
---addi & r12 & r12 & x"0001",--addi r12 r12 x"0001", r12 <- x0001 (máscara do bit 0)
---R_type & r11 & r12 & r11 & "00000" & or_funct,--xor r11 r11 x"0001", ativa o bit I2S_EN (inicia transmissão)
---halt & "00" & x"000000",								-- halt; waits for interruption (assumes sucess)
+	--I2S transmission (left fifo já foi selecionada antes do loop principal)
+	--escreve 2x no DR (left fifo selectonada)
+	--escreve 2x no DR (right fifo selectonada)
+	--habilita a transmissão
+	154=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+	155=> addi & r3 & r3 & x"01E0", -- addi r3 r3 x"01E0"; x78*4 é a posição 0 do converted_output register
+	156=> lw & r3 & r5 & x"0000",-- lw [r3+0] r5, loads r5 with filter response converted to 2's complement (CREATE REGISTER)
+	157=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+	158=> addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
+	159=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
+	160=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S de novo (uma forma de reduzir a frequência de amostragem)
 
-	88=> halt & "00" & x"000000",								-- halt; waits for interruption to be generated when filter_CLK rises (new sample)
-	89=> jmp & "00" & x"00000B",								-- jmp "New_sample"; jmp 11: volta pro início do loop de proc de amostra
+	--usar r11 para armazenar a configuração do I2S
+	161=> lw & r3 & r11 & x"0000",-- lw [r3+0] r11, armazena em r11 a configuração do I2S (CR)
+	162=> R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
+	163=> addi & r12 & r12 & x"0008",--addi r12 r12 x"0008", r12 <- x0008
+	164=> R_type & r11 & r12 & r11 & "00000" & xor_funct,--xor r11 r11 x"0008", inverte o bit de seleção da fifo
+	165=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
+	166=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S de novo (uma forma de reduzir a frequência de amostragem)
+	167=> R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
+	168=> addi & r12 & r12 & x"0001",--addi r12 r12 x"0001", r12 <- x0001 (máscara do bit 0)
+	169=> R_type & r11 & r12 & r11 & "00000" & or_funct,--xor r11 r11 x"0001", ativa o bit I2S_EN (inicia transmissão)
+	170=> halt & "00" & x"000000",								-- halt; waits for I2S interruption (assumes sucess)
+
+	171=> halt & "00" & x"000000",								-- halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
+	172=> jmp & "00" & x"00004D",								-- jmp "New_sample"; jmp 77: volta pro início do loop de proc de amostra
 																		--	End loop New_sample
 	others => x"0000_0000"
 	);
