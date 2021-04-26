@@ -251,8 +251,8 @@ architecture memArch of mini_rom is
 	--usar r11 para armazenar a configuração do I2S
 	161=> lw & r3 & r11 & x"0000",-- lw [r3+0] r11, armazena em r11 a configuração do I2S (CR)
 	162=> R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
-	163=> addi & r12 & r12 & x"0008",--addi r12 r12 x"0008", r12 <- x0008
-	164=> R_type & r11 & r12 & r11 & "00000" & xor_funct,--xor r11 r11 x"0008", inverte o bit de seleção da fifo
+	163=> addi & r12 & r12 & x"0080",--addi r12 r12 x"0080", r12 <- x0080
+	164=> R_type & r11 & r12 & r11 & "00000" & xor_funct,--xor r11 r11 x"0080", inverte o bit de seleção da fifo
 	165=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
 	166=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S de novo (uma forma de reduzir a frequência de amostragem)
 	167=> R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
