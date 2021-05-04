@@ -42,7 +42,10 @@ architecture memArch of mini_rom is
 	11=> addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
 	12=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
 	13=> addi & r5 & r5 & "0000000000110100", -- addi r5 r5 "0000_0000_0_011_010_0"; configura CR: seleciona left fifo, DS 16 bits, 2 frames, aguardando início
-	14=> sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda	
+	14=> sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
+--	lw & r3 & r5 & "0008", -- lw [r3+8] r5; r5 recebe o valor de I2S:SR
+--	andi & r5 & r5 & "0080",-- andi r5 r5 x"0080" (zera todos os bits, menos o bit 7 - pll locked)
+--	beq & r5 & rz & "FFFD",-- beq r5 rz (-3), se r5 = 0, pll não deu lock, repetir leitura (instrucao 15)
 		
 	--Audio codec configuration
 	15=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
