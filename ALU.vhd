@@ -45,6 +45,18 @@ component multiplier
 			P: out std_logic_vector(63 downto 0));
 end component;
 
+--full adder
+component FA
+	generic	(N: integer);
+	port(	A: in std_logic_vector(N-1 downto 0);
+			B: in std_logic_vector(N-1 downto 0);
+			Ci:in std_logic;
+			Co:out std_logic;
+			S: out std_logic_vector(N-1 downto 0)
+	);
+end component;
+
+
 component d_flip_flop
 	port (D:	in std_logic_vector(31 downto 0);
 			rst:	in std_logic;--synchronous reset
@@ -64,6 +76,9 @@ signal hi_out: std_logic_vector(31 downto 0);
 signal lo_out: std_logic_vector(31 downto 0);
 signal hi_lo_clk: std_logic;
 signal lsb: std_logic;
+signal adder_out: std_logic_vector(31 downto 0);--adder output
+signal adder_A: std_logic_vector(31 downto 0);
+signal adder_B: std_logic_vector(31 downto 0);
 begin
 	 instance: multiplier
 	 port map(A =>multiplier_A,
@@ -84,6 +99,14 @@ begin
 					CLK=>hi_lo_clk,
 					Q => lo_out
 	 );
+	 
+	full_adder: FA generic map (N => 32)
+				port map(A => adder_A,
+							B => adder_B,
+							Ci=> '0',
+							Co=> open,
+							S => adder_out
+	);
 	 
 	 lsb <= '1' when (A < B) else '0';
 	 imul_A <= A when (A(31)='0') else ((not A)+1);
@@ -111,7 +134,10 @@ begin
 	   when "0001" =>	 
 			Res <= A or B;
 	   when "0010" =>
-			Res <= A + B;
+--			Res <= A + B;
+			adder_A <= A;
+			adder_B <= B;
+			Res	  <= adder_out;
 		when "0011" =>
 			Res <= A xor B;
 	   when "0110" =>						
