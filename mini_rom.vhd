@@ -65,8 +65,8 @@ architecture memArch of mini_rom is
 --	27=> addi & r5 & r5 & "0000000100110100", -- addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
 --	28=> sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
 
-	14=> jmp & "00" & x"00000E",-- jmp 14, waits forever
---	14=> halt & "00" & x"000000", -- halt; waits forever
+--	14=> jmp & "00" & x"00000E",-- jmp 14, waits forever
+	14=> halt & "00" & x"000000", -- halt; waits forever
 
 	--reset
 --	29=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
