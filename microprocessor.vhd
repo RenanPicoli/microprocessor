@@ -71,7 +71,7 @@ component alu is
 			RST: in std_logic;
 			--ZF: out std_logic;
 			flags: out eflags;
-			Res:	buffer std_logic_vector(31 downto 0)  
+			Res:	out std_logic_vector(31 downto 0)  
 			);
 end component;
 

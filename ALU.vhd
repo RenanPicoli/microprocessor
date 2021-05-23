@@ -31,7 +31,7 @@ port(	A:	in std_logic_vector(31 downto 0);
 		CLK: in std_logic;
 		RST: in std_logic;
 		flags: out eflags;
-		Res:	buffer std_logic_vector(31 downto 0)  
+		Res:	out std_logic_vector(31 downto 0)  
 );
 
 end ALU;
@@ -45,18 +45,6 @@ component multiplier
 			P: out std_logic_vector(63 downto 0));
 end component;
 
---full adder
-component FA
-	generic	(N: integer);
-	port(	A: in std_logic_vector(N-1 downto 0);
-			B: in std_logic_vector(N-1 downto 0);
-			Ci:in std_logic;
-			Co:out std_logic;
-			S: out std_logic_vector(N-1 downto 0)
-	);
-end component;
-
-
 component d_flip_flop
 	port (D:	in std_logic_vector(31 downto 0);
 			rst:	in std_logic;--synchronous reset
@@ -65,6 +53,7 @@ component d_flip_flop
 			);
 end component;
 
+signal result: std_logic_vector(31 downto 0);
 signal product: std_logic_vector(63 downto 0);--the desired product
 signal multiplier_out: std_logic_vector(63 downto 0);--multiplier output, might be two's complement of what we want
 signal multiplier_A: std_logic_vector(31 downto 0);
@@ -100,14 +89,6 @@ begin
 					Q => lo_out
 	 );
 	 
-	full_adder: FA generic map (N => 32)
-				port map(A => adder_A,
-							B => adder_B,
-							Ci=> '0',
-							Co=> open,
-							S => adder_out
-	);
-	 
 	 lsb <= '1' when (A < B) else '0';
 	 imul_A <= A when (A(31)='0') else ((not A)+1);
 	 imul_B <= B when (B(31)='0') else ((not B)+1);
@@ -130,46 +111,44 @@ begin
 
 	case Sel is
       when "0000" =>
-			Res <= A and B;
+			result <= A and B;
 	   when "0001" =>	 
-			Res <= A or B;
+			result <= A or B;
 	   when "0010" =>
---			Res <= A + B;
-			adder_A <= A;
-			adder_B <= B;
-			Res	  <= adder_out;
+			result <= A + B;
 		when "0011" =>
-			Res <= A xor B;
+			result <= A xor B;
 	   when "0110" =>						
-			Res <= A + (not B) + 1;-- A-B
+			result <= A + (not B) + 1;-- A-B
 		when "0111" =>	 
-			Res <= (0 => lsb, others => '0');-- set on less than
+			result <= (0 => lsb, others => '0');-- set on less than
 		when "1000" =>--mult
 --			multiplier_A <= A;
 --			multiplier_B <= B;
 --			product 	 	 <= multiplier_out; 
 			hi_lo_clk <= CLK;
-			Res <= product(31 downto 0);
+			result <= product(31 downto 0);
 		when "1011" =>--imul
 --			multiplier_A <= imul_A;--A if A>0 or (-A) if A<0
 --			multiplier_B <= imul_B;--B if B>0 or (-B) if B<0
 			hi_lo_clk <= CLK;
 --			product <= imul_res;
-			Res <= product(31 downto 0);
+			result <= product(31 downto 0);
 		when "1001" =>
-			Res <= hi_out;
+			result <= hi_out;
 		when "1010" =>
-			Res <= lo_out;
+			result <= lo_out;
 		when "1100" =>
-			Res <= A nor B;
+			result <= A nor B;
 	   when others =>	 
-			Res <= (others => 'X');
+			result <= (others => 'X');
       end case;
 
     end process;
 	 
+	 Res <= result;
 	 flags <= (ZF => 'Z',others=>'0');
-	 flags.ZF <= '1' when ((Res = x"0000_0000") and (Sel/="1000")) or (product = x"0000_0000_0000_0000" and Sel = "1000") else '0';
+	 flags.ZF <= '1' when ((result = x"0000_0000") and (Sel/="1000")) or (product = x"0000_0000_0000_0000" and Sel = "1000") else '0';
 	 --ZF <= nor (Res);--uses VHDL-2008 unary operators
 	 
 	 
