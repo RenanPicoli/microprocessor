@@ -135,7 +135,8 @@ signal alu_result: std_logic_vector (31 downto 0);
 signal fpu_result: std_logic_vector (31 downto 0);
 
 signal halt: std_logic;
-signal clk_hold: std_logic;
+signal clk_enable: std_logic;
+signal gating_signal: std_logic;--for clock control ('1' will enable microprocessor clock)
 
 --Instruction fields
 signal opcode: std_logic_vector (5 downto 0);
@@ -169,10 +170,29 @@ signal reg_clk: std_logic;--register file clock signal
 signal alu_clk: std_logic;--alu clock signal
 
 begin
-	CLK <= CLK_IN when clk_hold='0' else CLK;
-	clk_hold <= halt and (not irq);
+--	gating_signal <= (not halt) or irq;--for some reason, doesn't work
+--	gating_signal <= not halt;--works
+	process(rst,halt,irq)
+	begin
+		if(rst='1')then
+			gating_signal <= '1';
+		elsif(rising_edge(halt))then
+			if(irq='1')then
+				gating_signal <= '1';
+			else
+				gating_signal <= '0';
+			end if;
+		end if;
+	end process;
 	
+	CLK <= CLK_IN and clk_enable;
 	
+	gating: process(rst,CLK_IN,gating_signal)
+	begin
+		if (falling_edge(CLK_IN)) then--must be the inactive clock edge
+			clk_enable <= gating_signal;
+		end if;
+	end process;
 
 	--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
