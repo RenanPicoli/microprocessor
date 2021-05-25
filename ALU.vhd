@@ -65,9 +65,8 @@ signal hi_out: std_logic_vector(31 downto 0);
 signal lo_out: std_logic_vector(31 downto 0);
 signal hi_lo_clk: std_logic;
 signal lsb: std_logic;
-signal adder_out: std_logic_vector(31 downto 0);--adder output
-signal adder_A: std_logic_vector(31 downto 0);
-signal adder_B: std_logic_vector(31 downto 0);
+signal zero_flag: std_logic;
+
 begin
 	 instance: multiplier
 	 port map(A =>multiplier_A,
@@ -147,8 +146,8 @@ begin
     end process;
 	 
 	 Res <= result;
-	 flags <= (ZF => 'Z',others=>'0');
-	 flags.ZF <= '1' when ((result = x"0000_0000") and (Sel/="1000")) or (product = x"0000_0000_0000_0000" and Sel = "1000") else '0';
+	 flags <= (ZF => zero_flag,others=>'0');
+	 zero_flag <= '1' when ((result = x"0000_0000") and (Sel/="1000")) or (product = x"0000_0000_0000_0000" and Sel = "1000") else '0';
 	 --ZF <= nor (Res);--uses VHDL-2008 unary operators
 	 
 	 

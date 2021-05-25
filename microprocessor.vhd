@@ -176,7 +176,7 @@ begin
 	begin
 		if(rst='1')then
 			gating_signal <= '1';
-		elsif(rising_edge(halt))then
+		elsif(halt='1')then
 			if(irq='1')then
 				gating_signal <= '1';
 			else
