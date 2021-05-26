@@ -74,22 +74,22 @@ architecture memArch of mini_rom is
 	37=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição 0 do reg do controlador de interrupção
 
 	38=> sw & r4 & r11 & x"0000",								-- sw [r4+0] r11; escreve zero no reg de IRQ pendentes
-	39=>	sw & r3 & r11 & x"0010",								--sw [r3+4*4+0] r11; escreve zero no reg de IRQ pendentes do I2C
+	39=> sw & r3 & r11 & x"0010",								--sw [r3+4*4+0] r11; escreve zero no reg de IRQ pendentes do I2C
 	40=> iack & "00" & x"000000",								-- iack	
---	
---	--power down
---	41=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
---	42=> addi & r5 & r5 & "0000110001110111", -- addi r5 r5 "0000110_0_0111_0111"; configura DR para escrever 0_0111_0111 no reg 06h (power down control)
---	43=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
---	44=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
---	45=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
---	46=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
---	47=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
---	48=> sw & r4 & r11 & x"0000",								-- sw [r4+0] r11; escreve zero no reg de IRQ pendentes
---	49=>	sw & r3 & r11 & x"0010",								--sw [r3+4*4+0] r11; escreve zero no reg de IRQ pendentes do I2C
---	50=> iack & "00" & x"000000",								-- iack
---	
---	--analogue audio path
+	
+	--power down
+	41=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	42=> addi & r5 & r5 & "0000110001110111", -- addi r5 r5 "0000110_0_0111_0111"; configura DR para escrever 0_0111_0111 no reg 06h (power down control)
+	43=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
+	44=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	45=> addi & r5 & r5 & "0000010100110100", -- addi r5 r5 "00000_1_01_0011010_0"; configura CR com mesmos valores e ativa o I2C_EN (inicia transmissão)
+	46=> sw & r3 & r5 & x"0000",-- sw [r3+0] r5; armazena em CR o valor a ser transmitido
+	47=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
+	48=> sw & r4 & r11 & x"0000",								-- sw [r4+0] r11; escreve zero no reg de IRQ pendentes
+	49=> sw & r3 & r11 & x"0010",								--sw [r3+4*4+0] r11; escreve zero no reg de IRQ pendentes do I2C
+	50=> iack & "00" & x"000000",								-- iack
+	
+	--analogue audio path
 --	51=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 --	52=> addi & r5 & r5 & "0000100000010010", -- addi r5 r5 "0000100_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 04h (analogue audio path)
 --	53=> sw & r3 & r5 & x"0004",-- sw [r3+1*4] r5; armazena em DR o valor a ser transmitido
