@@ -25,17 +25,14 @@ end d_flip_flop;
 architecture behv of d_flip_flop is
 begin					   
 
-   process(CLK)
-   begin
-
-	if (CLK'event and CLK = '1') then
+	process(CLK,RST,ENA,D)
+	begin
 		if (RST='1') then
-			Q <= (others=>'0');
-		elsif (ENA = '1') then
+			Q <= (others=> '0');
+		elsif (rising_edge(CLK) and ENA='1') then
 			Q <= D;
 		end if;
-	end if;
-   end process;
+	end process;
 
 end behv;
 
