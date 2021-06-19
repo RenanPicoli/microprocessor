@@ -25,7 +25,7 @@ end d_flip_flop;
 architecture behv of d_flip_flop is
 begin					   
 
-   process(CLK)
+   process(CLK,RST,ENA)
    begin
 
 	if (RST='1') then
