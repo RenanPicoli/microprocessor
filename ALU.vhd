@@ -47,7 +47,8 @@ end component;
 
 component d_flip_flop
 	port (D:	in std_logic_vector(31 downto 0);
-			rst:	in std_logic;--synchronous reset
+			rst:	in std_logic;--asynchronous reset
+			ENA:	in std_logic:='1';--enables writes
 			CLK:in std_logic;
 			Q:	out std_logic_vector(31 downto 0)  
 			);
@@ -63,7 +64,7 @@ signal imul_B: std_logic_vector(31 downto 0);
 signal imul_res: std_logic_vector(63 downto 0);
 signal hi_out: std_logic_vector(31 downto 0);
 signal lo_out: std_logic_vector(31 downto 0);
-signal hi_lo_clk: std_logic;
+signal hi_lo_en: std_logic;--enables  writes on hi/lo registers
 signal lsb: std_logic;
 signal zero_flag: std_logic;
 
@@ -77,14 +78,16 @@ begin
 	 hi: d_flip_flop
 	 port map (	D => product(63 downto 32),
 					rst=>RST,
-					CLK=>hi_lo_clk,
+					ENA=>hi_lo_en,
+					CLK=>CLK,
 					Q => hi_out 
 	 );
 	 
 	 lo: d_flip_flop
 	 port map (	D => product(31 downto 0),
 					rst=>RST,
-					CLK=>hi_lo_clk,
+					ENA=>hi_lo_en,
+					CLK=>CLK,
 					Q => lo_out
 	 );
 	 
@@ -111,36 +114,40 @@ begin
 	case Sel is
       when "0000" =>
 			result <= A and B;
+			hi_lo_en <= '0';
 	   when "0001" =>	 
 			result <= A or B;
+			hi_lo_en <= '0';
 	   when "0010" =>
 			result <= A + B;
+			hi_lo_en <= '0';
 		when "0011" =>
 			result <= A xor B;
+			hi_lo_en <= '0';
 	   when "0110" =>						
 			result <= A + (not B) + 1;-- A-B
+			hi_lo_en <= '0';
 		when "0111" =>	 
 			result <= (0 => lsb, others => '0');-- set on less than
+			hi_lo_en <= '0';
 		when "1000" =>--mult
---			multiplier_A <= A;
---			multiplier_B <= B;
---			product 	 	 <= multiplier_out; 
-			hi_lo_clk <= CLK;
+			hi_lo_en <= '1';
 			result <= product(31 downto 0);
 		when "1011" =>--imul
---			multiplier_A <= imul_A;--A if A>0 or (-A) if A<0
---			multiplier_B <= imul_B;--B if B>0 or (-B) if B<0
-			hi_lo_clk <= CLK;
---			product <= imul_res;
+			hi_lo_en <= '1';
 			result <= product(31 downto 0);
 		when "1001" =>
 			result <= hi_out;
+			hi_lo_en <= '0';
 		when "1010" =>
 			result <= lo_out;
+			hi_lo_en <= '0';
 		when "1100" =>
 			result <= A nor B;
+			hi_lo_en <= '0';
 	   when others =>	 
 			result <= (others => 'X');
+			hi_lo_en <= '0';
       end case;
 
     end process;
