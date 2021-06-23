@@ -45,6 +45,7 @@ signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
 component d_flip_flop
 	port (D:	in std_logic_vector(31 downto 0);
 			rst:	in std_logic;--synchronous reset
+			ENA:	in std_logic:='1';--enables writes
 			CLK:in std_logic;
 			Q:	out std_logic_vector(31 downto 0)  
 			);
@@ -199,6 +200,7 @@ begin
 	--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
+										ENA => '1',
 										D => pc_in,
 										Q => pc_out);
 										
