@@ -182,6 +182,8 @@ begin
 			else
 				gating_signal <= '0';
 			end if;
+		else--rst='0',halt='0'=>gating_signal='1'
+			gating_signal <= '1';
 		end if;
 	end process;
 	
