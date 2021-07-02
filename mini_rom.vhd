@@ -282,8 +282,8 @@ architecture memArch of mini_rom is
 	195=> iack & "00" & x"000000",							-- iack (IRQ do filtro)
 
 	--I2S transmission (left fifo já foi selecionada antes do loop principal)
-	--escreve 2x no DR (left fifo selecionada)
-	--escreve 2x no DR (right fifo selecionada)
+	--escreve 4x no DR (left fifo selecionada)
+	--escreve 4x no DR (right fifo selecionada)
 	--habilita a transmissão
 	196=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
 	197=> addi & r3 & r3 & x"01E0", -- addi r3 r3 x"01E0"; x78*4 é a posição 0 do converted_output register
@@ -310,17 +310,26 @@ architecture memArch of mini_rom is
 	216=> R_type & r11 & r12 & r11 & "00000" & or_funct,--xor r11 r12 r11, r11 <- r11 xor x"0001", ativa o bit I2S_EN (inicia transmissão)
 	217=> sw & r3 & r11 & x"0000",-- sw [r3+0] r11, armazena r11 em I2S:CR ativa o bit I2S_EN
 	218=> halt & "00" & x"000000",								-- halt; waits for I2S interruption (assumes sucess)
+	219=> lw & r4 & r11 & x"0000",-- lw [r4+0] r11, loads r11 with IRQ status
+	220=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5
+	221=> andi & r11 & r11 & x"0004",-- andi r11 r11 x"0004" (zera todos os bits, menos o bit 2 - IRQ do I2S)
+	222=> beq & r5 & r11 & x"FFFB",-- beq r5 r11 (-5), se r11 = 0, não foi IRQ do I2S, voltar para halt
 	
-	219=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
-	220=> addi & r11 & r11 & x"FFFB",							-- addi r11 r11 x"FFFB"; r11 <- FFFB
-	221=> sw & r4 & r11 & x"0000",								-- sw [r4+0] r11; escreve zero no bit2 do reg de IRQ pendentes (I2S)
-	222=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
-	223=> addi & r11 & r11 & x"FFFE",							-- addi r11 r11 x"FFFE"; r11 <- FFFE
-	224=>	sw & r3 & r11 & x"0010",								--sw [r3+4*4+0] r11; escreve zero no bit 0 do reg de IRQ pendentes do I2S
-	225=> iack & "00" & x"000000",								-- iack (IRQ do I2S)
+	223=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
+	224=> addi & r11 & r11 & x"FFFB",							-- addi r11 r11 x"FFFB"; r11 <- FFFB
+	225=> sw & r4 & r11 & x"0000",								-- sw [r4+0] r11; escreve zero no bit 2 do reg de IRQ pendentes (I2S)
+	226=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
+	227=> addi & r11 & r11 & x"FFFE",							-- addi r11 r11 x"FFFE"; r11 <- FFFE
+	228=>	sw & r3 & r11 & x"0010",								--sw [r3+4*4+0] r11; escreve zero no bit 0 do reg de IRQ pendentes do I2S
+	229=> iack & "00" & x"000000",								-- iack (IRQ do I2S)
 
-	226=> halt & "00" & x"000000",								-- halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
-	227=> jmp & "00" & x"000076",								-- jmp "New_sample"; jmp 118: volta pro início do loop de proc de amostra
+	230=> halt & "00" & x"000000",								-- halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
+	231=> lw & r4 & r11 & x"0000",-- lw [r4+0] r11, loads r11 with IRQ status
+	232=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5
+	233=> andi & r11 & r11 & x"0001",-- andi r11 r11 x"0001" (zera todos os bits, menos o bit 0 - IRQ do filtro)
+	234=> beq & r5 & r11 & x"FFFB",-- beq r5 r11 (-5), se r11 = 0, não foi IRQ do filtro, voltar para halt
+
+	235=> jmp & "00" & x"000076",								-- jmp "New_sample"; jmp 118: volta pro início do loop de proc de amostra
 																		--	End loop New_sample
 	others => x"0000_0000"
 	);
