@@ -74,14 +74,13 @@ package my_types is
 	constant beq: 				std_logic_vector(5 downto 0) 	:= "000100";
 	constant mult:				std_logic_vector(5 downto 0) 	:= "000101";
 	constant halt:				std_logic_vector(5 downto 0) 	:= "000110";
-	constant cache_req:		std_logic_vector(5 downto 0)	:= "000111";
+	constant lvec:				std_logic_vector(5 downto 0)	:= "000111";
 	constant addi:				std_logic_vector(5 downto 0)	:= "001000";
 	constant subi:				std_logic_vector(5 downto 0)	:= "001001";
 	constant iack:				std_logic_vector(5 downto 0)	:= "001010";
 	constant iret:				std_logic_vector(5 downto 0)	:= "001011";
 	constant ret:				std_logic_vector(5 downto 0)	:= "001100";
 	constant imul:				std_logic_vector(5 downto 0)	:= "001101";
-	constant filter_write:	std_logic_vector(5 downto 0)	:= "001110";
 	constant vmac:				std_logic_vector(5 downto 0)	:= "001111";
 	constant xori:				std_logic_vector(5 downto 0)	:= "010000";
 	

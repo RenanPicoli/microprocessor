@@ -22,9 +22,10 @@ entity control_unit is
 --			fpuResult_or_read_data_2: out std_logic;--selects which data is to be written to memory
 			
 			memWrite: out std_logic;
-			filterWrite: out std_logic;--write on filter coefficients
 			vmac: out std_logic;--multiply-accumulate
-			send_cache_request: out std_logic;
+			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
+			lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
+			lvec_dst_mask: out std_logic_vector(6 downto 0);--mask for destination(s) address(es) for lvec
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
 			);
@@ -80,10 +81,9 @@ halt					<= '1' when opcode="000110" else '0';--halt
 iack					<= '1' when opcode="001010" else '0';--iack (interrupt acknowledgement)
 iret					<= '1' when opcode="001011" else '0';--return from interrupt
 ret					<= '1' when opcode="001100" else '0';--return from normal function call
-send_cache_request<= '1' when opcode="000111" else '0';--instrucao de cache request
-load_type 			<= '1' when opcode="100011" else '0';--instrucao de load
+lvec					<= '1' when opcode="000111" else '0';--instrucao lvec (load vector: loads vector of 8 std_logic_vector in parallel)
+load_type 			<= '1' when opcode="100011" else '0';--instrucao de load (single value)
 store_type 			<= '1' when opcode="101011" else '0';--instrucao de store
-filterWrite			<= '1' when opcode="001110" else '0';--instrucao de escrita nos coeficientes do filtro
 
 --instrucao de multiply-accumulate (necessita vetores já carregados no periferico VMAC)
 vmac					<= '1' when opcode="001111" else '0';
