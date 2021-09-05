@@ -27,11 +27,12 @@ port (CLK_IN: in std_logic;
 		-----RAM-----------
 		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		write_data_ram: out std_logic_vector(31 downto 0);
-		rden_ram: out std_logic;--habilita leitura na ram
-		wren_ram: out std_logic;--habilita escrita na ram
-		wren_filter: out std_logic;--habilita escrita nos coeficientes do filtro
+		rden_ram: out std_logic;--enables read on ram
+		wren_ram: out std_logic;--enables write on ram
+		wren_lvec: out std_logic;--enables load vector: loads vector of 8 std_logic_vector in parallel
+		lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
+		lvec_dst_mask: out std_logic_vector(6 downto 0);--mask for destination(s) address(es) for lvec
 		vmac_en: out std_logic;--multiply-accumulate enable
-		send_cache_request: out std_logic;
 		Q_ram:in std_logic_vector(31 downto 0)
 );
 end entity;
@@ -102,11 +103,12 @@ component control_unit
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
 			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
 			memWrite: out std_logic;
-			filterWrite: out std_logic;--write on filter coefficients
 			vmac: out std_logic;--multiply-accumulate
-			send_cache_request: out std_logic;
+			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
+			lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
+			lvec_dst_mask: out std_logic_vector(6 downto 0);--mask for destination(s) address(es) for lvec
 			aluSrc: out std_logic;
-			regWrite: out std_logic			
+			regWrite: out std_logic
 			);
 end component;
 
@@ -120,9 +122,7 @@ signal mem_data_src: std_logic;
 signal aluControl: std_logic_vector (3 downto 0);--ALU operation selector
 signal fpuControl: std_logic_vector (1 downto 0);--FPU operation selector
 signal memWrite: std_logic;
-signal filterWrite: std_logic;--write on filter coefficients
 signal vmac: std_logic;--enables multiply-accumulate
-signal cache_request: std_logic;
 signal aluSrc: std_logic;
 signal regWrite: std_logic;
 
@@ -248,21 +248,10 @@ begin
 	fpu_flags(31 downto 3) <= (others=>'0');
 								
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR Na MEMÓRIA NA BORDA DE DESCIDA
---	ram_clk <= not CLK;											
---	ram: parallel_load_cache generic map (N => 5)
---									port map(CLK	=> ram_clk,
---												ADDR	=> alu_result(6 downto 2),
---												write_data => mem_write_data,
---												parallel_write_data => (others=>(others=>'0')),
---												fill_cache => '0',
---												rden	=> memRead,
---												wren	=> memWrite,
---												Q		=> data_memory_output);
 	ADDR_ram <= alu_result(N+1 downto 2);
 	write_data_ram <= mem_write_data;
 	rden_ram <= memRead;
 	wren_ram <= memWrite;
-	wren_filter <= filterWrite;
 	vmac_en <= vmac;
 	data_memory_output	<= Q_ram;
 	
@@ -282,14 +271,8 @@ begin
 				branch_address when (branch_or_next='1') else
 				pc_incremented;
 
---	instruction_memory: mini_rom port map(	--CLK => CLK,
---														ADDR=> pc_out(6 downto 2),
---														Q	 => instruction
---	);
 	ADDR_rom <= pc_out(9 downto 2);
 	instruction <= Q_rom;
-	
-	send_cache_request <= cache_request;
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
 	addressRelativeExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
@@ -310,9 +293,10 @@ begin
 												aluControl => aluControl,
 												fpuControl => fpuControl,
 												memWrite => memWrite,
-												filterWrite => filterWrite,
 												vmac => vmac,
-												send_cache_request => cache_request,
+												lvec => wren_lvec,
+												lvec_src => lvec_src,
+												lvec_dst_mask => lvec_dst_mask,
 												aluSrc => aluSrc,
 												regWrite => regWrite);
 
