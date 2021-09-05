@@ -270,7 +270,7 @@ architecture memArch of mini_rom is
 	188=> jmp & "00" & x"0000B6",									-- jmp x"loop A*", jump 182: volta ao início desse loop
 																		--	End loop A*
 	
-	189=> filter_write & "00" & x"000000",					-- filter_write; enables filter to update its components (when filter_CLK rises)
+--	189=> filter_write & "00" & x"000000",					-- filter_write; enables filter to update its components (when filter_CLK rises)
 	-- TODO: se filtro já convergiu, sair do loop		-- TODO: se filtro já convergiu, sair do loop
 	-- limpar o pending bit da IRQ do filtro				-- limpar o pending bit da IRQ do filtro
 	190=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
