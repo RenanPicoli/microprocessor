@@ -229,7 +229,7 @@ architecture memArch of mini_rom is
 	
 																	   --	Lê memória de coeficientes do filtro(0) para o filtro(1)
 																		-- enables filter to update its components (when filter_CLK rises)
-	152=> lvec & "00" & x"00" & x"0002",						-- lvec x"00" x"02";
+	152=> lvec & "00" & x"00" & x"0002",					-- lvec x"00" x"02";
 	
 	-- TODO: se filtro já convergiu, sair do loop		-- TODO: se filtro já convergiu, sair do loop
 	-- limpar o pending bit da IRQ do filtro				-- limpar o pending bit da IRQ do filtro
