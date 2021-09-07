@@ -16,12 +16,14 @@ entity parallel_load_cache is
 	generic (N: integer);--size in bits of address 
 	port (CLK: in std_logic;--borda de subida para escrita, memória pode ser lida a qq momento desde que rden=1
 			ADDR: in std_logic_vector(N-1 downto 0);--addr is a word (32 bits) address
+			RST:	in std_logic;--asynchronous reset
 			write_data: in std_logic_vector(31 downto 0);
 			parallel_write_data: in array32 (0 to 2**N-1);
-			fill_cache: in std_logic;
+			parallel_wren: in std_logic;
 			rden: in std_logic;--habilita leitura
 			wren: in std_logic;--habilita escrita
 			parallel_rden: in std_logic;--enables parallel read (to shared data bus)
+			parallel_read_data: out array32 (0 to 2**N-1);
 			Q:	out std_logic_vector(31 downto 0)
 			);
 end parallel_load_cache;
@@ -33,12 +35,14 @@ architecture memArch of parallel_load_cache is
 	
 	begin
 		--write behaviour:
-		write_proc: process(CLK,wren,fill_cache)
+		write_proc: process(CLK,RST,wren,parallel_wren)
 		begin
 		if (rising_edge(CLK)) then
-			if (wren='1' and fill_cache='0') then --normal write operation (single word)
+			if (RST='1') then
+				possible_outputs <= (others=>(others=>'0'));
+			elsif (wren='1' and parallel_wren='0') then --normal write operation (single word)
 				possible_outputs(to_integer(unsigned(ADDR))) <= write_data;
-			elsif (fill_cache='1') then--processor doesn't know exactly when it is going to happen a parallel write
+			elsif (parallel_wren='1') then--processor doesn't know exactly when it is going to happen a parallel write
 				possible_outputs <= parallel_write_data;
 			end if;
 		end if;
@@ -46,8 +50,8 @@ architecture memArch of parallel_load_cache is
 																		
 		--output behaviour:
 		--parallel_read_data connects to a shared data bus
-		parallel_read_data <= 	(others=>'Z') when parallel_rden='0' else
-										possible_outputs;
+		parallel_read_data <= 	possible_outputs when parallel_rden='1' else
+										(others=>(others=>'Z'));
 		--Q connects to a top level mux, no need for output enable
 		Q <= possible_outputs(to_integer(unsigned(ADDR)));
 end memArch;
