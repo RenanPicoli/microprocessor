@@ -162,4 +162,8 @@ fpuControl	<=	"00" when (R_type = '1' and funct = "000000") else--addition
 					"10" when (R_type = '1' and funct = "000001") else--multiplication
 					"11" when (R_type = '1' and funct = "000011") else--division
 					"XX";
+					
+lvec_src <= instruction(10 downto 8) when lvec='1' else (others=>'0');
+lvec_dst_mask <= instruction(6 downto 0) when lvec='1' else (others=>'0');
+
 end control;
