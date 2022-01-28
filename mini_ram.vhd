@@ -41,14 +41,21 @@ architecture memArch of mini_ram is
 		--write behaviour:
 		write_proc: process(CLK,wren)
 		begin
-		if (CLK'event and CLK='1') then
+		if (rising_edge(CLK)) then
 			if (wren='1') then --normal write operation
 				possible_outputs(to_integer(unsigned(ADDR))) <= write_data;
+			end if;
+			
+			--synchronous reading logic
+			if (rden='1') then
+				Q <= possible_outputs(to_integer(unsigned(ADDR)));-- old data read-during-write
+			else
+				Q <= (others=>'Z');
 			end if;
 		end if;
 		end process;
 																		
 		--output behaviour:
-		Q <= (others=>'Z') when rden='0' else
-				possible_outputs(to_integer(unsigned(ADDR)));
+--		Q <= (others=>'Z') when rden='0' else
+--				possible_outputs(to_integer(unsigned(ADDR)));
 end memArch;
