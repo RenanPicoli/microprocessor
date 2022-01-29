@@ -35,7 +35,8 @@ architecture memArch of mini_ram is
 	);
 	
 	--lembrar de desabilitar auto RAM replacement em compiler settings>advanced settings (synthesis)
-	signal possible_outputs: array32 (0 to 2**N-1) := initial_values;
+	signal ram: array32 (0 to 2**N-1) := initial_values;
+	signal possible_output: std_logic_vector(31 downto 0);
 	
 	begin
 		--write behaviour:
@@ -43,19 +44,15 @@ architecture memArch of mini_ram is
 		begin
 		if (rising_edge(CLK)) then
 			if (wren='1') then --normal write operation
-				possible_outputs(to_integer(unsigned(ADDR))) <= write_data;
+				ram(to_integer(unsigned(ADDR))) <= write_data;
 			end if;
 			
 			--synchronous reading logic
-			if (rden='1') then
-				Q <= possible_outputs(to_integer(unsigned(ADDR)));-- old data read-during-write
-			else
-				Q <= (others=>'Z');
-			end if;
+			possible_output <= ram(to_integer(unsigned(ADDR)));-- old data read-during-write
 		end if;
 		end process;
 																		
 		--output behaviour:
---		Q <= (others=>'Z') when rden='0' else
---				possible_outputs(to_integer(unsigned(ADDR)));
+		Q <= (others=>'Z') when rden='0' else
+				possible_output;
 end memArch;
