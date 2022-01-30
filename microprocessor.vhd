@@ -215,7 +215,7 @@ begin
 					rs;--only for mflo, mfhi
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
-	reg_clk <= not CLK;
+	reg_clk <= CLK;
 	register_file: reg_file port map (	CLK => reg_clk,
 													RST => rst,
 													read_reg_1 => rs,
@@ -227,7 +227,7 @@ begin
 													read_data_2 => read_data_2
 											);
 											
-	alu_clk <= not CLK;
+	alu_clk <= CLK;
 	arith_logic_unity: alu port map ( 	A => read_data_1,
 													B => aluOp2,
 													sel => aluControl,
