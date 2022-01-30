@@ -22,7 +22,7 @@ entity parallel_load_cache is
 			parallel_wren: in std_logic;
 			rden: in std_logic;--habilita leitura
 			wren: in std_logic;--habilita escrita
-			parallel_rden: in std_logic;--enables parallel read (to shared data bus)
+--			parallel_rden: in std_logic;--enables parallel read (to shared data bus)
 			parallel_read_data: out array32 (0 to 2**N-1);
 			Q:	out std_logic_vector(31 downto 0)
 			);
