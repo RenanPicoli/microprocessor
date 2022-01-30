@@ -6,6 +6,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
+use ieee.numeric_std.all;--to_integer
 
 use work.my_types.all;
 
@@ -54,35 +55,69 @@ architecture func_reg_file of reg_file is
 
 	signal registers_Q: array32 (0 to 31);
 	signal registers_write_en	: std_logic_vector(31 downto 0);
-	signal registers_clk			: std_logic_vector(31 downto 0); 
+	signal registers_clk			: std_logic_vector(31 downto 0);
+	
+	--WARNING: asserting true will disconnect reset port to allow RAM inferring
+	constant ram_style: boolean := true;
 
 	begin
+	common_reg_file: if not ram_style generate
+	
+		registers: for i in 0 to 31 generate-- i is the row index, the register number
+			regx: d_flip_flop port map(Q => registers_Q(i),
+												RST => RST,
+												ENA => registers_write_en(i),
+												CLK => CLK,--registers_clk(i),
+												D => write_data
+												);
+			--clocks: registers_clk(i) <= CLK and (registers_write_en(i) or RST);
+		end generate registers;
 
-	registers: for i in 0 to 31 generate-- i is the row index, the register number
-		regx: d_flip_flop port map(Q => registers_Q(i),
-											RST => RST,
-											ENA => registers_write_en(i),
-											CLK => CLK,--registers_clk(i),
-											D => write_data
-											);
-		--clocks: registers_clk(i) <= CLK and (registers_write_en(i) or RST);
-	end generate registers;
-
-		--escolhe qual registrador é lido
-		mux1: mux32x32 port map (  sel => read_reg_1,
-											A => registers_Q,
-											Q => read_data_1
-											);
-											
-		--escolhe qual registrador é lido											
-		mux2: mux32x32 port map (  sel => read_reg_2,
-											A => registers_Q,
-											Q => read_data_2
-											);
-											
-		--escolhe qual registrador será escrito								
-		demux_write: demux1x32 port map (	Q => registers_write_en,
-														sel => write_reg,
-														A => regWrite); 
+			--escolhe qual registrador é lido
+			mux1: mux32x32 port map (  sel => read_reg_1,
+												A => registers_Q,
+												Q => read_data_1
+												);
+												
+			--escolhe qual registrador é lido											
+			mux2: mux32x32 port map (  sel => read_reg_2,
+												A => registers_Q,
+												Q => read_data_2
+												);
+												
+			--escolhe qual registrador será escrito								
+			demux_write: demux1x32 port map (	Q => registers_write_en,
+															sel => write_reg,
+															A => regWrite); 
+	end generate common_reg_file;
+	
+	--trying to infer a ram block
+	ram_style_reg_file: if ram_style generate
+		--write behavior
+		process(CLK,write_data,write_reg,regWrite)
+		begin
+			if (rising_edge(CLK)) then
+				if (regWrite='1') then
+					registers_Q(to_integer(unsigned(write_reg))) <= write_data;
+				end if;
+			end if;
+		end process;
 		
+		--synchronous reading logic for reg1
+		process(CLK,read_reg_1)
+		begin
+			if (falling_edge(CLK)) then
+				read_data_1 <= registers_Q(to_integer(unsigned(read_reg_1)));--old data read-during-write
+			end if;
+		end process;
+		
+		--synchronous reading logic for reg2
+		process(CLK,read_reg_2)
+		begin
+			if (falling_edge(CLK)) then
+				read_data_2 <= registers_Q(to_integer(unsigned(read_reg_2)));--old data read-during-write
+			end if;
+		end process;
+		
+	end generate ram_style_reg_file;
 end func_reg_file;
