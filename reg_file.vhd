@@ -53,7 +53,7 @@ architecture func_reg_file of reg_file is
 				);
 	end component;
 
-	signal registers_Q: array32 (0 to 31);
+	signal registers_Q: array32 (0 to 31) := (others=>(others=>'0'));
 	signal registers_write_en	: std_logic_vector(31 downto 0);
 	signal registers_clk			: std_logic_vector(31 downto 0);
 	
@@ -94,27 +94,27 @@ architecture func_reg_file of reg_file is
 	--trying to infer a ram block
 	ram_style_reg_file: if ram_style generate
 		--write behavior
-		process(CLK,write_data,write_reg,regWrite)
+		process(CLK,write_data,write_reg,regWrite,RST)
 		begin
 			if (rising_edge(CLK)) then
-				if (regWrite='1') then
+				if (regWrite='1' and RST='0') then
 					registers_Q(to_integer(unsigned(write_reg))) <= write_data;
 				end if;
 			end if;
 		end process;
 		
 		--synchronous reading logic for reg1
-		process(CLK,read_reg_1)
+		process(CLK,read_reg_1,RST)
 		begin
-			if (falling_edge(CLK)) then
+			if (falling_edge(CLK) and RST='0') then
 				read_data_1 <= registers_Q(to_integer(unsigned(read_reg_1)));--old data read-during-write
 			end if;
 		end process;
 		
 		--synchronous reading logic for reg2
-		process(CLK,read_reg_2)
+		process(CLK,read_reg_2,RST)
 		begin
-			if (falling_edge(CLK)) then
+			if (falling_edge(CLK) and RST='0') then
 				read_data_2 <= registers_Q(to_integer(unsigned(read_reg_2)));--old data read-during-write
 			end if;
 		end process;
