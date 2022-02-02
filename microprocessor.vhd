@@ -150,13 +150,6 @@ signal addressRelative: std_logic_vector (15 downto 0);--for load,store,branch
 signal addressAbsolute: std_logic_vector (25 downto 0);--for jumps
 signal addressRelativeExtended: std_logic_vector (31 downto 0);--addressRelative after sign extension
 
---instruction type indicators
-signal R_type: std_logic;
-signal jump_type: std_logic;
-signal branch_type: std_logic;
-signal load_type: std_logic;
-signal store_type: std_logic;
-
 signal data_memory_output: std_logic_vector (31 downto 0);
 signal instruction: std_logic_vector (31 downto 0);--next instruction to execute
 signal alu_flags: eflags;--flags da ALU
