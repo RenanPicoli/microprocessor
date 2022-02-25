@@ -37,15 +37,15 @@ architecture memArch of parallel_load_cache is
 		--write behaviour:
 		write_proc: process(CLK,RST,wren,parallel_wren)
 		begin
-		if (rising_edge(CLK)) then
 			if (RST='1') then
 				possible_outputs <= (others=>(others=>'0'));
+			elsif (rising_edge(CLK)) then
 --			elsif (wren='1' and parallel_wren='0') then --normal write operation (single word)
 --				possible_outputs(to_integer(unsigned(ADDR))) <= write_data;
-			elsif (parallel_wren='1') then--processor doesn't know exactly when it is going to happen a parallel write
---			if (parallel_wren='1') then--processor doesn't know exactly when it is going to happen a parallel write
-				possible_outputs <= parallel_write_data;
-			end if;
+				if (parallel_wren='1') then--processor doesn't know exactly when it is going to happen a parallel write
+	--			if (parallel_wren='1') then--processor doesn't know exactly when it is going to happen a parallel write
+					possible_outputs <= parallel_write_data;
+				end if;
 			--Q connects to a top level mux, no need for output enable
 --			Q <= possible_outputs(to_integer(unsigned(ADDR)));--old data read-during-write
 																		
@@ -56,7 +56,7 @@ architecture memArch of parallel_load_cache is
 --			else
 --				parallel_read_data <= (others=>(others=>'Z'));
 --			end if;
-		end if;
+			end if;
 		end process;
 		parallel_read_data <= possible_outputs;--asynchronous read logic
 end memArch;
