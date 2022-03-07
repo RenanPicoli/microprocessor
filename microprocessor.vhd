@@ -191,14 +191,15 @@ begin
 	end process;
 
 	--note this: port map uses ',' while port uses ';'
---	PC: d_flip_flop port map (	CLK => CLK,
---										RST => rst,
---										ENA => '1',
---										D => pc_in,
---										Q => pc_out);
-	pc_out <= (others=>'0') when rst='1' else pc_in;
+	PC: d_flip_flop port map (	CLK => CLK,
+										RST => rst,
+										ENA => '1',
+										D => pc_in,
+										Q => pc_out);
+	--pc_out <= (others=>'0') when rst='1' else pc_in;
 										
-	instruction_addr <= pc_out;
+	--instruction_addr <= pc_out;
+	instruction_addr <= pc_in;--because now mini_rom is synchronous
 
 	rs <= instruction(25 downto 21);
 	rt <= instruction(20 downto 16);
@@ -265,7 +266,8 @@ begin
 				branch_address when (branch_or_next='1') else
 				pc_incremented;
 
-	ADDR_rom <= pc_out(9 downto 2);
+	--ADDR_rom <= pc_out(9 downto 2);
+	ADDR_rom <= pc_in(9 downto 2);--because now mini_rom is synchronous
 	instruction <= Q_rom;
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
