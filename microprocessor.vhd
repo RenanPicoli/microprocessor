@@ -191,11 +191,12 @@ begin
 	end process;
 
 	--note this: port map uses ',' while port uses ';'
-	PC: d_flip_flop port map (	CLK => CLK,
-										RST => rst,
-										ENA => '1',
-										D => pc_in,
-										Q => pc_out);
+--	PC: d_flip_flop port map (	CLK => CLK,
+--										RST => rst,
+--										ENA => '1',
+--										D => pc_in,
+--										Q => pc_out);
+	pc_out <= (others=>'0') when rst='1' else pc_in;
 										
 	instruction_addr <= pc_out;
 
