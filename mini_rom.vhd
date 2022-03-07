@@ -14,7 +14,7 @@ use ieee.numeric_std.all;--to_integer
 use work.my_types.all;--opcode and register "defines"
 
 entity mini_rom is
-	port (--CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
+	port (CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
 			ADDR: in std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
 			Q:	out std_logic_vector(31 downto 0)
 			);
@@ -333,5 +333,11 @@ architecture memArch of mini_rom is
 	
 	begin
 		--output behaviour:
-		Q <= rom(to_integer(unsigned(ADDR)));
+		--necessary turn Auto ROM Replacement on
+		process(CLK,ADDR)
+		begin
+			if(rising_edge(CLK))then
+				Q <= rom(to_integer(unsigned(ADDR)));
+			end if;
+		end process;
 end memArch;
