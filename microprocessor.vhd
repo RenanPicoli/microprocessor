@@ -23,6 +23,7 @@ port (CLK_IN: in std_logic;
 		instruction_addr: out std_logic_vector (31 downto 0);--AKA read address
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
+		CLK_rom: out std_logic;--clock for mini_rom (is like moving a PC register duplicate to mini_rom)
 		Q_rom:	in std_logic_vector(31 downto 0);
 		-----RAM-----------
 		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
@@ -182,6 +183,7 @@ begin
 	end process;
 	
 	CLK <= CLK_IN and clk_enable;
+	CLK_rom <= CLK;
 	
 	gating: process(rst,CLK_IN,gating_signal)
 	begin
@@ -190,13 +192,11 @@ begin
 		end if;
 	end process;
 
-	--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
 										ENA => '1',
 										D => pc_in,
 										Q => pc_out);
-	--pc_out <= (others=>'0') when rst='1' else pc_in;
 										
 	--instruction_addr <= pc_out;
 	instruction_addr <= pc_in;--because now mini_rom is synchronous
