@@ -293,7 +293,8 @@ architecture memArch of mini_rom is
 	200=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
 	201=> addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
 	202=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
-	203=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
+	-- r31 deve estar zerado, faz upsampling de 22050 Hz para 44100 Hz
+	203=> sw & r3 & r31 & x"0004",-- sw [r3+4] r31, escreve r31 (zero) no DR do I2S
 
 	--usar r11 para armazenar a configuração do I2S
 	204=> lw & r3 & r11 & x"0000",-- lw [r3+0] r11, armazena em r11 a configuração do I2S (CR)
@@ -301,7 +302,8 @@ architecture memArch of mini_rom is
 	206=> R_type & r11 & r12 & r11 & "00000" & xor_funct,--xor r11 r12 r11; r11 <- r11 xor x"0080", inverte o bit de seleção da fifo
 	207=> sw & r3 & r11 & x"0000",-- sw [r3+0] r11, armazena r11 em I2S:CR
 	208=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
-	209=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
+	-- r31 deve estar zerado, faz upsampling de 22050 Hz para 44100 Hz
+	209=> sw & r3 & r31 & x"0004",-- sw [r3+4] r31, escreve r31 (zero) no DR do I2S
 	210=> R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
 	211=> addi & r12 & r12 & x"0001",--addi r12 r12 x"0001", r12 <- x0001 (máscara do bit 0)
 	212=> R_type & r11 & r12 & r11 & "00000" & or_funct,--xor r11 r12 r11, r11 <- r11 xor x"0001", ativa o bit I2S_EN (inicia transmissão)
