@@ -56,6 +56,6 @@ architecture memArch of mini_ram is
 		possible_output <= ram(to_integer(unsigned(ADDR)));
 																		
 		--output behaviour:
-		Q <= (others=>'Z') when rden='0' else
+		Q <= (others=>'-') when rden='0' else
 				possible_output;
 end memArch;
