@@ -58,7 +58,7 @@ architecture func_reg_file of reg_file is
 	signal registers_clk			: std_logic_vector(31 downto 0);
 	
 	--WARNING: asserting true will disconnect reset port to allow RAM inferring
-	constant ram_style: boolean := true;
+	constant ram_style: boolean := false;
 
 	begin
 	common_reg_file: if not ram_style generate
