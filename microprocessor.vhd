@@ -24,6 +24,7 @@ port (CLK_IN: in std_logic;
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		Q_rom:	in std_logic_vector(31 downto 0);
+		cache_ready: in std_logic;--indicates cache is ready (Q_rom is valid)
 		-----RAM-----------
 		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		write_data_ram: out std_logic_vector(31 downto 0);
@@ -170,13 +171,13 @@ begin
 	begin
 		if(rst='1')then
 			gating_signal <= '1';
-		elsif(halt='1')then
+		elsif(halt='1' or cache_ready='0')then
 			if(irq='1')then
 				gating_signal <= '1';
 			else
 				gating_signal <= '0';
 			end if;
-		else--rst='0',halt='0'=>gating_signal='1'
+		else--rst='0',halt='0',cache_ready='1'=>gating_signal='1'
 			gating_signal <= '1';
 		end if;
 	end process;
