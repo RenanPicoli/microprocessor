@@ -139,6 +139,7 @@ signal fpu_result: std_logic_vector (31 downto 0);
 signal halt: std_logic;
 signal clk_enable: std_logic;
 signal gating_signal: std_logic;--for clock control ('1' will enable microprocessor clock)
+signal cache_ready_sampled: std_logic;
 
 --Instruction fields
 signal opcode: std_logic_vector (5 downto 0);
@@ -167,29 +168,42 @@ signal alu_clk: std_logic;--alu clock signal
 begin
 --	gating_signal <= (not halt) or irq;--for some reason, doesn't work
 --	gating_signal <= not halt;--works
-	process(rst,halt,irq)
+	process(CLK_IN,cache_ready,rst)
 	begin
 		if(rst='1')then
-			gating_signal <= '1';
-		elsif(halt='1' or cache_ready='0')then
-			if(irq='1')then
-				gating_signal <= '1';
-			else
-				gating_signal <= '0';
+		   cache_ready_sampled <= '0';
+      elsif(rising_edge(CLK_IN))then--CLK_IN instead of CLK to enable this signal to deassert after a processor halt
+		    cache_ready_sampled <= cache_ready;
+		end if;
+	end process;
+	
+	process(rst,halt,irq,cache_ready_sampled,cache_ready,CLK_IN,gating_signal)
+	begin--indicates cache is ready or rst => CLK must toggle
+		if(rst='1')then
+			clk_enable <= '1';
+		elsif(falling_edge(CLK_IN))then--cache_ready,halt are stable @ falling_edge(CLK_IN)
+			if(cache_ready='1' and halt='1')then--necessary test cache_ready to prevent halt during cache miss (unknown instruction)
+				if(irq='1')then
+					clk_enable <= '1';
+				else
+					clk_enable <= '0';
+				end if;
+			elsif(cache_ready='1')then
+				clk_enable <= '1';
+			else--if(cache_ready='0')then
+				clk_enable <= '0';
 			end if;
-		else--rst='0',halt='0',cache_ready='1'=>gating_signal='1'
-			gating_signal <= '1';
 		end if;
 	end process;
 	
 	CLK <= CLK_IN and clk_enable;
 	
-	gating: process(rst,CLK_IN,gating_signal)
-	begin
-		if (falling_edge(CLK_IN)) then--must be the inactive clock edge
-			clk_enable <= gating_signal;
-		end if;
-	end process;
+--	gating: process(rst,CLK_IN,gating_signal)
+--	begin
+--		if (falling_edge(CLK_IN)) then--must be the inactive clock edge
+--			clk_enable <= gating_signal;
+--		end if;
+--	end process;
 
 	--note this: port map uses ',' while port uses ';'
 	PC: d_flip_flop port map (	CLK => CLK,
