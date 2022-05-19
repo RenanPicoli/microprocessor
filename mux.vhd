@@ -58,5 +58,5 @@ end mux32x32;
 
 architecture structure32x32 of mux32x32 is
 	begin
-		Q <= A(to_integer(signed(sel)));
+		Q <= A(to_integer(unsigned(sel)));
 end structure32x32;
