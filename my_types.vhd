@@ -91,6 +91,7 @@ package my_types is
 	constant mflo:				std_logic_vector(5 downto 0)	:= "100101";
 	constant sw:				std_logic_vector(5 downto 0)	:= "101011";
 	constant mfhi:				std_logic_vector(5 downto 0)	:= "101101";
+	constant nop:				std_logic_vector(5 downto 0)	:= "111111";--no operation (bubble)
 	
 	
 	--funct codes: use only with R_type

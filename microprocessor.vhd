@@ -280,7 +280,7 @@ begin
 				pc_incremented;
 
 	ADDR_rom <= pc_out(9 downto 2);
-	instruction <= Q_rom;
+	instruction <= Q_rom when cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
 	addressRelativeExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
