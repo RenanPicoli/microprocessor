@@ -275,7 +275,8 @@ begin
 	branch_or_next <= branch and alu_flags.ZF;
 	addressAbsolute <= instruction(25 downto 0);
 	jump_address <= pc_out(31 downto 28) & addressAbsolute & "00";--TODO: é pc_incremented em vez de pc_out CHECAR
-	pc_in <= jump_address when (jump='1') else--next pc_out if not reset
+	pc_in <= pc_out when (halt='1' and irq='0') else --keep in current instruction of halt to allow clk_enable update
+				jump_address when (jump='1') else--next pc_out if not reset
 				branch_address when (branch_or_next='1') else
 				pc_incremented;
 
