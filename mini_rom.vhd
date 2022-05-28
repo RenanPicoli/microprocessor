@@ -252,76 +252,94 @@ architecture memArch of mini_rom is
 
 	178=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3
 	179=> addi & r3 & r3 & x"01C0",							-- addi r3 r3 x"01C0"; r3 aponta para o registrador da saída atual do filtro (x70*4)
-	180=> lw & r3 & r8 & x"0000",								--	lw [r3+0] r8; lê a resposta do filtro e armazena em r8
-	181=> lw & r3 & r9 & x"0004",								-- lw [r3+4] r9; lê a resposta desejada e armazena em r9
+	180=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
+	181=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição do reg do controlador de interrupção	
+	182=> lw & r3 & r9 & x"0004",								-- lw [r3+4] r9; lê a resposta desejada e armazena em r9 (PRECISA SER antes de filter_CLK descer)
+	-- limpar o pending bit da IRQ 0 do filtro				-- limpar o pending bit da IRQ do filtro
+	183=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
+	184=> addi & r6 & r6 & x"FFFE",							-- addi r6 r6 x"FFFE"; r6 <- FFFE
+	185=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
+	186=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição do reg do controlador de interrupção
+	187=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no bit 0 do reg de IRQ pendentes
+																		
+	188=> iack & "00" & x"000000",							-- iack (IRQ 0 do filtro)
+	189=> halt & "00" & x"000000",							-- halt; waits for filter interruption 1 to be generated when filter_CLK falls (new output is ready)
+	190=> lw & r4 & r11 & x"0000",-- lw [r4+0] r11, loads r11 with IRQ status
+	191=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5
+	192=> andi & r11 & r11 & x"0008",-- andi r11 r11 x"0008" (zera todos os bits, menos o bit 3 - IRQ 1 do filtro)
+	193=> beq & r5 & r11 & x"FFFB",-- beq r5 r11 (-5), se r11 = 0, não foi IRQ 1 do filtro, voltar para halt
 
-	182=> R_type & r9 & r8 & r10 & "00000" & fsub_funct,-- fsub r9 r8 r10; Calcula e armazena o erro (d-y) em r10
-	183=> R_type & r1 & r10 & r1 & "00000" & fmul_funct,-- fmul r1 r10 r1 ; r1 <- (2*step)*erro
-	184=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	 -- xor r4 r4 r4; zera o r4
-	185=> addi & r4 & r4 & x"0100",							 -- addi r4 r4 x"0100"; x40*4, r4 aponta posição 0 do vmac
-	186=> sw & r4 & r1 & x"0040",								 -- sw [r4 + 64] r1; armazena step*erro no lambda
+	194=> lw & r3 & r8 & x"0000",								--	lw [r3+0] r8; lê a resposta do filtro e armazena em r8
+	
+	--must send iack
+	-- limpar o pending bit da IRQ do filtro				-- limpar o pending bit da IRQ do filtro
+	195=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
+	196=> addi & r6 & r6 & x"FFF7",							-- addi r6 r6 x"FFF7"; r6 <- FFF7
+	197=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no bit 3 do reg de IRQ pendentes
+																		
+	198=> iack & "00" & x"000000",							-- iack (IRQ 1 do filtro)
+
+	199=> R_type & r9 & r8 & r10 & "00000" & fsub_funct,-- fsub r9 r8 r10; Calcula e armazena o erro (d-y) em r10
+	200=> R_type & r1 & r10 & r1 & "00000" & fmul_funct,-- fmul r1 r10 r1 ; r1 <- (2*step)*erro
+	201=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	 -- xor r4 r4 r4; zera o r4
+	202=> addi & r4 & r4 & x"0100",							 -- addi r4 r4 x"0100"; x40*4, r4 aponta posição 0 do vmac
+	203=> sw & r4 & r1 & x"0040",								 -- sw [r4 + 64] r1; armazena step*erro no lambda
 	
 																		--	Carrega VMAC:A(5) com as componentes do filtro atual(0)
-	187=> lvec & "00" & x"00" & x"0020",					-- lvec x"00" x"20";
+	204=> lvec & "00" & x"00" & x"0020",					-- lvec x"00" x"20";
 
-	188=> vmac & "00" & x"000000",							-- vmac; enables accumulation in vector A of VMAC
+	205=> vmac & "00" & x"000000",							-- vmac; enables accumulation in vector A of VMAC
 	
 																	   --	Lê o acumulador do VMAC(5) e atualiza os coeficientes do filtro(0)
-	189=> lvec & "00" & x"00" & x"0501",					-- lvec x"05" x"01";	
+	206=> lvec & "00" & x"00" & x"0501",					-- lvec x"05" x"01";	
 	
 																	   --	Lê memória de coeficientes do filtro(0) para o filtro(1)
 																		-- enables filter to update its components (when filter_CLK rises)
-	190=> lvec & "00" & x"00" & x"0002",					-- lvec x"00" x"02";
+	207=> lvec & "00" & x"00" & x"0002",					-- lvec x"00" x"02";
 	
 	-- TODO: se filtro já convergiu, sair do loop		-- TODO: se filtro já convergiu, sair do loop
-	-- limpar o pending bit da IRQ do filtro				-- limpar o pending bit da IRQ do filtro
-	191=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
-	192=> addi & r6 & r6 & x"FFFE",							-- addi r6 r6 x"FFFE"; r6 <- FFFE
-	193=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	194=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição do reg do controlador de interrupção
-	195=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no bit 0 do reg de IRQ pendentes
-																		
-	196=> iack & "00" & x"000000",							-- iack (IRQ do filtro)
 
 	--I2S transmission (left fifo já foi selecionada antes do loop principal)
 	--escreve 2x no DR (upsampling fator 2)
 	--habilita a transmissão
-	197=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
-	198=> addi & r3 & r3 & x"01E0", -- addi r3 r3 x"01E0"; x78*4 é a posição 0 do converted_output register
-	199=> lw & r3 & r5 & x"0000",-- lw [r3+0] r5, loads r5 with filter response converted to 2's complement
-	200=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
-	201=> addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
-	202=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
+	208=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+	209=> addi & r3 & r3 & x"01E0", -- addi r3 r3 x"01E0"; x78*4 é a posição 0 do converted_output register
+	210=> lw & r3 & r5 & x"0000",-- lw [r3+0] r5, loads r5 with filter response converted to 2's complement
+	211=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
+	212=> addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
+	213=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
 	-- r31 deve estar zerado, faz upsampling de 22050 Hz para 44100 Hz
-	203=> sw & r3 & r31 & x"0004",-- sw [r3+4] r31, escreve r31 (zero) no DR do I2S
+	214=> sw & r3 & r31 & x"0004",-- sw [r3+4] r31, escreve r31 (zero) no DR do I2S
 
 	--usar r11 para armazenar a configuração do I2S
-	204=> lw & r3 & r11 & x"0000",-- lw [r3+0] r11, armazena em r11 a configuração do I2S (CR)
-	205=> R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
-	206=> addi & r12 & r12 & x"0001",--addi r12 r12 x"0001", r12 <- x0001 (máscara do bit 0)
-	207=> R_type & r11 & r12 & r11 & "00000" & or_funct,--xor r11 r12 r11, r11 <- r11 xor x"0001", ativa o bit I2S_EN (inicia transmissão)
-	208=> sw & r3 & r11 & x"0000",-- sw [r3+0] r11, armazena r11 em I2S:CR ativa o bit I2S_EN
-	209=> halt & "00" & x"000000",								-- halt; waits for I2S interruption (assumes sucess)
-	210=> lw & r4 & r11 & x"0000",-- lw [r4+0] r11, loads r11 with IRQ status
-	211=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5
-	212=> andi & r11 & r11 & x"0004",-- andi r11 r11 x"0004" (zera todos os bits, menos o bit 2 - IRQ do I2S)
-	213=> beq & r5 & r11 & x"FFFB",-- beq r5 r11 (-5), se r11 = 0, não foi IRQ do I2S, voltar para halt
+	215=> lw & r3 & r11 & x"0000",-- lw [r3+0] r11, armazena em r11 a configuração do I2S (CR)
+	216=> R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
+	217=> addi & r12 & r12 & x"0001",--addi r12 r12 x"0001", r12 <- x0001 (máscara do bit 0)
+	218=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
+	219=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição do reg do controlador de interrupção
+	220=> R_type & r11 & r12 & r11 & "00000" & or_funct,--xor r11 r12 r11, r11 <- r11 xor x"0001", ativa o bit I2S_EN (inicia transmissão)
+	221=> sw & r3 & r11 & x"0000",-- sw [r3+0] r11, armazena r11 em I2S:CR ativa o bit I2S_EN
+	222=> halt & "00" & x"000000",								-- halt; waits for I2S interruption (assumes sucess)
+	223=> lw & r4 & r11 & x"0000",-- lw [r4+0] r11, loads r11 with IRQ status
+	224=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5
+	225=> andi & r11 & r11 & x"0004",-- andi r11 r11 x"0004" (zera todos os bits, menos o bit 2 - IRQ do I2S)
+	226=> beq & r5 & r11 & x"FFFB",-- beq r5 r11 (-5), se r11 = 0, não foi IRQ do I2S, voltar para halt
 	
-	214=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
-	215=> addi & r11 & r11 & x"FFFB",							-- addi r11 r11 x"FFFB"; r11 <- FFFB
-	216=> sw & r4 & r11 & x"0000",								-- sw [r4+0] r11; escreve zero no bit 2 do reg de IRQ pendentes (I2S)
-	217=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
-	218=> addi & r11 & r11 & x"FFFE",							-- addi r11 r11 x"FFFE"; r11 <- FFFE
-	219=>	sw & r3 & r11 & x"0010",								--sw [r3+4*4+0] r11; escreve zero no bit 0 do reg de IRQ pendentes do I2S
-	220=> iack & "00" & x"000000",								-- iack (IRQ do I2S)
+	227=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
+	228=> addi & r11 & r11 & x"FFFB",							-- addi r11 r11 x"FFFB"; r11 <- FFFB
+	229=> sw & r4 & r11 & x"0000",								-- sw [r4+0] r11; escreve zero no bit 2 do reg de IRQ pendentes (I2S)
+	230=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
+	231=> addi & r11 & r11 & x"FFFE",							-- addi r11 r11 x"FFFE"; r11 <- FFFE
+	232=>	sw & r3 & r11 & x"0010",								--sw [r3+4*4+0] r11; escreve zero no bit 0 do reg de IRQ pendentes do I2S
+	233=> iack & "00" & x"000000",								-- iack (IRQ do I2S)
 
-	221=> halt & "00" & x"000000",								-- halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
-	222=> lw & r4 & r11 & x"0000",-- lw [r4+0] r11, loads r11 with IRQ status
-	223=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5
-	224=> andi & r11 & r11 & x"0001",-- andi r11 r11 x"0001" (zera todos os bits, menos o bit 0 - IRQ do filtro)
-	225=> beq & r5 & r11 & x"FFFB",-- beq r5 r11 (-5), se r11 = 0, não foi IRQ do filtro, voltar para halt
+	234=> halt & "00" & x"000000",								-- halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
+	235=> lw & r4 & r11 & x"0000",-- lw [r4+0] r11, loads r11 with IRQ status
+	236=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5
+	237=> andi & r11 & r11 & x"0001",-- andi r11 r11 x"0001" (zera todos os bits, menos o bit 0 - IRQ do filtro)
+	238=> beq & r5 & r11 & x"FFFB",-- beq r5 r11 (-5), se r11 = 0, não foi IRQ 0 do filtro, voltar para halt
 
-	226=> jmp & "00" & x"0000A2",								-- jmp "New_sample"; jmp 162: volta pro início do loop de proc de amostra
+	239=> jmp & "00" & x"0000A2",								-- jmp "New_sample"; jmp 162: volta pro início do loop de proc de amostra
 																		--	End loop New_sample
 	others => x"0000_0000"
 	);
