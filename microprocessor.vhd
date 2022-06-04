@@ -25,6 +25,7 @@ port (CLK_IN: in std_logic;
 		ADDR_rom: out std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		CLK_rom: out std_logic;--clock for mini_rom (is like moving a PC register duplicate to mini_rom)
 		Q_rom:	in std_logic_vector(31 downto 0);
+		cache_ready: in std_logic;--indicates cache is ready (Q_rom is valid)
 		-----RAM-----------
 		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		write_data_ram: out std_logic_vector(31 downto 0);
@@ -139,6 +140,7 @@ signal fpu_result: std_logic_vector (31 downto 0);
 signal halt: std_logic;
 signal clk_enable: std_logic;
 signal gating_signal: std_logic;--for clock control ('1' will enable microprocessor clock)
+signal cache_ready_sampled: std_logic;
 
 --Instruction fields
 signal opcode: std_logic_vector (5 downto 0);
@@ -167,30 +169,43 @@ signal alu_clk: std_logic;--alu clock signal
 begin
 --	gating_signal <= (not halt) or irq;--for some reason, doesn't work
 --	gating_signal <= not halt;--works
-	process(rst,halt,irq)
+	process(CLK_IN,cache_ready,rst)
 	begin
 		if(rst='1')then
-			gating_signal <= '1';
-		elsif(halt='1')then
-			if(irq='1')then
-				gating_signal <= '1';
-			else
-				gating_signal <= '0';
+		   cache_ready_sampled <= '0';
+      elsif(rising_edge(CLK_IN))then--CLK_IN instead of CLK to enable this signal to deassert after a processor halt
+		    cache_ready_sampled <= cache_ready;
+		end if;
+	end process;
+	
+	process(rst,halt,irq,cache_ready_sampled,cache_ready,CLK_IN,gating_signal)
+	begin--indicates cache is ready or rst => CLK must toggle
+		if(rst='1')then
+			clk_enable <= '1';
+		elsif(falling_edge(CLK_IN))then--cache_ready,halt are stable @ falling_edge(CLK_IN)
+			if(cache_ready='1' and halt='1')then--necessary test cache_ready to prevent halt during cache miss (unknown instruction)
+				if(irq='1')then
+					clk_enable <= '1';
+				else
+					clk_enable <= '0';
+				end if;
+			elsif(cache_ready='1')then
+				clk_enable <= '1';
+			else--if(cache_ready='0')then
+				clk_enable <= '0';
 			end if;
-		else--rst='0',halt='0'=>gating_signal='1'
-			gating_signal <= '1';
 		end if;
 	end process;
 	
 	CLK <= CLK_IN and clk_enable;
 	CLK_rom <= CLK;
 	
-	gating: process(rst,CLK_IN,gating_signal)
-	begin
-		if (falling_edge(CLK_IN)) then--must be the inactive clock edge
-			clk_enable <= gating_signal;
-		end if;
-	end process;
+--	gating: process(rst,CLK_IN,gating_signal)
+--	begin
+--		if (falling_edge(CLK_IN)) then--must be the inactive clock edge
+--			clk_enable <= gating_signal;
+--		end if;
+--	end process;
 
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
@@ -262,13 +277,14 @@ begin
 	branch_or_next <= branch and alu_flags.ZF;
 	addressAbsolute <= instruction(25 downto 0);
 	jump_address <= pc_out(31 downto 28) & addressAbsolute & "00";--TODO: é pc_incremented em vez de pc_out CHECAR
-	pc_in <= jump_address when (jump='1') else--next pc_out if not reset
+	pc_in <= pc_out when (halt='1' and irq='0') else --keep in current instruction of halt to allow clk_enable update
+				jump_address when (jump='1') else--next pc_out if not reset
 				branch_address when (branch_or_next='1') else
 				pc_incremented;
 
 	--ADDR_rom <= pc_out(9 downto 2);
 	ADDR_rom <= pc_in(9 downto 2);--because now mini_rom is synchronous
-	instruction <= Q_rom;
+	instruction <= Q_rom when cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
 	addressRelativeExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;

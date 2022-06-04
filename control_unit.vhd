@@ -63,6 +63,7 @@ signal mflo: std_logic;--load lower half of product into register
 signal mfhi: std_logic;--load upper half of product into register
 signal ret: std_logic;
 signal iret: std_logic;
+signal nop: std_logic;--no operation (bubble)
 
 --for interrupt mask register
 signal imask_update: std_logic;
@@ -101,6 +102,7 @@ mult		<= '1' when opcode="000101" else '0';
 imul		<= '1' when opcode="001101" else '0';
 mflo		<= '1' when opcode="100101" else '0';
 mfhi		<= '1' when opcode="101101" else '0';
+nop		<= '1' when opcode="111111" else '0';--no operation (bubble)
 
 imask_update <= iack or iret;--the only instructions that change this flag are iack(set) and iret(reset)
 process(imask_update) 
