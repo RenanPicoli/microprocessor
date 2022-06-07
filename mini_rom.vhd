@@ -309,7 +309,7 @@ architecture memArch of mini_rom is
 	212=> addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
 	213=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S
 	-- r31 deve estar zerado, faz upsampling de 22050 Hz para 44100 Hz
-	214=> sw & r3 & r31 & x"0004",-- sw [r3+4] r31, escreve r31 (zero) no DR do I2S
+	214=> sw & r3 & r5 & x"0004",-- sw [r3+4] r5, escreve r5 no DR do I2S (duplica para improvisar upsampling sem perder ganho)
 
 	--usar r11 para armazenar a configuração do I2S
 	215=> lw & r3 & r11 & x"0000",-- lw [r3+0] r11, armazena em r11 a configuração do I2S (CR)
