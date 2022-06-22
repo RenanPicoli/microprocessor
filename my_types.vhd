@@ -78,8 +78,6 @@ package my_types is
 	constant addi:				std_logic_vector(5 downto 0)	:= "001000";
 	constant subi:				std_logic_vector(5 downto 0)	:= "001001";
 	constant iack:				std_logic_vector(5 downto 0)	:= "001010";
-	constant iret:				std_logic_vector(5 downto 0)	:= "001011";
-	constant ret:				std_logic_vector(5 downto 0)	:= "001100";
 	constant imul:				std_logic_vector(5 downto 0)	:= "001101";
 	constant vmac:				std_logic_vector(5 downto 0)	:= "001111";
 	constant xori:				std_logic_vector(5 downto 0)	:= "010000";

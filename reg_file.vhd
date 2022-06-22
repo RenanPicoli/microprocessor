@@ -1,5 +1,6 @@
 --------------------------------------------------
 --register file implementation
+--one stack for each register
 --by Renan Picoli de Souza
 ---------------------------------------------------
 
@@ -16,6 +17,7 @@ use work.my_types.all;
 ---------------------------------------------------
 
 entity reg_file is
+	generic (L: natural);--log2 of number of stack levels (one stack for each register)
 	port (CLK: in std_logic;
 			RST: in std_logic;
 			pop: in std_logic;
@@ -54,8 +56,30 @@ architecture func_reg_file of reg_file is
 				A: in std_logic--sinal regWrite
 				);
 	end component;
+	
+	component stack is
+	generic(L: natural);--log2 of number of stored words
+	port (CLK: in std_logic;--active edge: rising_edge
+			rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge)
+			--STACK INTERFACE
+			pop: in std_logic;
+			push: in std_logic;
+			addsp: in std_logic;--sp <- sp + imm
+			imm: in std_logic_vector(25 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
+			stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
+			sp: buffer std_logic_vector(31 downto 0);-- points to last stacked item (address of a 32-bit word)
+			stack_out: out std_logic_vector(31 downto 0);--data retrieved from stack
+			--MEMORY-MAPPED INTERFACE
+			D: in std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
+			WREN: in std_logic;--write enable for memory-mapped interface
+			ADDR: in std_logic_vector(31 downto 0);-- address to be written by memory-mapped interface
+			Q:		out std_logic_vector(31 downto 0)-- data output for memory-mapped interface
+	);
+	end component;
 
 	signal registers_Q: array32 (0 to 31) := (others=>(others=>'0'));
+	signal registers_in: array32 (0 to 31) := (others=>(others=>'0'));
+	signal stack_out: array32 (0 to 31) := (others=>(others=>'0'));
 	signal registers_write_en	: std_logic_vector(31 downto 0);
 	signal registers_clk			: std_logic_vector(31 downto 0);
 	
@@ -70,9 +94,28 @@ architecture func_reg_file of reg_file is
 												RST => RST,
 												ENA => registers_write_en(i),
 												CLK => CLK,--registers_clk(i),
-												D => write_data
+												D => registers_in(i)
 												);
-			--clocks: registers_clk(i) <= CLK and (registers_write_en(i) or RST);
+			registers_in(i) <= stack_out(i) when pop='1' else write_data;
+			
+			stack_x: stack
+						generic map (L => L)
+						port map(CLK => CLK,--active edge: rising_edge
+									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
+									--STACK INTERFACE
+									pop => pop,
+									push => push,
+									addsp => '0',
+									imm => (others => '0'),--imm > 0: deletes vars, imm < 0: reserves space for vars
+									stack_in => registers_Q(i),-- word to be pushed
+									sp => open,-- points to last stacked item (address of a 32-bit word)
+									stack_out => stack_out(i),--data retrieved from stack
+									--MEMORY-MAPPED INTERFACE
+									D => (others => '0'),-- data to be written by memory-mapped interface
+									WREN => '0',--write enable for memory-mapped interface
+									ADDR => (others => '0'),-- address to be written by memory-mapped interface
+									Q    => open-- data output for memory-mapped interface
+							);
 		end generate registers;
 
 			--escolhe qual registrador é lido

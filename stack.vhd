@@ -52,7 +52,7 @@ signal ram: memory;
 			elsif(push='1')then
 				sp <= sp - 1;
 			elsif(addsp='1')then
-				sp <= sp + (31 downto 26 => imm(25)) & imm;-- immediate is sign-extended
+				sp <= sp + ((31 downto 26 => imm(25)) & imm);-- immediate is sign-extended
 			end if;
 		end if;
 	end process;
@@ -60,7 +60,7 @@ signal ram: memory;
 	mem_update: process(CLK,rst,D,ADDR,WREN,stack_in,sp,push)
 	begin
 		if(rst='1')then
-			ram <= (others=>'0');
+			ram <= (others=>(others=>'0'));
 		elsif(rising_edge(CLK))then
 			--only one of these inputs/interfaces can be asserted in one cycle
 			if(push='1')then
