@@ -40,11 +40,7 @@ port (CLK_IN: in std_logic;
 end entity;
 
 architecture proc of microprocessor is
-signal CLK: std_logic;
-signal pc_in: 	std_logic_vector (31 downto 0);
-signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
---signal CLK: std_logic;
---signal count: std_logic_vector(25 downto 0);
+
 component d_flip_flop
 	port (D:	in std_logic_vector(31 downto 0);
 			rst:	in std_logic;--synchronous reset
@@ -57,6 +53,8 @@ end component;
 component reg_file
 	port (CLK: in std_logic;
 			RST: in std_logic;
+			pop: in std_logic;
+			push: in std_logic;
 			read_reg_1: in std_logic_vector (4 downto 0);--reg1 addr
 			read_reg_2: in std_logic_vector (4 downto 0);--reg2 addr
 			write_reg : in std_logic_vector (4 downto 0);--reg to be written
@@ -105,6 +103,14 @@ component control_unit
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
 			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
 			memWrite: out std_logic;
+			ldfp: out std_logic;
+			ldrv: out std_logic;
+			addsp: out std_logic;
+			push: out std_logic;
+			pop: out  std_logic;
+			call: out std_logic;
+			ret: out  std_logic;
+			iret: out std_logic;
 			vmac: out std_logic;--multiply-accumulate
 			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
 			lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
@@ -113,6 +119,41 @@ component control_unit
 			regWrite: out std_logic
 			);
 end component;
+
+component stack
+	generic(L: natural);--log2 of number of stored words
+	port (CLK: in std_logic;--active edge: rising_edge
+			rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge)
+			--STACK INTERFACE
+			pop: in std_logic;
+			push: in std_logic;
+			addsp: in std_logic;--sp <- sp + imm
+			imm: in std_logic_vector(25 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
+			stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
+			sp: buffer std_logic_vector(31 downto 0);-- points to last stacked item (address of a 32-bit word)
+			stack_out: out std_logic_vector(31 downto 0);--data retrieved from stack
+			--MEMORY-MAPPED INTERFACE
+			D: in std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
+			WREN: in std_logic;--write enable for memory-mapped interface
+			ADDR: in std_logic_vector(31 downto 0);-- address to be written by memory-mapped interface
+			Q:		out std_logic_vector(31 downto 0)-- data output for memory-mapped interface
+	);
+end component;
+
+signal CLK: std_logic;
+signal pc_in: 	std_logic_vector (31 downto 0);
+signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
+signal fp_in: 	std_logic_vector (31 downto 0);
+signal fp_en: 	std_logic;
+signal fp_out: std_logic_vector (31 downto 0) := (others => '0');
+signal fp_stack_out: std_logic_vector (31 downto 0) := (others => '0');
+signal lr_in: 	std_logic_vector (31 downto 0);
+signal lr_out: std_logic_vector (31 downto 0) := (others => '0');
+signal rv_in: 	std_logic_vector (31 downto 0);
+signal rv_out: std_logic_vector (31 downto 0) := (others => '0');
+signal sp: std_logic_vector(31 downto 0);
+signal program_stack_out: std_logic_vector (31 downto 0) := (others => '0');
+constant STACK_LEVELS: natural := 64;--for GPR's and FP
 
 --signals driven by control unit
 signal regDst: std_logic_vector(1 downto 0);
@@ -140,7 +181,6 @@ signal fpu_result: std_logic_vector (31 downto 0);
 signal halt: std_logic;
 signal clk_enable: std_logic;
 signal gating_signal: std_logic;--for clock control ('1' will enable microprocessor clock)
-signal cache_ready_sampled: std_logic;
 
 --Instruction fields
 signal opcode: std_logic_vector (5 downto 0);
@@ -163,22 +203,23 @@ signal branch_address: std_logic_vector (31 downto 0);--(addressRelativeExtended
 signal branch_or_next: std_logic;--branch and ZF
 signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & addressAbsolute & "00"
 
+signal ldfp: std_logic;
+signal ldrv: std_logic;
+signal addsp:std_logic;
+signal push: std_logic;
+signal pop:  std_logic;
+signal call: std_logic;
+signal ret:  std_logic;
+signal iret: std_logic;
+
 signal reg_clk: std_logic;--register file clock signal
 signal alu_clk: std_logic;--alu clock signal
+signal reg_push: std_logic;
+signal reg_pop: std_logic;
 
 begin
---	gating_signal <= (not halt) or irq;--for some reason, doesn't work
---	gating_signal <= not halt;--works
-	process(CLK_IN,cache_ready,rst)
-	begin
-		if(rst='1')then
-		   cache_ready_sampled <= '0';
-      elsif(rising_edge(CLK_IN))then--CLK_IN instead of CLK to enable this signal to deassert after a processor halt
-		    cache_ready_sampled <= cache_ready;
-		end if;
-	end process;
 	
-	process(rst,halt,irq,cache_ready_sampled,cache_ready,CLK_IN,gating_signal)
+	process(rst,halt,irq,cache_ready,CLK_IN,gating_signal)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
@@ -199,13 +240,34 @@ begin
 	
 	CLK <= CLK_IN and clk_enable;
 	CLK_rom <= CLK;
-	
---	gating: process(rst,CLK_IN,gating_signal)
---	begin
---		if (falling_edge(CLK_IN)) then--must be the inactive clock edge
---			clk_enable <= gating_signal;
---		end if;
---	end process;
+
+	--special purpose registers:
+	--FP (frame pointer)
+	--PC (program counter)
+	--SP (stack pointer, inside program stack)
+	--RV (return value)
+	--LR (link register)
+	FP: d_flip_flop port map (	CLK => CLK,
+										RST => rst,
+										ENA => fp_en,
+										D => fp_in,
+										Q => fp_out);
+	fp_en <= call or ret;
+	fp_in <= sp when call='1' else fp_stack_out;
+										
+	LR: d_flip_flop port map (	CLK => CLK,
+										RST => rst,
+										ENA => call,
+										D => lr_in,
+										Q => lr_out);
+	lr_in <= read_data_1;-- call: opcode(31..26) rs(25..21) func_addr(20..0)
+										
+	RV: d_flip_flop port map (	CLK => CLK,
+										RST => rst,
+										ENA => ret,
+										D => rv_in,
+										Q => rv_out);
+	rv_in <= program_stack_out;								
 
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
@@ -215,19 +277,59 @@ begin
 										
 	--instruction_addr <= pc_out;
 	instruction_addr <= pc_in;--because now mini_rom is synchronous
+	
+	program_stack: stack
+						generic map (L => STACK_LEVELS)
+						port (CLK => CLK,--active edge: rising_edge
+								rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
+								--STACK INTERFACE
+								pop => ,
+								push => ,
+								addsp => addsp,
+								imm => instruction(25 downto 0),--imm > 0: deletes vars, imm < 0: reserves space for vars
+								stack_in => ,-- word to be pushed
+								sp => sp,-- points to last stacked item (address of a 32-bit word)
+								stack_out => ,--data retrieved from stack
+								--MEMORY-MAPPED INTERFACE
+								D => ,-- data to be written by memory-mapped interface
+								WREN => ,--write enable for memory-mapped interface
+								ADDR => ,-- address to be written by memory-mapped interface
+								Q    => -- data output for memory-mapped interface
+						);
 
+	fp_stack: stack
+						generic map (L => STACK_LEVELS)
+						port (CLK => CLK,--active edge: rising_edge
+								rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
+								--STACK INTERFACE
+								pop => ret,
+								push => push,
+								addsp => '0',
+								imm => '0',--imm > 0: deletes vars, imm < 0: reserves space for vars
+								stack_in => fp_out,-- word to be pushed
+								sp => open,-- points to last stacked item (address of a 32-bit word)
+								stack_out => fp_stack_out,--data retrieved from stack
+								--MEMORY-MAPPED INTERFACE
+								D => (others=>'0'),-- data to be written by memory-mapped interface
+								WREN => '0',--write enable for memory-mapped interface
+								ADDR => (others=>'0'),-- address to be written by memory-mapped interface
+								Q    => (others=>'0')-- data output for memory-mapped interface
+						);
+						
 	rs <= instruction(25 downto 21);
 	rt <= instruction(20 downto 16);
 	rd <= instruction(15 downto 11);
 
 	writeLoc <=	rd when regDst="01" else
 					rt when regDst="00" else
-					rs;--only for mflo, mfhi
+					rs;--only for mflo, mfhi, call, ldrv, ldfp
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	reg_clk <= CLK;
 	register_file: reg_file port map (	CLK => reg_clk,
 													RST => rst,
+													pop => reg_pop,
+													push => reg_push,
 													read_reg_1 => rs,
 													read_reg_2 => rt,
 													write_reg  => writeLoc,
@@ -280,6 +382,8 @@ begin
 	pc_in <= pc_out when (halt='1' and irq='0') else --keep in current instruction of halt to allow clk_enable update
 				jump_address when (jump='1') else--next pc_out if not reset
 				branch_address when (branch_or_next='1') else
+				pc_out(31 downto 21) & instruction(20 downto 0) when (call='1') else
+				lr_out when (ret='1') else
 				pc_incremented;
 
 	--ADDR_rom <= pc_out(9 downto 2);
@@ -305,6 +409,14 @@ begin
 												aluControl => aluControl,
 												fpuControl => fpuControl,
 												memWrite => memWrite,
+												ldfp => ldfp,
+												ldrv => ldrv,
+												addsp => addsp,
+												push => push,
+												pop => pop,
+												call => call,
+												ret => ret,
+												iret => iret,
 												vmac => vmac,
 												lvec => wren_lvec,
 												lvec_src => lvec_src,

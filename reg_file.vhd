@@ -18,6 +18,8 @@ use work.my_types.all;
 entity reg_file is
 	port (CLK: in std_logic;
 			RST: in std_logic;
+			pop: in std_logic;
+			push: in std_logic;
 			read_reg_1: in std_logic_vector (4 downto 0);--reg1 addr
 			read_reg_2: in std_logic_vector (4 downto 0);--reg2 addr
 			write_reg : in std_logic_vector (4 downto 0);--reg to be written
