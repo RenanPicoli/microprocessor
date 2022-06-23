@@ -15,12 +15,15 @@ use work.my_types.all;--opcode and register "defines"
 
 entity mini_rom is
 	port (CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
+			RST: in std_logic;--asynchronous reset
 			ADDR: in std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
 			Q:	out std_logic_vector(31 downto 0)
 			);
 end mini_rom;
 
 architecture memArch of mini_rom is
+
+	signal ADDR_reg: std_logic_vector(7 downto 0);--ADDR is registered, then it is used to select instruction
 
 	type memory is array (0 to 255) of std_logic_vector(31 downto 0);
 	constant rom: memory := (--asm approx. follows Intel syntax: destination before source
@@ -349,8 +352,11 @@ architecture memArch of mini_rom is
 		--necessary turn Auto ROM Replacement on
 		process(CLK,ADDR)
 		begin
-			if(rising_edge(CLK))then
-				Q <= rom(to_integer(unsigned(ADDR)));
+			if(RST='1')then
+				ADDR_reg <= (others=>'0');
+			elsif(rising_edge(CLK))then
+				ADDR_reg <= ADDR;
 			end if;
 		end process;
+		Q <= rom(to_integer(unsigned(ADDR_reg)));
 end memArch;
