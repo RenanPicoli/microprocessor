@@ -141,7 +141,7 @@ begin
 end process;
 
 regDst 	<= "01" when R_type='1' else--usa rd (para escrita) só em instrucao tipo R
-				"10" when (mfhi='1' or mflo='1' or ldfp='1' or ldrv='1') else--apenas mflo, mfhi, ldfp, ldrv escrevem no rs
+				"10" when (mfhi='1' or mflo='1' or ldfp='1' or ldrv='1' or pop='1') else--apenas mflo, mfhi, ldfp, ldrv, pop escrevem no rs
 				"00";--demais instrucoes escrevem no rt
 memRead 	<= load_type;
 memWrite <= store_type;
