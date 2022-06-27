@@ -19,19 +19,19 @@ use ieee.numeric_std.all;--to_integer
 entity stack is
 generic(L: natural);--log2 of number of stored words
 port (CLK: in std_logic;--active edge: rising_edge
-		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge)
+		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
 		--STACK INTERFACE
 		pop: in std_logic;
 		push: in std_logic;
 		addsp: in std_logic;--sp <- sp + imm
-		imm: in std_logic_vector(25 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
+		imm: in std_logic_vector(L-1 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
 		stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
-		sp: buffer std_logic_vector(31 downto 0);-- points to last stacked item (address of a 32-bit word)
+		sp: buffer std_logic_vector(L-1 downto 0);-- points to last stacked item (address of a 32-bit word)
 		stack_out: out std_logic_vector(31 downto 0);--data retrieved from stack
 		--MEMORY-MAPPED INTERFACE
 		D: in std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
 		WREN: in std_logic;--write enable for memory-mapped interface
-		ADDR: in std_logic_vector(31 downto 0);-- address to be written by memory-mapped interface
+		ADDR: in std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
 		Q:		out std_logic_vector(31 downto 0)-- data output for memory-mapped interface
 );
 end entity;
@@ -39,6 +39,10 @@ end entity;
 architecture bhv of stack is
 type memory is array (0 to 2**L-1) of std_logic_vector(31 downto 0);
 signal ram: memory;
+
+--signal empty: std_logic;
+--signal full: std_logic;
+
 	begin
 	
 	sp_update: process(CLK,rst,pop,push,addsp,imm)
@@ -52,10 +56,18 @@ signal ram: memory;
 			elsif(push='1')then
 				sp <= sp - 1;
 			elsif(addsp='1')then
-				sp <= sp + ((31 downto 26 => imm(25)) & imm);-- immediate is sign-extended
+				sp <= sp + imm;-- immediate is sign-extended
 			end if;
 		end if;
 	end process;
+	
+--	empty <= '1' when rst='1' else
+--				'1' when sp=(others=>) else
+--				'0';
+--	
+--	full <= '0' when rst='1' else
+--				'1' when sp=(others=>'0') else
+--				'0';
 	
 	mem_update: process(CLK,rst,D,ADDR,WREN,stack_in,sp,push)
 	begin
