@@ -44,7 +44,7 @@ signal ram: memory;
 	sp_update: process(CLK,rst,pop,push,addsp,imm)
 	begin
 		if(rst='1')then
-			sp <= (others=>'0');
+			sp <= (others=>'0');--sp=xffffffff means stack with one element, x00000000-1=xffffffff
 		elsif(rising_edge(CLK))then
 			--only one of these inputs can be asserted in one cycle
 			if(pop='1')then
@@ -59,9 +59,10 @@ signal ram: memory;
 	
 	mem_update: process(CLK,rst,D,ADDR,WREN,stack_in,sp,push)
 	begin
-		if(rst='1')then
-			ram <= (others=>(others=>'0'));
-		elsif(rising_edge(CLK))then
+--		if(rst='1')then
+--			ram <= (others=>(others=>'0'));
+--		elsif(rising_edge(CLK))then
+		if(rising_edge(CLK))then
 			--only one of these inputs/interfaces can be asserted in one cycle
 			if(push='1')then
 				ram(to_integer(unsigned(sp))) <= stack_in;
@@ -72,9 +73,14 @@ signal ram: memory;
 		end if;
 	end process;
 	
-	stack_out <= ram(to_integer(unsigned(sp)));
-	Q <=  ram(to_integer(unsigned(ADDR)));
-	
+	--synchronous reading logic to allow ram inference
+	mem_reading: process(ram,sp,ADDR,CLK)
+	begin
+		if(falling_edge(CLK))then
+			stack_out <= ram(to_integer(unsigned(sp)));
+			Q <=  ram(to_integer(unsigned(ADDR)));
+		end if;
+	end process;
 	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
 	--			popping empty stack, pushing to full stack
 end bhv;
