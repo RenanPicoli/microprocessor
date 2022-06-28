@@ -77,7 +77,9 @@ signal ram: memory;
 		if(rising_edge(CLK))then
 			--only one of these inputs/interfaces can be asserted in one cycle
 			if(push='1')then
-				ram(to_integer(unsigned(sp))) <= stack_in;
+				-- sp-1 because position pointed by sp is already used,
+				--concurrently, sp will be updated (decremented) by other process
+				ram(to_integer(unsigned(sp-1))) <= stack_in;
 			--if addsp='1' or pop='1', memory contents is not updated
 			elsif(WREN='1')then
 				ram(to_integer(unsigned(ADDR))) <= D;
