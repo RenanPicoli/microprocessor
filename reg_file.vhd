@@ -20,13 +20,13 @@ entity reg_file is
 	generic (L: natural);--log2 of number of stack levels (one stack for each register)
 	port (CLK: in std_logic;
 			RST: in std_logic;
-			pop: in std_logic;
-			push: in std_logic;
+			pop: in std_logic;--pops from ALL registers stacks
+			push: in std_logic;--pushes to ALL registers stacks
 			read_reg_1: in std_logic_vector (4 downto 0);--reg1 addr
 			read_reg_2: in std_logic_vector (4 downto 0);--reg2 addr
-			write_reg : in std_logic_vector (4 downto 0);--reg to be written
-			write_data: in std_logic_vector (31 downto 0);--data to be written
-			regWrite: in std_logic;--enables register write (during clock rising edge)
+			write_reg : in std_logic_vector (4 downto 0);--reg to be written like in R_type or pop
+			write_data: in std_logic_vector (31 downto 0);--data to be written like in R_type or pop
+			regWrite: in std_logic;--enables SINGLE register write like in R_type or pop (during clock rising edge)
 			read_data_1:out std_logic_vector (31 downto 0);
 			read_data_2:out std_logic_vector (31 downto 0)
 			);
