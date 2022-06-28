@@ -80,7 +80,8 @@ architecture func_reg_file of reg_file is
 	signal registers_Q: array32 (0 to 31) := (others=>(others=>'0'));
 	signal registers_in: array32 (0 to 31) := (others=>(others=>'0'));
 	signal stack_out: array32 (0 to 31) := (others=>(others=>'0'));
-	signal registers_write_en	: std_logic_vector(31 downto 0);
+	signal registers_write_en	: std_logic_vector(31 downto 0);--specific for software writes
+	signal registers_ena			: std_logic_vector(31 downto 0);
 	signal registers_clk			: std_logic_vector(31 downto 0);
 	
 	--WARNING: asserting true will disconnect reset port to allow RAM inferring
@@ -92,11 +93,12 @@ architecture func_reg_file of reg_file is
 		registers: for i in 0 to 31 generate-- i is the row index, the register number
 			regx: d_flip_flop port map(Q => registers_Q(i),
 												RST => RST,
-												ENA => registers_write_en(i),
+												ENA => registers_ena(i),
 												CLK => CLK,--registers_clk(i),
 												D => registers_in(i)
 												);
 			registers_in(i) <= stack_out(i) when pop='1' else write_data;
+			registers_ena(i) <= '1' when pop='1' else registers_write_en(i);
 			
 			stack_x: stack
 						generic map (L => L)
