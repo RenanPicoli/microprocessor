@@ -322,20 +322,21 @@ architecture memArch of mini_rom is
 	214=>ret & "00" & x"000000",								-- ret
 	
 	--function I2C_WRITE(I2C_pointer,control_reg,data_reg,IRQ_controller_address):
-	--retrieving arguments from program stack
-	215=> pop & r0 & '0' & x"00000",--r0 <- endereco-base do I2C
-	216=> pop & r1 & '0' & x"00000",--r1 <- valor de CR
-	217=> pop & r2 & '0' & x"00000",--r2 <- valor de DR
-	218=> pop & r3 & '0' & x"00000",--r3 <- endereço-base do controlador de interrupcoes
-	219=> sw & r0 & r2 & x"0004",-- sw [r0+1*4] r2; armazena em DR o valor a ser transmitido
-	220=> sw & r0 & r1 & x"0000",-- sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
-	221=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
-	222=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
-	223=> sw & r3 & r11 & x"0000",								-- sw [r3+0] r11; escreve zero no reg de IRQ pendentes
-	224=>	sw & r0 & r11 & x"0010",								--sw [r0+4*4+0] r11; escreve zero no reg de IRQ pendentes do I2C
-	225=> iack & "00" & x"000000",								-- iack
+	--retrieving arguments from program stack (popping would increment SP)
+	215=> ldfp & r4 & '0' & x"00000",--ldfp r4 ; r4 <- FP (frame pointer,first parameter, last passed by caller)
+	216=> lw & r4 & r0 & x"0000",-- lw [r4+0] r0; r0 <- endereco-base do I2C
+	217=> lw & r4 & r1 & x"0004",-- lw [r4+1*4] r1; r1 <- valor de CR
+	218=> lw & r4 & r2 & x"0008",-- lw [r4+2*4] r2; r2 <- valor de DR
+	219=> lw & r4 & r3 & x"000C",-- lw [r4+3*4] r3; r3 <- endereço-base do controlador de interrupcoes
+	220=> sw & r0 & r2 & x"0004",-- sw [r0+1*4] r2; armazena em DR o valor a ser transmitido
+	221=> sw & r0 & r1 & x"0000",-- sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
+	222=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
+	223=> halt & "00" & x"000000", -- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)
+	224=> sw & r3 & r11 & x"0000",								-- sw [r3+0] r11; escreve zero no reg de IRQ pendentes
+	225=>	sw & r0 & r11 & x"0010",								-- sw [r0+4*4+0] r11; escreve zero no reg de IRQ pendentes do I2C
+	226=> iack & "00" & x"000000",								-- iack
 	
-	226=> ret & "00" & x"000000",								-- ret	
+	227=> ret & "00" & x"000000",								-- ret	
 	
 	others => x"0000_0000"
 	);
