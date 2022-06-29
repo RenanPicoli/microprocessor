@@ -149,7 +149,9 @@ signal fp_en: 	std_logic;
 signal fp_out: std_logic_vector (31 downto 0) := (others => '0');
 signal fp_stack_out: std_logic_vector (31 downto 0) := (others => '0');
 signal lr_in: 	std_logic_vector (31 downto 0);
+signal lr_en: 	std_logic;
 signal lr_out: std_logic_vector (31 downto 0) := (others => '0');
+signal lr_stack_out: std_logic_vector (31 downto 0) := (others => '0');
 signal rv_in: 	std_logic_vector (31 downto 0);
 signal rv_out: std_logic_vector (31 downto 0) := (others => '0');
 signal sp: std_logic_vector(31 downto 0);
@@ -262,10 +264,11 @@ begin
 										
 	LR: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
-										ENA => call,
+										ENA => lr_en,
 										D => lr_in,
 										Q => lr_out);
-	lr_in <= pc_incremented;
+	lr_en <= call or ret;
+	lr_in <= lr_stack_out when ret='1' else pc_incremented;
 										
 	RV: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
@@ -318,6 +321,25 @@ begin
 									stack_in => fp_out,-- word to be pushed
 									sp => open,-- points to last stacked item (address of a 32-bit word)
 									stack_out => fp_stack_out,--data retrieved from stack
+									--MEMORY-MAPPED INTERFACE
+									D => (others=>'0'),-- data to be written by memory-mapped interface
+									WREN => '0',--write enable for memory-mapped interface
+									ADDR => (others=>'0'),-- address to be written by memory-mapped interface
+									Q    => open-- data output for memory-mapped interface
+							);
+
+	lr_stack: stack
+						generic map (L => STACK_LEVELS_LOG2)
+						port map (CLK => CLK,--active edge: rising_edge
+									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
+									--STACK INTERFACE
+									pop => ret,
+									push => call,
+									addsp => '0',
+									imm => (others=>'0'),--imm > 0: deletes vars, imm < 0: reserves space for vars
+									stack_in => lr_out,-- word to be pushed
+									sp => open,-- points to last stacked item (address of a 32-bit word)
+									stack_out => lr_stack_out,--data retrieved from stack
 									--MEMORY-MAPPED INTERFACE
 									D => (others=>'0'),-- data to be written by memory-mapped interface
 									WREN => '0',--write enable for memory-mapped interface
