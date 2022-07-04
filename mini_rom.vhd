@@ -64,7 +64,7 @@ architecture memArch of mini_rom is
 	--initialize
 	32=> addi & r0 & r0 & x"0008",								--	addi r0 r0 x"000B"; stores N=P+Q+1=8 in r0
 	33=> addi & r3 & r3 & x"0040",								--	addi r3 r3 x"0040"; 16*4 é a posição 0 do cache
-	34=> lw & r3 & r2 & x"0000",								--	lw [r3 + 0] r2; r2<- x"461C4000", armazena a cte 5E-5, na posição 0 do cache
+	34=> lw & r3 & r2 & x"0000",								--	lw [r3 + 0] r2; r2<- x"461C4000", armazena a cte 1E4, na posição 0 do cache
 	35=> addi & r7 & r7 & x"0008",								-- addi r7 r7 x"0008"; r7 <- 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 	
 	36=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
@@ -118,8 +118,8 @@ architecture memArch of mini_rom is
 	66=> push & r1 & "0" & x"00000",							--push r1; (0.5/squared norm)
 	67=> call & "00" & x"0000E2",								--call MIN; call 226
 	68=> pop & r1 & "0" & x"00000",							--pop r1; r1 <- step=MIN(0.5/squared norm,1E4), this value is removed from program stack
-	69=> lw & r3 & r2 & x"000C",								--	lw [r3 + 12] r2; r2<- x"40000000", armazena a cte 2.0, na posição 2 do cache
-	70=> R_type & r1 & r2 & r1 & "00000" & fmul_funct,-- fmul r1 r2 r1 ; r1 <- (2*step)
+	69=> lw & r3 & r6 & x"000C",								--	lw [r3 + 12] r6; r6<- x"40000000", armazena a cte 2.0, na posição 2 do cache
+	70=> R_type & r1 & r6 & r1 & "00000" & fmul_funct,-- fmul r1 r6 r1 ; r1 <- (2*step)
 
 	71=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3
 	72=> addi & r3 & r3 & x"01C0",							-- addi r3 r3 x"01C0"; r3 aponta para o registrador da saída atual do filtro (x70*4)
