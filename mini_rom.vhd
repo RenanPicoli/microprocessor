@@ -114,10 +114,10 @@ architecture memArch of mini_rom is
 
 	63=> lw & r3 & r6 & x"0008",								-- lw [r3+8] r6; r6 <- 0.5
 	64=> R_type & r6 & r1 & r1 & "00000" & fdiv_funct,	-- r1 <- r6/r1 (0.5/squared norm)
-	65=> push & r2 & '0' & x"00000",							--push r2; 1E4
-	66=> push & r1 & '0' & x"00000",							--push r1; (0.5/squared norm)
+	65=> push & r2 & "0" & x"00000",							--push r2; 1E4
+	66=> push & r1 & "0" & x"00000",							--push r1; (0.5/squared norm)
 	67=> call & "00" & x"0000E2",								--call MIN; call 226
-	68=> pop & r1 & '0' & x"00000",							--pop r1; r1 <- step=MIN(0.5/squared norm,1E4), this value is removed from program stack
+	68=> pop & r1 & "0" & x"00000",							--pop r1; r1 <- step=MIN(0.5/squared norm,1E4), this value is removed from program stack
 	69=> lw & r3 & r2 & x"000C",								--	lw [r3 + 12] r2; r2<- x"40000000", armazena a cte 2.0, na posição 2 do cache
 	70=> R_type & r1 & r2 & r1 & "00000" & fmul_funct,-- fmul r1 r2 r1 ; r1 <- (2*step)
 
@@ -228,98 +228,98 @@ architecture memArch of mini_rom is
 	--reset
 	142=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	143=> addi & r5 & r5 & "0001111000000000", -- addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
-	144=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	145=> push & r5 & '0' & x"00000",--valor de DR
-	146=> push & r2 & '0' & x"00000",--valor de CR
-	147=> push & r3 & '0' & x"00000",--endereço do I2C
+	144=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	145=> push & r5 & "0" & x"00000",--valor de DR
+	146=> push & r2 & "0" & x"00000",--valor de CR
+	147=> push & r3 & "0" & x"00000",--endereço do I2C
 	148=> call & "00" & x"0000D5",--call & I2C_WRITE
 	
 	--power down
 	149=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	150=> addi & r5 & r5 & "0000110001110111", -- addi r5 r5 "0000110_0_0111_0111"; configura DR para escrever 0_0111_0111 no reg 06h (power down control)
-	151=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	152=> push & r5 & '0' & x"00000",--valor de DR
-	153=> push & r2 & '0' & x"00000",--valor de CR
-	154=> push & r3 & '0' & x"00000",--endereço do I2C
+	151=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	152=> push & r5 & "0" & x"00000",--valor de DR
+	153=> push & r2 & "0" & x"00000",--valor de CR
+	154=> push & r3 & "0" & x"00000",--endereço do I2C
 	155=> call & "00" & x"0000D5",--call & I2C_WRITE
 	
 	--analogue audio path
 	156=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	157=> addi & r5 & r5 & "0000100000010010", -- addi r5 r5 "0000100_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 04h (analogue audio path)
-	158=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	159=> push & r5 & '0' & x"00000",--valor de DR
-	160=> push & r2 & '0' & x"00000",--valor de CR
-	161=> push & r3 & '0' & x"00000",--endereço do I2C
+	158=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	159=> push & r5 & "0" & x"00000",--valor de DR
+	160=> push & r2 & "0" & x"00000",--valor de CR
+	161=> push & r3 & "0" & x"00000",--endereço do I2C
 	162=> call & "00" & x"0000D5",--call & I2C_WRITE
 
 	--digital audio path
 	163=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	164=> addi & r5 & r5 & "0000101000000000", -- addi r5 r5 "0000101_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 05h (digital audio path)
-	165=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	166=> push & r5 & '0' & x"00000",--valor de DR
-	167=> push & r2 & '0' & x"00000",--valor de CR
-	168=> push & r3 & '0' & x"00000",--endereço do I2C
+	165=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	166=> push & r5 & "0" & x"00000",--valor de DR
+	167=> push & r2 & "0" & x"00000",--valor de CR
+	168=> push & r3 & "0" & x"00000",--endereço do I2C
 	169=> call & "00" & x"0000D5",--call & I2C_WRITE	
 
 	--digital audio interface format
 	170=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	171=> addi & r5 & r5 & "0000111000010010", -- addi r5 r5 "0000111_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 07h (digital audio interface format, I2S)
-	172=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	173=> push & r5 & '0' & x"00000",--valor de DR
-	174=> push & r2 & '0' & x"00000",--valor de CR
-	175=> push & r3 & '0' & x"00000",--endereço do I2C
+	172=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	173=> push & r5 & "0" & x"00000",--valor de DR
+	174=> push & r2 & "0" & x"00000",--valor de CR
+	175=> push & r3 & "0" & x"00000",--endereço do I2C
 	176=> call & "00" & x"0000D5",--call & I2C_WRITE	
 
 	--sampling control
 	177=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	178=> addi & r5 & r5 & "0001000000100011", -- addi r5 r5 "0001000_0_0010_0011"; configura DR para escrever 0_0010_0011 no reg 08h (sampling control, USB mode)
-	179=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	180=> push & r5 & '0' & x"00000",--valor de DR
-	181=> push & r2 & '0' & x"00000",--valor de CR
-	182=> push & r3 & '0' & x"00000",--endereço do I2C
+	179=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	180=> push & r5 & "0" & x"00000",--valor de DR
+	181=> push & r2 & "0" & x"00000",--valor de CR
+	182=> push & r3 & "0" & x"00000",--endereço do I2C
 	183=> call & "00" & x"0000D5",--call & I2C_WRITE	
 
 	--left headphone out
 	184=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	185=> addi & r5 & r5 & "0000010001010001", -- addi r5 r5 "0000010_0_0101_0001"; configura DR para escrever 0_0101_0001 no reg 02h (volume left, -40dB)
-	186=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	187=> push & r5 & '0' & x"00000",--valor de DR
-	188=> push & r2 & '0' & x"00000",--valor de CR
-	189=> push & r3 & '0' & x"00000",--endereço do I2C
+	186=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	187=> push & r5 & "0" & x"00000",--valor de DR
+	188=> push & r2 & "0" & x"00000",--valor de CR
+	189=> push & r3 & "0" & x"00000",--endereço do I2C
 	190=> call & "00" & x"0000D5",--call & I2C_WRITE
 
 	--right headphone out
 	191=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	192=> addi & r5 & r5 & "0000011001010001", -- addi r5 r5 "0000011_0_0101_0001"; configura DR para escrever 0_0101_0001 no reg 03h (volume right, -40dB)
-	193=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	194=> push & r5 & '0' & x"00000",--valor de DR
-	195=> push & r2 & '0' & x"00000",--valor de CR
-	196=> push & r3 & '0' & x"00000",--endereço do I2C
+	193=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	194=> push & r5 & "0" & x"00000",--valor de DR
+	195=> push & r2 & "0" & x"00000",--valor de CR
+	196=> push & r3 & "0" & x"00000",--endereço do I2C
 	197=> call & "00" & x"0000D5",--call & I2C_WRITE
 
 	--active control
 	198=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	199=> addi & r5 & r5 & "0001001000000001", -- addi r5 r5 "0001001_0_0000_0001"; configura DR para escrever 0_0000_0001 no reg 09h (active control, ativa o codec)
-	200=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	201=> push & r5 & '0' & x"00000",--valor de DR
-	202=> push & r2 & '0' & x"00000",--valor de CR
-	203=> push & r3 & '0' & x"00000",--endereço do I2C
+	200=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	201=> push & r5 & "0" & x"00000",--valor de DR
+	202=> push & r2 & "0" & x"00000",--valor de CR
+	203=> push & r3 & "0" & x"00000",--endereço do I2C
 	204=> call & "00" & x"0000D5",--call & I2C_WRITE
 
 	--power down control
 	205=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 	206=> addi & r5 & r5 & "0000110001100111", -- addi r5 r5 "0000110_0_0110_0111"; configura DR para escrever 0_0110_0111 no reg 06h (power down control, ativa a saída)
-	207=> push & r4 & '0' & x"00000",--endereco-base do controlador de interrupcoes global
-	208=> push & r5 & '0' & x"00000",--valor de DR
-	209=> push & r2 & '0' & x"00000",--valor de CR
-	210=> push & r3 & '0' & x"00000",--endereço do I2C
+	207=> push & r4 & "0" & x"00000",--endereco-base do controlador de interrupcoes global
+	208=> push & r5 & "0" & x"00000",--valor de DR
+	209=> push & r2 & "0" & x"00000",--valor de CR
+	210=> push & r3 & "0" & x"00000",--endereço do I2C
 	211=> call & "00" & x"0000D5",--call & I2C_WRITE
 	
 	212=> ret & "00" & x"000000",								-- ret
 	
 	--function I2C_WRITE(I2C_pointer,control_reg,data_reg,IRQ_controller_address):
 	--retrieving arguments from program stack (popping would increment SP)
-	213=> ldfp & r4 & '0' & x"00000",--ldfp r4 ; r4 <- FP (frame pointer,first parameter, last passed by caller)
+	213=> ldfp & r4 & "0" & x"00000",--ldfp r4 ; r4 <- FP (frame pointer,first parameter, last passed by caller)
 	214=> lw & r4 & r0 & x"0000",-- lw [r4+0] r0; r0 <- endereco-base do I2C
 	215=> lw & r4 & r1 & x"0004",-- lw [r4+1*4] r1; r1 <- valor de CR
 	216=> lw & r4 & r2 & x"0008",-- lw [r4+2*4] r2; r2 <- valor de DR
@@ -335,7 +335,7 @@ architecture memArch of mini_rom is
 	225=> ret & "00" & x"000000",								-- ret
 	
 	--function MIN(x,y):-- retorna o menor entre dois floats: x e y
-	226=> ldfp & r2 & '0' & x"00000",--ldfp r2 ; r2 <- FP (frame pointer, points to first parameter, last passed by caller)
+	226=> ldfp & r2 & "0" & x"00000",--ldfp r2 ; r2 <- FP (frame pointer, points to first parameter, last passed by caller)
 	227=> lw & r2 & r0 & x"0000",-- lw [r2+0] r0; r0 <- x (float)
 	228=> lw & r2 & r1 & x"0004",-- lw [r2+1*4] r1; r1 <- y (float)
 	229=> R_type & r0 & r1 & r3 & "00000" & fsub_funct,-- fsub r0 r1 r3; r3 <- (x-y)
@@ -343,19 +343,19 @@ architecture memArch of mini_rom is
 	230=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	--	xor r4 r4 r4; zera r4,
 	231=> addi & r4 & r4 & x"8000",-- r4 <- x8000
 	232=> mult & r4 & r4 & x"0000",--[hi lo] <- x0000_0000_4000_0000
-	233=> mflo & r4 & '0' & x"00000",-- r4 <- x4000_0000
+	233=> mflo & r4 & "0" & x"00000",-- r4 <- x4000_0000
 	234=> R_type & r5 & r5 & r5 & "00000" & xor_funct,	--	xor r5 r5 r5; zera r5,
 	235=> addi & r5 & r5 & x"0002",-- r5 <- 2	
 	236=> mult & r4 & r5 & x"0000",-- r4 <- [hi lo] <- x0000_0000_8000_0000
-	237=> mflo & r4 & '0' & x"00000",-- r4 <- x8000_0000
+	237=> mflo & r4 & "0" & x"00000",-- r4 <- x8000_0000
 	--if bit 31 of r3 is zero, return  x, else return y
 	238=> R_type & r3 & r4 & r3 & "00000" & and_funct,	--	and r3 r4 r3; r3 <- r3 and r4, zero todos os bits, menos 31
 	239=> beq & r3 & r4 & x"0002",-- beq r3 r4 (+2), se r3 = x80000000, (x-y)<0
 	--case x-y>=0
-	240=> push & r1 & '0' & x"00000",--push r1; return y
+	240=> push & r1 & "0" & x"00000",--push r1; return y
 	241=> ret & "00" & x"000000",								-- ret
 	--case x-y<0
-	242=> push & r0 & '0' & x"00000",--push r0; return 0
+	242=> push & r0 & "0" & x"00000",--push r0; return 0
 	243=> ret & "00" & x"000000",								-- ret
 	others => x"0000_0000"
 	);
