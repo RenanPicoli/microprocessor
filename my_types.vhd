@@ -78,8 +78,6 @@ package my_types is
 	constant addi:				std_logic_vector(5 downto 0)	:= "001000";
 	constant subi:				std_logic_vector(5 downto 0)	:= "001001";
 	constant iack:				std_logic_vector(5 downto 0)	:= "001010";
-	constant iret:				std_logic_vector(5 downto 0)	:= "001011";
-	constant ret:				std_logic_vector(5 downto 0)	:= "001100";
 	constant imul:				std_logic_vector(5 downto 0)	:= "001101";
 	constant vmac:				std_logic_vector(5 downto 0)	:= "001111";
 	constant xori:				std_logic_vector(5 downto 0)	:= "010000";
@@ -91,6 +89,16 @@ package my_types is
 	constant mflo:				std_logic_vector(5 downto 0)	:= "100101";
 	constant sw:				std_logic_vector(5 downto 0)	:= "101011";
 	constant mfhi:				std_logic_vector(5 downto 0)	:= "101101";
+	
+	constant ldfp:				std_logic_vector(5 downto 0)	:= "110000";--loads fp to register
+	constant ldrv:				std_logic_vector(5 downto 0)	:= "110001";--loads rv to register
+	constant addsp:			std_logic_vector(5 downto 0)	:= "110010";--adds sp to immediate
+	constant push:				std_logic_vector(5 downto 0)	:= "110011";--pushs specified GPR to program stack
+	constant pop:				std_logic_vector(5 downto 0)	:= "110100";--pops specified GPR from program stack
+	constant call:				std_logic_vector(5 downto 0)	:= "110101";--jumps to immediate and save return address to LR
+	constant ret:				std_logic_vector(5 downto 0)	:= "110110";--jumps to link register, stores return value in RV and restores FP
+	constant iret:				std_logic_vector(5 downto 0)	:= "110111";--jumps to link register and restores FP (IRQHandlers don't have return value)
+		
 	constant nop:				std_logic_vector(5 downto 0)	:= "111111";--no operation (bubble)
 	
 	

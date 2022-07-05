@@ -19,9 +19,18 @@ entity control_unit is
 			mem_data_src: out std_logic;--selects which data is to be written to data memory
 			aluControl: out std_logic_vector (3 downto 0);--ALU operation selector
 			fpuControl: out std_logic_vector (1 downto 0);--FPU operation selector
---			fpuResult_or_read_data_2: out std_logic;--selects which data is to be written to memory
-			
+--			fpuResult_or_read_data_2: out std_logic;--selects which data is to be written to memory			
 			memWrite: out std_logic;
+			
+			ldfp: out std_logic;
+			ldrv: out std_logic;
+			addsp: out std_logic;
+			push: out std_logic;
+			pop: out  std_logic;
+			call: out std_logic;
+			ret: out  std_logic;
+			iret: out std_logic;
+
 			vmac: out std_logic;--multiply-accumulate
 			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
 			lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
@@ -61,9 +70,17 @@ signal mult: std_logic;--unsigned multiplication
 signal imul: std_logic;--signed multiplication
 signal mflo: std_logic;--load lower half of product into register
 signal mfhi: std_logic;--load upper half of product into register
-signal ret: std_logic;
-signal iret: std_logic;
-signal nop: std_logic;--no operation (bubble)
+--
+--signal ldfp: std_logic;
+--signal ldrv: std_logic;
+--signal addsp:std_logic;
+--signal push: std_logic;
+--signal pop:  std_logic;
+--signal call: std_logic;
+--signal ret:  std_logic;
+--signal iret: std_logic;
+
+signal nop:  std_logic;--no operation (bubble)
 
 --for interrupt mask register
 signal imask_update: std_logic;
@@ -80,8 +97,6 @@ jump_type 			<= '1' when opcode="000010" else '0';--instrucao de jump
 branch_type			<= '1' when opcode="000100" else '0';--instrucao de branch
 halt					<= '1' when opcode="000110" else '0';--halt
 iack					<= '1' when opcode="001010" else '0';--iack (interrupt acknowledgement)
-iret					<= '1' when opcode="001011" else '0';--return from interrupt
-ret					<= '1' when opcode="001100" else '0';--return from normal function call
 lvec					<= '1' when opcode="000111" else '0';--instrucao lvec (load vector: loads vector of 8 std_logic_vector in parallel)
 load_type 			<= '1' when opcode="100011" else '0';--instrucao de load (single value)
 store_type 			<= '1' when opcode="101011" else '0';--instrucao de store
@@ -102,6 +117,15 @@ mult		<= '1' when opcode="000101" else '0';
 imul		<= '1' when opcode="001101" else '0';
 mflo		<= '1' when opcode="100101" else '0';
 mfhi		<= '1' when opcode="101101" else '0';
+
+ldfp		<= '1' when opcode="110000" else '0';--loads fp to register
+ldrv		<= '1' when opcode="110001" else '0';--loads rv to register
+addsp		<= '1' when opcode="110010" else '0';--adds sp to immediate
+push		<= '1' when opcode="110011" else '0';--pushs all GPR onto their stacks
+pop		<= '1' when opcode="110100" else '0';--pops all GPR from their stacks
+call 		<= '1' when opcode="110101" else '0';--jumps to immediate and save return address to LR
+ret 		<= '1' when opcode="110110" else '0';--jumps to link register, stores return value in RV and restores FP; return from normal function call
+iret 		<= '1' when opcode="110111" else '0';--jumps to link register and restores FP (IRQHandlers don't have return value); return from interrupt
 nop		<= '1' when opcode="111111" else '0';--no operation (bubble)
 
 imask_update <= iack or iret;--the only instructions that change this flag are iack(set) and iret(reset)
@@ -117,14 +141,24 @@ begin
 end process;
 
 regDst 	<= "01" when R_type='1' else--usa rd (para escrita) só em instrucao tipo R
-				"10" when (mfhi='1' or mflo='1') else--apenas mflo mfhi escrevem no rs
+				"10" when (mfhi='1' or mflo='1' or ldfp='1' or ldrv='1' or pop='1') else--apenas mflo, mfhi, ldfp, ldrv, pop escrevem no rs
 				"00";--demais instrucoes escrevem no rt
 memRead 	<= load_type;
 memWrite <= store_type;
-reg_data_src <= (R_type and (not funct(5))) & load_type;--01: loads memory content to register; 00: saves alu result to register; 1X: saves fpu result to register
+
+--00: saves alu result to register;
+--01: loads memory content to register;
+--10: saves fpu result to register
+--11: saves special purpose register or stack output in general purpose register
+reg_data_src <= "11" when (ldfp='1' or ldrv='1' or pop='1') else
+					 "10" when (R_type='1' and funct(5)='0') else
+					 "01" when (load_type='1') else
+					 "00";
+--reg_data_src <= (R_type and (not funct(5))) & load_type;
+
 mem_data_src <= '1';--now I don't understand how to implement a instruction that operates on fp numbers and save the result to memory 
 aluSrc 	<= load_type or store_type or addi or subi or andi or ori or xori or nori or slti;--'1': operando 2 da ALU é imediato com extensão de sinal
-regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori or slti or mfhi or mflo;--addi tambem escreve no register file, como R-type
+regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori or slti or mfhi or mflo or ldfp or ldrv or pop;--addi tambem escreve no register file, como R-type
 
 AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require addition
 			"01" when (branch_type='1') else--branch requires subctration
