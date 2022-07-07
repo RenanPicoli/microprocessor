@@ -421,15 +421,16 @@ begin
 	branch_or_next <= branch and alu_flags.ZF;
 	addressAbsolute <= instruction(25 downto 0);
 	jump_address <= pc_out(31 downto 28) & addressAbsolute & "00";--TODO: é pc_incremented em vez de pc_out CHECAR
-	pc_in <= pc_out when (halt='1' and irq='0') else --keep in current instruction of halt to allow clk_enable update
+	pc_in <= (others=>'0') when rst='1' else
+				pc_out when (halt='1' and irq='0') else --keep in current instruction of halt to allow clk_enable update
 				jump_address when (jump='1') else--next pc_out if not reset
 				branch_address when (branch_or_next='1') else
 				pc_out(31 downto 28) & instruction(25 downto 0) & "00" when (call='1') else-- call: opcode(31..26) func_addr(25..0)
 				lr_out when (ret='1') else
 				pc_incremented;
 
-	ADDR_rom <= pc_out(9 downto 2);
---	ADDR_rom <= pc_in(9 downto 2);--because now mini_rom is synchronous
+--	ADDR_rom <= pc_out(9 downto 2);
+	ADDR_rom <= pc_in(9 downto 2);--because now mini_rom and i_cache are synchronous
 	instruction <= Q_rom when cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
