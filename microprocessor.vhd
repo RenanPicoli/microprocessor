@@ -279,7 +279,7 @@ begin
 
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
-										ENA => '1',
+										ENA => cache_ready,
 										D => pc_in,
 										Q => pc_out);
 										
@@ -427,6 +427,7 @@ begin
 				branch_address when (branch_or_next='1') else
 				pc_out(31 downto 28) & instruction(25 downto 0) & "00" when (call='1') else-- call: opcode(31..26) func_addr(25..0)
 				lr_out when (ret='1') else
+--				pc_in when (cache_ready='0') else--since cache_ready is synchronous to CLK_IN, should maintain its value during the entire cycle 
 				pc_incremented;
 
 --	ADDR_rom <= pc_out(9 downto 2);
