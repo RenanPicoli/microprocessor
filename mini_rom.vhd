@@ -124,13 +124,13 @@ architecture memArch of mini_rom is
 	71=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera o r3
 	72=> addi & r3 & r3 & x"01C0",							-- addi r3 r3 x"01C0"; r3 aponta para o registrador da saída atual do filtro (x70*4)
 	73=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	74=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição do reg do controlador de interrupção	
+	74=> addi & r4 & r4 & x"0200",							-- addi r4 r4 x"0200"; (x80*4), r4 aponta a posição do reg do controlador de interrupção	
 	75=> lw & r3 & r9 & x"0004",								-- lw [r3+4] r9; lê a resposta desejada e armazena em r9 (PRECISA SER antes de filter_CLK descer)
 	-- limpar o pending bit da IRQ 0 do filtro				-- limpar o pending bit da IRQ do filtro
 	76=> R_type & r6 & r6 & r6 & "00000" & xor_funct,	-- xor r6 r6 r6; zera o r6
 	77=> addi & r6 & r6 & x"FFFE",							-- addi r6 r6 x"FFFE"; r6 <- FFFE
 	78=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	79=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição do reg do controlador de interrupção
+	79=> addi & r4 & r4 & x"0200",							-- addi r4 r4 x"0200"; (x80*4), r4 aponta a posição do reg do controlador de interrupção
 	80=> sw & r4 & r6 & x"0000",								-- sw [r4+0] r6; escreve zero no bit 0 do reg de IRQ pendentes
 																		
 	81=> iack & "00" & x"000000",							-- iack (IRQ 0 do filtro)
@@ -174,7 +174,7 @@ architecture memArch of mini_rom is
 	--escreve 2x no DR (upsampling fator 2)
 	--habilita a transmissão
 	101=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
-	102=> addi & r3 & r3 & x"01E0", -- addi r3 r3 x"01E0"; x78*4 é a posição 0 do converted_output register
+	102=> addi & r3 & r3 & x"01CC", -- addi r3 r3 x"01CC"; x73*4 é a posição 0 do converted_output register
 	103=> lw & r3 & r5 & x"0000",-- lw [r3+0] r5, loads r5 with filter response converted to 2's complement
 	104=> R_type & r3 & r3 & r3 & "00000" & xor_funct,	-- xor r3 r3 r3; zera r3
 	105=> addi & r3 & r3 & x"01A0", -- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
@@ -187,7 +187,7 @@ architecture memArch of mini_rom is
 	109=> R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
 	110=> addi & r12 & r12 & x"0001",--addi r12 r12 x"0001", r12 <- x0001 (máscara do bit 0)
 	111=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera o r4
-	112=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição do reg do controlador de interrupção
+	112=> addi & r4 & r4 & x"0200",							-- addi r4 r4 x"0200"; (x80*4), r4 aponta a posição do reg do controlador de interrupção
 	113=> R_type & r11 & r12 & r11 & "00000" & or_funct,--xor r11 r12 r11, r11 <- r11 xor x"0001", ativa o bit I2S_EN (inicia transmissão)
 	114=> sw & r3 & r11 & x"0000",-- sw [r3+0] r11, armazena r11 em I2S:CR ativa o bit I2S_EN
 	115=> halt & "00" & x"000000",								-- halt; waits for I2S interruption (assumes sucess)
@@ -221,7 +221,7 @@ architecture memArch of mini_rom is
 	137=> sw & r3 & r5 & x"0000", -- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
 	-- para limpar o pending bit da IRQ do I2C no controlador global de interrupcoes
 	138=> R_type & r4 & r4 & r4 & "00000" & xor_funct,	-- xor r4 r4 r4; zera r4
-	139=> addi & r4 & r4 & x"01D0",							-- addi r4 r4 x"01D0"; (x74*4), r4 aponta a posição 0 do reg do controlador de interrupção
+	139=> addi & r4 & r4 & x"0200",							-- addi r4 r4 x"0200"; (x80*4), r4 aponta a posição 0 do reg do controlador de interrupção
 	140=> R_type & r2 & r2 & r2 & "00000" & xor_funct,	-- xor r2 r2 r2; zera r2, vai conter dados de configuracao do I2C
 	141=> addi & r2 & r2 & "0000010100110100", -- addi r2 r2 "00000_1_01_0011010_0"; vai configurar CR sempre com os mesmos valores e ativar o I2C_EN (iniciar transmissão)
 
