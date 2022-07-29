@@ -21,6 +21,7 @@ port (CLK_IN: in std_logic;
 		irq: in std_logic;--interrupt request
 		iack: out std_logic;--interrupt acknowledgement
 		instruction_addr: out std_logic_vector (31 downto 0);--AKA read address
+		ISR_addr: in std_logic_vector (31 downto 0);--address for interrupt handler, loaded when irq is asserted, it is valid one clock cycle after the IRQ detection
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		CLK_rom: out std_logic;--clock for mini_rom (is like moving a PC register duplicate to mini_rom)
@@ -422,12 +423,12 @@ begin
 	addressAbsolute <= instruction(25 downto 0);
 	jump_address <= pc_out(31 downto 28) & addressAbsolute & "00";--TODO: é pc_incremented em vez de pc_out CHECAR
 	pc_in <= (others=>'0') when rst='1' else
+				
 				pc_out when (halt='1' and irq='0') else --keep in current instruction of halt to allow clk_enable update
 				jump_address when (jump='1') else--next pc_out if not reset
 				branch_address when (branch_or_next='1') else
 				pc_out(31 downto 28) & instruction(25 downto 0) & "00" when (call='1') else-- call: opcode(31..26) func_addr(25..0)
 				lr_out when (ret='1') else
---				pc_in when (cache_ready='0') else--since cache_ready is synchronous to CLK_IN, should maintain its value during the entire cycle 
 				pc_incremented;
 
 --	ADDR_rom <= pc_out(9 downto 2);
