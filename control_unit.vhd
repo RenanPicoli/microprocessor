@@ -82,9 +82,6 @@ signal mfhi: std_logic;--load upper half of product into register
 
 signal nop:  std_logic;--no operation (bubble)
 
---for interrupt mask register
-signal imask_update: std_logic;
-
 begin
 
 ------------------UNIDADE DE CONTROLE---------------------
@@ -96,7 +93,7 @@ R_type 				<= '1' when opcode="000000" else '0';--instrucao de tipo R
 jump_type 			<= '1' when opcode="000010" else '0';--instrucao de jump
 branch_type			<= '1' when opcode="000100" else '0';--instrucao de branch
 halt					<= '1' when opcode="000110" else '0';--halt
-iack					<= '1' when opcode="001010" else '0';--iack (interrupt acknowledgement)
+--iack					<= '1' when opcode="001010" else '0';--iack (interrupt acknowledgement)
 lvec					<= '1' when opcode="000111" else '0';--instrucao lvec (load vector: loads vector of 8 std_logic_vector in parallel)
 load_type 			<= '1' when opcode="100011" else '0';--instrucao de load (single value)
 store_type 			<= '1' when opcode="101011" else '0';--instrucao de store
@@ -125,20 +122,10 @@ push		<= '1' when opcode="110011" else '0';--pushs all GPR onto their stacks
 pop		<= '1' when opcode="110100" else '0';--pops all GPR from their stacks
 call 		<= '1' when opcode="110101" else '0';--jumps to immediate and save return address to LR
 ret 		<= '1' when opcode="110110" else '0';--jumps to link register, stores return value in RV and restores FP; return from normal function call
-iret 		<= '1' when opcode="110111" else '0';--jumps to link register and restores FP (IRQHandlers don't have return value); return from interrupt
+iret 		<= '1' when opcode="110111" else '0';--jumps to link register, send iack and restores FP (IRQHandlers don't have return value); return from interrupt
 nop		<= '1' when opcode="111111" else '0';--no operation (bubble)
 
-imask_update <= iack or iret;--the only instructions that change this flag are iack(set) and iret(reset)
-process(imask_update) 
-begin
-	if(imask_update'event and imask_update='1')then
-		if(iack='1')then
-			imask <= '1';
-		elsif(iret='1')then
-			imask <= '0';
-		end if;
-	end if;
-end process;
+iack <= iret;
 
 regDst 	<= "01" when R_type='1' else--usa rd (para escrita) só em instrucao tipo R
 				"10" when (mfhi='1' or mflo='1' or ldfp='1' or ldrv='1' or pop='1') else--apenas mflo, mfhi, ldfp, ldrv, pop escrevem no rs

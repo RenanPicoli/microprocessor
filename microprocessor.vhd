@@ -260,20 +260,20 @@ begin
 										ENA => fp_en,
 										D => fp_in,
 										Q => fp_out);
-	fp_en <= call or ret;
-	fp_in <= sp when call='1' else fp_stack_out;--this SP value was converted to byte address
+	fp_en <= call or irq or ret or iret;
+	fp_in <= sp when (call='1' or irq='1') else fp_stack_out;--this SP value was converted to byte address
 										
 	LR: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
 										ENA => lr_en,
 										D => lr_in,
 										Q => lr_out);
-	lr_en <= call or ret;
-	lr_in <= lr_stack_out when ret='1' else pc_incremented;
+	lr_en <= call or irq or ret or iret;
+	lr_in <= lr_stack_out when (ret='1' or iret='1') else pc_incremented;
 										
 	RV: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
-										ENA => ret,
+										ENA => ret,-- DO NOT use iret, because ISR should not return values
 										D => rv_in,
 										Q => rv_out);
 	rv_in <= program_stack_out;								
@@ -319,8 +319,8 @@ begin
 						port map (CLK => CLK,--active edge: rising_edge
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
 									--STACK INTERFACE
-									pop => ret,
-									push => call,
+									pop => ret or iret,
+									push => call or irq,
 									addsp => '0',
 									imm => (others=>'0'),--imm > 0: deletes vars, imm < 0: reserves space for vars
 									stack_in => fp_out,-- word to be pushed
@@ -338,8 +338,8 @@ begin
 						port map (CLK => CLK,--active edge: rising_edge
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
 									--STACK INTERFACE
-									pop => ret,
-									push => call,
+									pop => ret or iret,
+									push => call or irq,
 									addsp => '0',
 									imm => (others=>'0'),--imm > 0: deletes vars, imm < 0: reserves space for vars
 									stack_in => lr_out,-- word to be pushed
@@ -362,8 +362,8 @@ begin
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	reg_clk <= CLK;
-	reg_pop <= ret;--automatically restores context
-	reg_push<= call;--automatically saves context
+	reg_pop <= ret or iret;--automatically restores context
+	reg_push<= call or irq;--automatically saves context
 	register_file: reg_file generic map (L => STACK_LEVELS_LOG2)
 									port map (	CLK => reg_clk,
 													RST => rst,
@@ -428,7 +428,8 @@ begin
 				jump_address when (jump='1') else--next pc_out if not reset
 				branch_address when (branch_or_next='1') else
 				pc_out(31 downto 28) & instruction(25 downto 0) & "00" when (call='1') else-- call: opcode(31..26) func_addr(25..0)
-				lr_out when (ret='1') else
+				ISR_addr when (irq='1') else-- irq is equivalent to "call ISR_addr"
+				lr_out when (ret='1' or iret='1') else
 				pc_incremented;
 
 --	ADDR_rom <= pc_out(9 downto 2);
