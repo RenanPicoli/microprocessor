@@ -54,6 +54,7 @@ end component;
 component reg_file
 	generic (L: natural);--log2 of number of stack levels (one stack for each register)
 	port (CLK: in std_logic;
+			stack_CLK: in std_logic;--if a miss occurs, there will be no falling_edge(CLK) during the cycle of valid instruction
 			RST: in std_logic;
 			pop: in std_logic;--pops from ALL registers stacks
 			push: in std_logic;--pushes to ALL registers stacks
@@ -379,7 +380,8 @@ begin
 	reg_pop <= ret or iret;--automatically restores context
 	reg_push<= call or irq;--automatically saves context
 	register_file: reg_file generic map (L => STACK_LEVELS_LOG2)
-									port map (	CLK => reg_clk,
+									port map (	CLK => reg_clk,									
+													stack_CLK=> CLK_IN,--if a miss occurs, there will be no falling_edge(CLK) during the cycle of valid instruction
 													RST => rst,
 													pop => reg_pop,
 													push => reg_push,

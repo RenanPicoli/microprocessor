@@ -19,6 +19,7 @@ use work.my_types.all;
 entity reg_file is
 	generic (L: natural);--log2 of number of stack levels (one stack for each register)
 	port (CLK: in std_logic;
+			stack_CLK: in std_logic;--if a miss occurs, there will be no falling_edge(CLK) during the cycle of valid instruction
 			RST: in std_logic;
 			pop: in std_logic;--pops from ALL registers stacks
 			push: in std_logic;--pushes to ALL registers stacks
@@ -102,7 +103,7 @@ architecture func_reg_file of reg_file is
 			
 			stack_x: stack
 						generic map (L => L)
-						port map(CLK => CLK,--active edge: rising_edge
+						port map(CLK => stack_CLK,--active edge: rising_edge
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
 									--STACK INTERFACE
 									pop => pop,
