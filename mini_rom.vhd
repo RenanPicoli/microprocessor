@@ -67,27 +67,28 @@ architecture memArch of mini_rom is
 	34=> sw & r4 & r5 & x"0080",									-- sw [r4+32*4] r5; escreve r5 no endereco da ISR IRQ0_Handler (filter_CLK rising_edge)
 	35=> addi & r11 & r11 & x"0000",								-- addi r11 r11 x"0000";
 	36=> sw & r4 & r11 & x"0100",									-- sw [r4+64*4] r11; escreve r11 na prioridade da ISR IRQ0_Handler (filter_CLK rising_edge)
+
 	37=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5
 	38=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
-	
-	39=> addi & r5 & r5 & x"0360",								-- addi r5 r5 x"0360";
+	39=> addi & r5 & r5 & x"035C",								-- addi r5 r5 x"035C";
 	40=> sw & r4 & r5 & x"0084",									-- sw [r4+33*4] r5; escreve r5 no endereco da ISR IRQ1_Handler (I2C)
 	41=> addi & r11 & r11 & x"0002",								-- addi r11 r11 x"0002";
 	42=> sw & r4 & r11 & x"0104",									-- sw [r4+65*4] r11; escreve r11 na prioridade da ISR IRQ1_Handler (I2C)
+
 	43=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5
 	44=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
-	
-	45=> addi & r5 & r5 & x"0218",								-- addi r5 r5 x"0218";
+	45=> addi & r5 & r5 & x"0214",								-- addi r5 r5 x"0214";
 	46=> sw & r4 & r5 & x"0088",									-- sw [r4+34*4] r5; escreve r5 no endereco da ISR IRQ2_Handler (I2S)
 	47=> addi & r11 & r11 & x"0000",								-- addi r11 r11 x"0000";
 	48=> sw & r4 & r11 & x"0108",									-- sw [r4+66*4] r11; escreve r11 na prioridade da ISR IRQ2_Handler (I2S)
+
 	49=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5
 	50=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
-	
 	51=> addi & r5 & r5 & x"019C",								-- addi r5 r5 x"019C";
 	52=> sw & r4 & r5 & x"008C",									-- sw [r4+35*4] r5; escreve r5 no endereco da ISR IRQ3_Handler (filter_CLK falling_edge)
 	53=> addi & r11 & r11 & x"0001",								-- addi r11 r11 x"0001";
 	54=> sw & r4 & r11 & x"010C",									-- sw [r4+67*4] r11; escreve r11 na prioridade da ISR IRQ3_Handler (filter_CLK falling_edge)
+
 	55=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5
 	56=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
 	
@@ -114,7 +115,7 @@ architecture memArch of mini_rom is
 	72=> andi & r5 & r5 & x"0080",								-- andi r5 r5 x"0080" (zera todos os bits, menos o bit 7 - pll locked)
 	73=> beq & r5 & r11 & x"FFFD",								-- beq r5 r11 (-3), se r5 = 0, pll não deu lock, repetir leitura (instrucao 46)
 	
-	74=> call & "00" & x"00008C",									-- call CODEC_INIT -- call 140 (makes I2C transfers to configure codec registers)
+	74=> call & "00" & x"00008B",									-- call CODEC_INIT -- call 139 (makes I2C transfers to configure codec registers)
 	
 	75=> R_type & r3 & r3 & r3 & "00000" & xor_funct,		-- xor r3 r3 r3; zera r3
 	76=> addi & r3 & r3 & x"01C8",								-- addi r3 r3 x"01C8"; x72*4 é a posição 0 do filter control and status
@@ -149,7 +150,7 @@ architecture memArch of mini_rom is
 	90=> R_type & r6 & r1 & r1 & "00000" & fdiv_funct,		-- r1 <- r6/r1 (0.5/squared norm)
 	91=> push & r2 & "0" & x"00000",								-- push r2; 1E4
 	92=> push & r1 & "0" & x"00000",								-- push r1; (0.5/squared norm)
-	93=> call & "00" & x"0000DD",									-- call MIN; call 221
+	93=> call & "00" & x"0000DC",									-- call MIN; call 220
 	94=> pop & r1 & "0" & x"00000",								-- pop r1; r1 <- step=MIN(0.5/squared norm,1E4), this value is removed from program stack
 	-- If you want a interrupt handler to produce permanent data modification, write it to ram
 	-- changes kept in register file will be lost after interrup return (iret)
@@ -211,151 +212,150 @@ architecture memArch of mini_rom is
 	128=> addi & r12 & r12 & x"0001",							--addi r12 r12 x"0001", r12 <- x0001 (máscara do bit 0)
 	129=> R_type & r11 & r12 & r11 & "00000" & or_funct,	--xor r11 r12 r11, r11 <- r11 xor x"0001", ativa o bit I2S_EN (inicia transmissão)
 	130=> sw & r3 & r11 & x"0000",								-- sw [r3+0] r11, armazena r11 em I2S:CR ativa o bit I2S_EN
-	131=> halt & "00" & x"000000",								-- halt; waits for I2S interruption (assumes sucess)											
-	132=> nop & "00" & x"000000",									-- there must be at least one cycle between one iret and another iret
-	133=> iret & "00" & x"000000",								-- iret (IRQ 1 do filtro, IRQ3 global)
+	131=> halt & "00" & x"000000",								-- halt; waits for I2S interruption (assumes sucess)
+	132=> iret & "00" & x"000000",								-- iret (IRQ 1 do filtro, IRQ3 global)
 																
 	-- IRQ2_Handler(void): Processes I2S IRQ (assumes sucess)
-	134=> R_type & r3 & r3 & r3 & "00000" & xor_funct,		-- xor r3 r3 r3; zera r3
-	135=> addi & r3 & r3 & x"01A0",								-- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)	
-	136=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
-	137=> addi & r11 & r11 & x"FFFE",							-- addi r11 r11 x"FFFE"; r11 <- FFFE
-	138=>	sw & r3 & r11 & x"0010",								-- sw [r3+4*4+0] r11; escreve zero no bit 0 do reg de IRQ pendentes do I2S
-	139=> iret & "00" & x"000000",								-- iret (IRQ do I2S)
+	133=> R_type & r3 & r3 & r3 & "00000" & xor_funct,		-- xor r3 r3 r3; zera r3
+	134=> addi & r3 & r3 & x"01A0",								-- addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)	
+	135=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	-- xor r11 r11 r11; zera r11
+	136=> addi & r11 & r11 & x"FFFE",							-- addi r11 r11 x"FFFE"; r11 <- FFFE
+	137=>	sw & r3 & r11 & x"0010",								-- sw [r3+4*4+0] r11; escreve zero no bit 0 do reg de IRQ pendentes do I2S
+	138=> iret & "00" & x"000000",								-- iret (IRQ do I2S)
 	
 	--function CODEC_INIT(void):
 	--Audio codec configuration
-	140=> R_type & r3 & r3 & r3 & "00000" & xor_funct,		-- xor r3 r3 r3; zera r3
-	141=> addi & r3 & r3 & x"0180",								-- addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
-	142=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-	143=> addi & r5 & r5 & "0000000100110100",				-- addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
-	144=> sw & r3 & r5 & x"0000",									-- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
-	145=> R_type & r2 & r2 & r2 & "00000" & xor_funct,		-- xor r2 r2 r2; zera r2, vai conter dados de configuracao do I2C
-	146=> addi & r2 & r2 & "0000010100110100",				-- addi r2 r2 "00000_1_01_0011010_0"; vai configurar CR sempre com os mesmos valores e ativar o I2C_EN (iniciar transmissão)
+	139=> R_type & r3 & r3 & r3 & "00000" & xor_funct,		-- xor r3 r3 r3; zera r3
+	140=> addi & r3 & r3 & x"0180",								-- addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
+	141=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
+	142=> addi & r5 & r5 & "0000000100110100",				-- addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
+	143=> sw & r3 & r5 & x"0000",									-- sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
+	144=> R_type & r2 & r2 & r2 & "00000" & xor_funct,		-- xor r2 r2 r2; zera r2, vai conter dados de configuracao do I2C
+	145=> addi & r2 & r2 & "0000010100110100",				-- addi r2 r2 "00000_1_01_0011010_0"; vai configurar CR sempre com os mesmos valores e ativar o I2C_EN (iniciar transmissão)
 
 	--reset
-	147=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	148=> addi & r5 & r5 & "0001111000000000",				-- addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
-	149=> push & r5 & "0" & x"00000",							--valor de DR
-	150=> push & r2 & "0" & x"00000",							--valor de CR
-	151=> push & r3 & "0" & x"00000",							--endereço do I2C
-	152=> call & "00" & x"0000D0",								--call & I2C_WRITE
+	146=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	147=> addi & r5 & r5 & "0001111000000000",				-- addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
+	148=> push & r5 & "0" & x"00000",							--valor de DR
+	149=> push & r2 & "0" & x"00000",							--valor de CR
+	150=> push & r3 & "0" & x"00000",							--endereço do I2C
+	151=> call & "00" & x"0000CF",								--call & I2C_WRITE
 	
 	--power down
-	153=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	154=> addi & r5 & r5 & "0000110001110111",				-- addi r5 r5 "0000110_0_0111_0111"; configura DR para escrever 0_0111_0111 no reg 06h (power down control)
-	155=> push & r5 & "0" & x"00000",							--valor de DR
-	156=> push & r2 & "0" & x"00000",							--valor de CR
-	157=> push & r3 & "0" & x"00000",							--endereço do I2C
-	158=> call & "00" & x"0000D0",								--call & I2C_WRITE
+	152=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	153=> addi & r5 & r5 & "0000110001110111",				-- addi r5 r5 "0000110_0_0111_0111"; configura DR para escrever 0_0111_0111 no reg 06h (power down control)
+	154=> push & r5 & "0" & x"00000",							--valor de DR
+	155=> push & r2 & "0" & x"00000",							--valor de CR
+	156=> push & r3 & "0" & x"00000",							--endereço do I2C
+	157=> call & "00" & x"0000CF",								--call & I2C_WRITE
 	
 	--analogue audio path
-	159=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	160=> addi & r5 & r5 & "0000100000010010",				-- addi r5 r5 "0000100_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 04h (analogue audio path)
-	161=> push & r5 & "0" & x"00000",							--valor de DR
-	162=> push & r2 & "0" & x"00000",							--valor de CR
-	163=> push & r3 & "0" & x"00000",							--endereço do I2C
-	164=> call & "00" & x"0000D0",								--call & I2C_WRITE
+	158=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	159=> addi & r5 & r5 & "0000100000010010",				-- addi r5 r5 "0000100_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 04h (analogue audio path)
+	160=> push & r5 & "0" & x"00000",							--valor de DR
+	161=> push & r2 & "0" & x"00000",							--valor de CR
+	162=> push & r3 & "0" & x"00000",							--endereço do I2C
+	163=> call & "00" & x"0000CF",								--call & I2C_WRITE
 
 	--digital audio path
-	165=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	166=> addi & r5 & r5 & "0000101000000000", 				-- addi r5 r5 "0000101_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 05h (digital audio path)
-	167=> push & r5 & "0" & x"00000",							--valor de DR
-	168=> push & r2 & "0" & x"00000",							--valor de CR
-	169=> push & r3 & "0" & x"00000",							--endereço do I2C
-	170=> call & "00" & x"0000D0",								--call & I2C_WRITE	
+	164=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	165=> addi & r5 & r5 & "0000101000000000", 				-- addi r5 r5 "0000101_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 05h (digital audio path)
+	166=> push & r5 & "0" & x"00000",							--valor de DR
+	167=> push & r2 & "0" & x"00000",							--valor de CR
+	168=> push & r3 & "0" & x"00000",							--endereço do I2C
+	169=> call & "00" & x"0000CF",								--call & I2C_WRITE	
 
 	--digital audio interface format
-	171=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	172=> addi & r5 & r5 & "0000111000010010", 				-- addi r5 r5 "0000111_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 07h (digital audio interface format, I2S)
-	173=> push & r5 & "0" & x"00000",							--valor de DR
-	174=> push & r2 & "0" & x"00000",							--valor de CR
-	175=> push & r3 & "0" & x"00000",							--endereço do I2C
-	176=> call & "00" & x"0000D0",								--Call & I2C_WRITE	
+	170=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	171=> addi & r5 & r5 & "0000111000010010", 				-- addi r5 r5 "0000111_0_0001_0010"; configura DR para escrever 0_0001_0010 no reg 07h (digital audio interface format, I2S)
+	172=> push & r5 & "0" & x"00000",							--valor de DR
+	173=> push & r2 & "0" & x"00000",							--valor de CR
+	174=> push & r3 & "0" & x"00000",							--endereço do I2C
+	175=> call & "00" & x"0000CF",								--Call & I2C_WRITE	
 
 	--sampling control
-	177=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	178=> addi & r5 & r5 & "0001000000100011", 				-- addi r5 r5 "0001000_0_0010_0011"; configura DR para escrever 0_0010_0011 no reg 08h (sampling control, USB mode)
-	179=> push & r5 & "0" & x"00000",							--valor de DR
-	180=> push & r2 & "0" & x"00000",							--valor de CR
-	181=> push & r3 & "0" & x"00000",							--endereço do I2C
-	182=> call & "00" & x"0000D0",								--call & I2C_WRITE	
+	176=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	177=> addi & r5 & r5 & "0001000000100011", 				-- addi r5 r5 "0001000_0_0010_0011"; configura DR para escrever 0_0010_0011 no reg 08h (sampling control, USB mode)
+	178=> push & r5 & "0" & x"00000",							--valor de DR
+	179=> push & r2 & "0" & x"00000",							--valor de CR
+	180=> push & r3 & "0" & x"00000",							--endereço do I2C
+	181=> call & "00" & x"0000CF",								--call & I2C_WRITE	
 
 	--left headphone out
-	183=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	184=> addi & r5 & r5 & "0000010001010001", 				-- addi r5 r5 "0000010_0_0101_0001"; configura DR para escrever 0_0101_0001 no reg 02h (volume left, -40dB)
-	185=> push & r5 & "0" & x"00000",							--valor de DR
-	186=> push & r2 & "0" & x"00000",							--valor de CR
-	187=> push & r3 & "0" & x"00000",							--endereço do I2C
-	188=> call & "00" & x"0000D0",								--call & I2C_WRITE
+	182=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	183=> addi & r5 & r5 & "0000010001010001", 				-- addi r5 r5 "0000010_0_0101_0001"; configura DR para escrever 0_0101_0001 no reg 02h (volume left, -40dB)
+	184=> push & r5 & "0" & x"00000",							--valor de DR
+	185=> push & r2 & "0" & x"00000",							--valor de CR
+	186=> push & r3 & "0" & x"00000",							--endereço do I2C
+	187=> call & "00" & x"0000CF",								--call & I2C_WRITE
 
 	--right headphone out
-	189=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	190=> addi & r5 & r5 & "0000011001010001", 				-- addi r5 r5 "0000011_0_0101_0001"; configura DR para escrever 0_0101_0001 no reg 03h (volume right, -40dB)
-	191=> push & r5 & "0" & x"00000",							--valor de DR
-	192=> push & r2 & "0" & x"00000",							--valor de CR
-	193=> push & r3 & "0" & x"00000",							--endereço do I2C
-	194=> call & "00" & x"0000D0",								--call & I2C_WRITE
+	188=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	189=> addi & r5 & r5 & "0000011001010001", 				-- addi r5 r5 "0000011_0_0101_0001"; configura DR para escrever 0_0101_0001 no reg 03h (volume right, -40dB)
+	190=> push & r5 & "0" & x"00000",							--valor de DR
+	191=> push & r2 & "0" & x"00000",							--valor de CR
+	192=> push & r3 & "0" & x"00000",							--endereço do I2C
+	193=> call & "00" & x"0000CF",								--call & I2C_WRITE
 
 	--active control
-	195=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	196=> addi & r5 & r5 & "0001001000000001", 				-- addi r5 r5 "0001001_0_0000_0001"; configura DR para escrever 0_0000_0001 no reg 09h (active control, ativa o codec)
-	197=> push & r5 & "0" & x"00000",							--valor de DR
-	198=> push & r2 & "0" & x"00000",							--valor de CR
-	199=> push & r3 & "0" & x"00000",							--endereço do I2C
-	200=> call & "00" & x"0000D0",								--call & I2C_WRITE
+	194=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	195=> addi & r5 & r5 & "0001001000000001", 				-- addi r5 r5 "0001001_0_0000_0001"; configura DR para escrever 0_0000_0001 no reg 09h (active control, ativa o codec)
+	196=> push & r5 & "0" & x"00000",							--valor de DR
+	197=> push & r2 & "0" & x"00000",							--valor de CR
+	198=> push & r3 & "0" & x"00000",							--endereço do I2C
+	199=> call & "00" & x"0000CF",								--call & I2C_WRITE
 
 	--power down control
-	201=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
-	202=> addi & r5 & r5 & "0000110001100111", 				-- addi r5 r5 "0000110_0_0110_0111"; configura DR para escrever 0_0110_0111 no reg 06h (power down control, ativa a saída)
-	203=> push & r5 & "0" & x"00000",							--valor de DR
-	204=> push & r2 & "0" & x"00000",							--valor de CR
-	205=> push & r3 & "0" & x"00000",							--endereço do I2C
-	206=> call & "00" & x"0000D0",								--call & I2C_WRITE
+	200=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		-- xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
+	201=> addi & r5 & r5 & "0000110001100111", 				-- addi r5 r5 "0000110_0_0110_0111"; configura DR para escrever 0_0110_0111 no reg 06h (power down control, ativa a saída)
+	202=> push & r5 & "0" & x"00000",							--valor de DR
+	203=> push & r2 & "0" & x"00000",							--valor de CR
+	204=> push & r3 & "0" & x"00000",							--endereço do I2C
+	205=> call & "00" & x"0000CF",								--call & I2C_WRITE
 	
-	207=> ret & "00" & x"000000",									-- ret
+	206=> ret & "00" & x"000000",									-- ret
 	
 	--function I2C_WRITE(I2C_pointer,control_reg,data_reg):
 	--retrieving arguments from program stack (popping would increment SP)
-	208=> ldfp & r4 & "0" & x"00000",							-- ldfp r4 ; r4 <- FP (frame pointer,first parameter, last passed by caller)
-	209=> lw & r4 & r0 & x"0000",									-- lw [r4+0] r0; r0 <- endereco-base do I2C
-	210=> lw & r4 & r1 & x"0004",									-- lw [r4+1*4] r1; r1 <- valor de CR
-	211=> lw & r4 & r2 & x"0008",									-- lw [r4+2*4] r2; r2 <- valor de DR
-	212=> sw & r0 & r2 & x"0004",									-- sw [r0+1*4] r2; armazena em DR o valor a ser transmitido
-	213=> sw & r0 & r1 & x"0000",									-- sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
-	214=> halt & "00" & x"000000",								-- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
-	215=> ret & "00" & x"000000",									-- ret
+	207=> ldfp & r4 & "0" & x"00000",							-- ldfp r4 ; r4 <- FP (frame pointer,first parameter, last passed by caller)
+	208=> lw & r4 & r0 & x"0000",									-- lw [r4+0] r0; r0 <- endereco-base do I2C
+	209=> lw & r4 & r1 & x"0004",									-- lw [r4+1*4] r1; r1 <- valor de CR
+	210=> lw & r4 & r2 & x"0008",									-- lw [r4+2*4] r2; r2 <- valor de DR
+	211=> sw & r0 & r2 & x"0004",									-- sw [r0+1*4] r2; armazena em DR o valor a ser transmitido
+	212=> sw & r0 & r1 & x"0000",									-- sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
+	213=> halt & "00" & x"000000",								-- halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
+	214=> ret & "00" & x"000000",									-- ret
 	
 	-- IRQ1_Handler: processes I2C IRQ
-	216=> R_type & r3 & r3 & r3 & "00000" & xor_funct,		-- xor r3 r3 r3; zera r3
-	217=> addi & r3 & r3 & x"0180",								-- addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
-	218=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
-	219=>	sw & r0 & r11 & x"0010",								-- sw [r0+4*4+0] r11; escreve zero no reg de IRQ pendentes do I2C
-	220=> iret & "00" & x"000000",								-- iret
+	215=> R_type & r3 & r3 & r3 & "00000" & xor_funct,		-- xor r3 r3 r3; zera r3
+	216=> addi & r3 & r3 & x"0180",								-- addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
+	217=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
+	218=>	sw & r0 & r11 & x"0010",								-- sw [r0+4*4+0] r11; escreve zero no reg de IRQ pendentes do I2C
+	219=> iret & "00" & x"000000",								-- iret
 	
 	--function MIN(x,y):-- retorna o menor entre dois floats: x e y
-	221=> ldfp & r2 & "0" & x"00000",							--ldfp r2 ; r2 <- FP (frame pointer, points to first parameter, last passed by caller)
-	222=> lw & r2 & r0 & x"0000",									-- lw [r2+0] r0; r0 <- x (float)
-	223=> lw & r2 & r1 & x"0004",									-- lw [r2+1*4] r1; r1 <- y (float)
-	224=> R_type & r0 & r1 & r3 & "00000" & fsub_funct,	-- fsub r0 r1 r3; r3 <- (x-y)
+	220=> ldfp & r2 & "0" & x"00000",							--ldfp r2 ; r2 <- FP (frame pointer, points to first parameter, last passed by caller)
+	221=> lw & r2 & r0 & x"0000",									-- lw [r2+0] r0; r0 <- x (float)
+	222=> lw & r2 & r1 & x"0004",									-- lw [r2+1*4] r1; r1 <- y (float)
+	223=> R_type & r0 & r1 & r3 & "00000" & fsub_funct,	-- fsub r0 r1 r3; r3 <- (x-y)
 	--creates mask for bit 31:
-	225=> R_type & r4 & r4 & r4 & "00000" & xor_funct,		--	xor r4 r4 r4; zera r4,
-	226=> addi & r4 & r4 & x"8000",								-- r4 <- x8000
-	227=> mult & r4 & r4 & x"0000",								--[hi lo] <- x0000_0000_4000_0000
-	228=> mflo & r4 & "0" & x"00000",							-- r4 <- x4000_0000
-	229=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5,
-	230=> addi & r5 & r5 & x"0002",								-- r5 <- 2	
-	231=> mult & r4 & r5 & x"0000",								-- r4 <- [hi lo] <- x0000_0000_8000_0000
-	232=> mflo & r4 & "0" & x"00000",							-- r4 <- x8000_0000
+	224=> R_type & r4 & r4 & r4 & "00000" & xor_funct,		--	xor r4 r4 r4; zera r4,
+	225=> addi & r4 & r4 & x"8000",								-- r4 <- x8000
+	226=> mult & r4 & r4 & x"0000",								--[hi lo] <- x0000_0000_4000_0000
+	227=> mflo & r4 & "0" & x"00000",							-- r4 <- x4000_0000
+	228=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5,
+	229=> addi & r5 & r5 & x"0002",								-- r5 <- 2	
+	230=> mult & r4 & r5 & x"0000",								-- r4 <- [hi lo] <- x0000_0000_8000_0000
+	231=> mflo & r4 & "0" & x"00000",							-- r4 <- x8000_0000
 	--if bit 31 of r3 is zero, return  x, else return y
-	233=> R_type & r3 & r4 & r3 & "00000" & and_funct,		--	and r3 r4 r3; r3 <- r3 and r4, zero todos os bits, menos 31
-	234=> beq & r3 & r4 & x"0002",								-- beq r3 r4 (+2), se r3 = x80000000, (x-y)<0
+	232=> R_type & r3 & r4 & r3 & "00000" & and_funct,		--	and r3 r4 r3; r3 <- r3 and r4, zero todos os bits, menos 31
+	233=> beq & r3 & r4 & x"0002",								-- beq r3 r4 (+2), se r3 = x80000000, (x-y)<0
 	--case x-y>=0
-	235=> push & r1 & "0" & x"00000",							--push r1; return y
-	236=> ret & "00" & x"000000",									-- ret
+	234=> push & r1 & "0" & x"00000",							--push r1; return y
+	235=> ret & "00" & x"000000",									-- ret
 	--case x-y<0
-	237=> push & r0 & "0" & x"00000",							--push r0; return 0
-	238=> ret & "00" & x"000000",									-- ret
+	236=> push & r0 & "0" & x"00000",							--push r0; return 0
+	237=> ret & "00" & x"000000",									-- ret
 	others => x"0000_0000"
 	);
 	
