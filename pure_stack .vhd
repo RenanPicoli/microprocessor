@@ -47,7 +47,7 @@ attribute ramstyle of ram : signal is "no_rw_check";
 	begin
 		if(rst='1')then
 			sp <= (others=>'0');--sp=xffffffff means stack with one element, x00000000-1=xffffffff
-		elsif(rising_edge(CLK))then
+		elsif(falling_edge(CLK))then
 			--only one of these inputs can be asserted in one cycle
 			if(pop='1')then
 				sp <= sp + 1;
@@ -77,7 +77,7 @@ attribute ramstyle of ram : signal is "no_rw_check";
 			if(push='1')then
 				-- sp-1 because position pointed by sp is already used,
 				--concurrently, sp will be updated (decremented) by other process
-				ram(to_integer(unsigned(sp-1))) <= stack_in;
+				ram(to_integer(unsigned(sp))) <= stack_in;
 				-- read-during-write on the same port returns NEW data
 				stack_out <= stack_in;
 			else

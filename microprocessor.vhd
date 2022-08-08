@@ -314,7 +314,7 @@ begin
 						generic map (L => STACK_LEVELS_LOG2)
 						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
 						--during the cycle of valid instruction (cache_ready='1')
-						port map(CLK => CLK_IN,--active edge: rising_edge
+						port map(CLK => CLK_IN,--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
 									--STACK INTERFACE
 									pop => pop,--(pop: opcode(31..26) rs(25..21) (20..0=>X))

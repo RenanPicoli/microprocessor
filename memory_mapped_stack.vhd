@@ -18,7 +18,7 @@ use ieee.numeric_std.all;--to_integer
 
 entity mm_stack is
 generic(L: natural);--log2 of number of stored words
-port (CLK: in std_logic;--active edge: rising_edge
+port (CLK: in std_logic;--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
 		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
 		--STACK INTERFACE
 		pop: in std_logic;
@@ -37,6 +37,21 @@ port (CLK: in std_logic;--active edge: rising_edge
 end entity;
 
 architecture bhv of mm_stack is
+
+component tdp_ram
+	generic (N: natural; L: natural);--N: data width in bits; L: address width in bits
+	port (CLK: in std_logic;
+			WDAT_A: in std_logic_vector(N-1 downto 0);--data for write
+			ADDR_A: in std_logic_vector(L-1 downto 0);--address for read/write
+			WREN_A: in std_logic;--enables write on port A
+			Q_A: out std_logic_vector(N-1 downto 0);
+			WDAT_B: in std_logic_vector(N-1 downto 0);--data for write
+			ADDR_B: in std_logic_vector(L-1 downto 0);--address for read/write
+			WREN_B: in std_logic;--enables write on port A
+			Q_B: out std_logic_vector(N-1 downto 0)
+	);
+end component;
+
 type memory is array (0 to 2**L-1) of std_logic_vector(31 downto 0);
 signal ram: memory;
 --since the upper hierarchy guarantees there will be no read-during-write
@@ -52,7 +67,7 @@ attribute ramstyle of ram : signal is "no_rw_check";
 	begin
 		if(rst='1')then
 			sp <= (others=>'0');--sp=xffffffff means stack with one element, x00000000-1=xffffffff
-		elsif(rising_edge(CLK))then
+		elsif(falling_edge(CLK))then--there must be a falling_edge even when recovering from a cache miss
 			--only one of these inputs can be asserted in one cycle
 			if(pop='1')then
 				sp <= sp + 1;
@@ -72,46 +87,21 @@ attribute ramstyle of ram : signal is "no_rw_check";
 --				'1' when sp=(others=>'0') else
 --				'0';
 	
-	stack_io: process(CLK,rst,D,ADDR,WREN,stack_in,sp,push)
-	begin
---		if(rst='1')then
---			ram <= (others=>(others=>'0'));
---		elsif(rising_edge(CLK))then
-		if(rising_edge(CLK))then
-			--only one of these inputs/interfaces can be asserted in one cycle
-			if(push='1')then
-				-- sp-1 because position pointed by sp is already used,
-				--concurrently, sp will be updated (decremented) by other process
-				ram(to_integer(unsigned(sp-1))) <= stack_in;
-				-- read-during-write on the same port returns NEW data
---				stack_out <= stack_in;
---			else
-			end if;
-				-- read-during-write on mixed port returns OLD data
-				--if addsp='1' or pop='1', memory contents is not updated
---				stack_out <= ram(to_integer(unsigned(sp)));
---			end if;
-		end if;
-	end process;
-				stack_out <= ram(to_integer(unsigned(sp)));
-	
-	--synchronous reading logic to allow ram inference
-	mem_io: process(ram,sp,ADDR,CLK,D)
-	begin
-		if(rising_edge(CLK))then
-			if(WREN='1')then
-				ram(to_integer(unsigned(ADDR))) <= D;
-			end if;
+memory_inst: tdp_ram
+	generic map (N => 32, L => L)--N: data width in bits; L: address width in bits
+	port map(CLK => CLK,
 				
-				-- read-during-write on the same port returns NEW data
---				Q <= D;
---			else
-				-- read-during-write on mixed port returns OLD data
---				Q <= ram(to_integer(unsigned(ADDR)));
---			end if;
-		end if;
-	end process;
-				Q <= ram(to_integer(unsigned(ADDR)));
+				WDAT_A => stack_in,--data for write
+				ADDR_A => sp,--address for read/write
+				WREN_A => push,--enables write on port A
+				Q_A => stack_out,
+				
+				WDAT_B => D,--data for write
+				ADDR_B => ADDR,--address for read/write
+				WREN_B => WREN,--enables write on port A
+				Q_B	 => Q
+		);
+
 	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
 	--			popping empty stack, pushing to full stack
 end bhv;
