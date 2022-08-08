@@ -51,12 +51,12 @@ architecture memArch of mini_ram is
 			end if;
 			
 			--synchronous reading logic
---			possible_output <= ram(to_integer(unsigned(ADDR)));-- old data read-during-write
+			possible_output <= ram(to_integer(unsigned(ADDR)));-- old data read-during-write
 		end if;
 		end process;
 		
 		--Asynchronous reading logic
-		possible_output <= ram(to_integer(unsigned(ADDR)));
+--		possible_output <= ram(to_integer(unsigned(ADDR)));
 																		
 		--output behaviour:
 		Q <= (others=>'-') when rden='0' else
