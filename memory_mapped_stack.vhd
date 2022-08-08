@@ -16,7 +16,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.numeric_std.all;--to_integer
 
-entity stack is
+entity mm_stack is
 generic(L: natural);--log2 of number of stored words
 port (CLK: in std_logic;--active edge: rising_edge
 		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
@@ -36,9 +36,12 @@ port (CLK: in std_logic;--active edge: rising_edge
 );
 end entity;
 
-architecture bhv of stack is
+architecture bhv of mm_stack is
 type memory is array (0 to 2**L-1) of std_logic_vector(31 downto 0);
 signal ram: memory;
+--since the upper hierarchy guarantees there will be no read-during-write
+attribute ramstyle : string;
+attribute ramstyle of ram : signal is "no_rw_check";
 
 --signal empty: std_logic;
 --signal full: std_logic;
@@ -69,7 +72,7 @@ signal ram: memory;
 --				'1' when sp=(others=>'0') else
 --				'0';
 	
-	mem_update: process(CLK,rst,D,ADDR,WREN,stack_in,sp,push)
+	stack_io: process(CLK,rst,D,ADDR,WREN,stack_in,sp,push)
 	begin
 --		if(rst='1')then
 --			ram <= (others=>(others=>'0'));
@@ -80,21 +83,35 @@ signal ram: memory;
 				-- sp-1 because position pointed by sp is already used,
 				--concurrently, sp will be updated (decremented) by other process
 				ram(to_integer(unsigned(sp-1))) <= stack_in;
-			--if addsp='1' or pop='1', memory contents is not updated
-			elsif(WREN='1')then
-				ram(to_integer(unsigned(ADDR))) <= D;
+				-- read-during-write on the same port returns NEW data
+--				stack_out <= stack_in;
+--			else
 			end if;
+				-- read-during-write on mixed port returns OLD data
+				--if addsp='1' or pop='1', memory contents is not updated
+--				stack_out <= ram(to_integer(unsigned(sp)));
+--			end if;
 		end if;
 	end process;
+				stack_out <= ram(to_integer(unsigned(sp)));
 	
 	--synchronous reading logic to allow ram inference
-	mem_reading: process(ram,sp,ADDR,CLK)
+	mem_io: process(ram,sp,ADDR,CLK,D)
 	begin
-		if(falling_edge(CLK))then
-			stack_out <= ram(to_integer(unsigned(sp)));
-			Q <=  ram(to_integer(unsigned(ADDR)));
+		if(rising_edge(CLK))then
+			if(WREN='1')then
+				ram(to_integer(unsigned(ADDR))) <= D;
+			end if;
+				
+				-- read-during-write on the same port returns NEW data
+--				Q <= D;
+--			else
+				-- read-during-write on mixed port returns OLD data
+--				Q <= ram(to_integer(unsigned(ADDR)));
+--			end if;
 		end if;
 	end process;
+				Q <= ram(to_integer(unsigned(ADDR)));
 	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
 	--			popping empty stack, pushing to full stack
 end bhv;

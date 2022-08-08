@@ -123,24 +123,41 @@ component control_unit
 			);
 end component;
 
+--pure stack
 component stack
-	generic(L: natural);--log2 of number of stored words
-	port (CLK: in std_logic;--active edge: rising_edge
-			rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
-			--STACK INTERFACE
-			pop: in std_logic;
-			push: in std_logic;
-			addsp: in std_logic;--sp <- sp + imm
-			imm: in std_logic_vector(L-1 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
-			stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
-			sp: buffer std_logic_vector(L-1 downto 0);-- points to last stacked item (address of a 32-bit word)
-			stack_out: out std_logic_vector(31 downto 0);--data retrieved from stack
-			--MEMORY-MAPPED INTERFACE
-			D: in std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
-			WREN: in std_logic;--write enable for memory-mapped interface
-			ADDR: in std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
-			Q:		out std_logic_vector(31 downto 0)-- data output for memory-mapped interface
-	);
+generic(L: natural);--log2 of number of stored words
+port (CLK: in std_logic;--active edge: rising_edge
+		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
+		--STACK INTERFACE
+		pop: in std_logic;
+		push: in std_logic;
+		addsp: in std_logic;--sp <- sp + imm
+		imm: in std_logic_vector(L-1 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
+		stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
+		sp: buffer std_logic_vector(L-1 downto 0);-- points to last stacked item (address of a 32-bit word)
+		stack_out: out std_logic_vector(31 downto 0)--data retrieved from stack
+);
+end component;
+
+--memory-mapped stack
+component mm_stack
+generic(L: natural);--log2 of number of stored words
+port (CLK: in std_logic;--active edge: rising_edge
+		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
+		--STACK INTERFACE
+		pop: in std_logic;
+		push: in std_logic;
+		addsp: in std_logic;--sp <- sp + imm
+		imm: in std_logic_vector(L-1 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
+		stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
+		sp: buffer std_logic_vector(L-1 downto 0);-- points to last stacked item (address of a 32-bit word)
+		stack_out: out std_logic_vector(31 downto 0);--data retrieved from stack
+		--MEMORY-MAPPED INTERFACE
+		D: in std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
+		WREN: in std_logic;--write enable for memory-mapped interface
+		ADDR: in std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
+		Q:		out std_logic_vector(31 downto 0)-- data output for memory-mapped interface
+);
 end component;
 
 signal CLK: std_logic;
@@ -165,7 +182,7 @@ signal program_stack_out: std_logic_vector (31 downto 0) := (others => '0');
 signal addr_stack: std_logic_vector (31 downto 0) := (others => '0');
 signal wren_stack: std_logic;
 signal Q_stack: std_logic_vector (31 downto 0) := (others => '0');
-constant STACK_LEVELS_LOG2: natural := 6;--for GPR's, FP, and program_stack
+constant STACK_LEVELS_LOG2: natural := 3;--for GPR's, FP, and program_stack
 
 --signals driven by control unit
 signal regDst: std_logic_vector(1 downto 0);
@@ -293,7 +310,7 @@ begin
 	instruction_addr <= pc_in;--because now mini_rom is synchronous
 	
 	--mapped on byte addresses 0x200-0x2ff (bit 9='1'=> stack,bit 9='0'=>external ram)
-	program_stack: stack
+	program_stack: mm_stack
 						generic map (L => STACK_LEVELS_LOG2)
 						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
 						--during the cycle of valid instruction (cache_ready='1')
@@ -336,12 +353,7 @@ begin
 									imm => (others=>'0'),--imm > 0: deletes vars, imm < 0: reserves space for vars
 									stack_in => fp_out,-- word to be pushed
 									sp => open,-- points to last stacked item (address of a 32-bit word)
-									stack_out => fp_stack_out,--data retrieved from stack
-									--MEMORY-MAPPED INTERFACE
-									D => (others=>'0'),-- data to be written by memory-mapped interface
-									WREN => '0',--write enable for memory-mapped interface
-									ADDR => (others=>'0'),-- address to be written by memory-mapped interface
-									Q    => open-- data output for memory-mapped interface
+									stack_out => fp_stack_out--data retrieved from stack
 							);
 
 	lr_stack_pop <= ret or iret;
@@ -359,12 +371,7 @@ begin
 									imm => (others=>'0'),--imm > 0: deletes vars, imm < 0: reserves space for vars
 									stack_in => lr_out,-- word to be pushed
 									sp => open,-- points to last stacked item (address of a 32-bit word)
-									stack_out => lr_stack_out,--data retrieved from stack
-									--MEMORY-MAPPED INTERFACE
-									D => (others=>'0'),-- data to be written by memory-mapped interface
-									WREN => '0',--write enable for memory-mapped interface
-									ADDR => (others=>'0'),-- address to be written by memory-mapped interface
-									Q    => open-- data output for memory-mapped interface
+									stack_out => lr_stack_out--data retrieved from stack
 							);
 						
 	rs <= instruction(25 downto 21);
