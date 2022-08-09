@@ -113,7 +113,7 @@ attribute ramstyle of ram : signal is "no_rw_check";
 		--single port ram
 		process(CLK,mem_wren,mem_addr,mem_d,ram)
 		begin
-			if(rising_edge(CLK) and mem_wren='1')then
+			if(rising_edge(CLK))then
 				if(mem_wren='1')then
 					ram(to_integer(unsigned(mem_addr))) <= mem_d;
 				end if;
