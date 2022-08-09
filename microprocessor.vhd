@@ -182,7 +182,7 @@ signal program_stack_out: std_logic_vector (31 downto 0) := (others => '0');
 signal addr_stack: std_logic_vector (31 downto 0) := (others => '0');
 signal wren_stack: std_logic;
 signal Q_stack: std_logic_vector (31 downto 0) := (others => '0');
-constant STACK_LEVELS_LOG2: natural := 3;--for GPR's, FP, and program_stack
+constant STACK_LEVELS_LOG2: natural := 6;--for GPR's, FP, and program_stack
 
 --signals driven by control unit
 signal regDst: std_logic_vector(1 downto 0);

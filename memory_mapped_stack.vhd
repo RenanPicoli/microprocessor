@@ -52,7 +52,22 @@ component tdp_ram
 	);
 end component;
 
-constant USE_TDP_RAM: boolean := false;
+component ram_2_port
+	PORT
+	(
+		address_a		: IN STD_LOGIC_VECTOR (5 DOWNTO 0);
+		address_b		: IN STD_LOGIC_VECTOR (5 DOWNTO 0);
+		clock		: IN STD_LOGIC  := '1';
+		data_a		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+		data_b		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+		wren_a		: IN STD_LOGIC  := '0';
+		wren_b		: IN STD_LOGIC  := '0';
+		q_a		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+		q_b		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
+	);
+END component;
+
+constant USE_TDP_RAM: boolean := true;
 
 --signal empty: std_logic;
 --signal full: std_logic;
@@ -61,6 +76,7 @@ constant USE_TDP_RAM: boolean := false;
 signal	mem_d:	std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
 signal	mem_wren:std_logic;--write enable for memory-mapped interface
 signal	mem_addr:std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
+signal	mem_en:	std_logic_vector(2**L-1 downto 0);-- one-hot of mem_addr
 signal	mem_q:	std_logic_vector(31 downto 0);-- data output for memory-mapped interface
 type memory is array (0 to 2**L-1) of std_logic_vector(31 downto 0);
 signal ram: memory;
@@ -110,6 +126,33 @@ attribute ramstyle of ram : signal is "no_rw_check";
 		
 		Q <= mem_q;
 		
+		--registers
+--		process(RST,CLK,mem_wren,mem_addr,mem_d,ram)
+--		begin
+--			if(RST='1')then
+--				ram <= (others=>(others=>'0'));
+--			elsif(rising_edge(CLK))then
+--				if(mem_wren='1')then
+--					ram(to_integer(unsigned(mem_addr))) <= mem_d;
+--				end if;
+--			end if;
+--		end process;
+--		ram_i: for i in 0 to 2**L-1 generate
+--			mem_en(i) <= '1' when (i=to_integer(unsigned(mem_addr))) else '0';
+--			process(RST,CLK,mem_wren,mem_addr,mem_d,ram)
+--			begin
+--				if(RST='1')then
+--					ram(i) <= (others=>'0');
+--				elsif(rising_edge(CLK))then
+--					if(mem_wren='1' and mem_en(i)='1')then
+--						ram(i) <= mem_d;
+--					end if;
+--				end if;
+--			end process;
+--		end generate ram_i;
+--		-- asynchronous reading logic
+--		mem_q <= ram(to_integer(unsigned(mem_addr)));
+		
 		--single port ram
 		process(CLK,mem_wren,mem_addr,mem_d,ram)
 		begin
@@ -124,20 +167,31 @@ attribute ramstyle of ram : signal is "no_rw_check";
 	end generate single_port_ram_inst;
 	
 	tdp_ram_inst: if USE_TDP_RAM generate
-	memory_inst: tdp_ram
-		generic map (N => 32, L => L)--N: data width in bits; L: address width in bits
-		port map(CLK => CLK,
-					
-					WDAT_A => stack_in,--data for write
-					ADDR_A => sp,--address for read/write
-					WREN_A => push,--enables write on port A
-					Q_A => stack_out,
-					
-					WDAT_B => D,--data for write
-					ADDR_B => ADDR,--address for read/write
-					WREN_B => WREN,--enables write on port A
-					Q_B	 => Q
-			);
+--	memory_inst: tdp_ram
+--		generic map (N => 32, L => L)--N: data width in bits; L: address width in bits
+--		port map(CLK => CLK,
+--					
+--					WDAT_A => stack_in,--data for write
+--					ADDR_A => sp,--address for read/write
+--					WREN_A => push,--enables write on port A
+--					Q_A => stack_out,
+--					
+--					WDAT_B => D,--data for write
+--					ADDR_B => ADDR,--address for read/write
+--					WREN_B => WREN,--enables write on port A
+--					Q_B	 => Q
+--			);
+	memory_inst : ram_2_port PORT MAP (
+		address_a	=> sp,
+		address_b	=> ADDR,
+		clock			=> CLK,
+		data_a		=> stack_in,
+		data_b		=> D,
+		wren_a		=> push,
+		wren_b		=> WREN,
+		q_a			=> stack_out,
+		q_b			=> Q
+	);
 	end generate tdp_ram_inst;
 
 	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
