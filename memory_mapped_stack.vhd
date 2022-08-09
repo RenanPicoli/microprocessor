@@ -52,14 +52,21 @@ component tdp_ram
 	);
 end component;
 
+constant USE_TDP_RAM: boolean := false;
+
+--signal empty: std_logic;
+--signal full: std_logic;
+
+--signals used only when a single port ram is used
+signal	mem_d:	std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
+signal	mem_wren:std_logic;--write enable for memory-mapped interface
+signal	mem_addr:std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
+signal	mem_q:	std_logic_vector(31 downto 0);-- data output for memory-mapped interface
 type memory is array (0 to 2**L-1) of std_logic_vector(31 downto 0);
 signal ram: memory;
 --since the upper hierarchy guarantees there will be no read-during-write
 attribute ramstyle : string;
 attribute ramstyle of ram : signal is "no_rw_check";
-
---signal empty: std_logic;
---signal full: std_logic;
 
 	begin
 	
@@ -87,20 +94,51 @@ attribute ramstyle of ram : signal is "no_rw_check";
 --				'1' when sp=(others=>'0') else
 --				'0';
 	
-memory_inst: tdp_ram
-	generic map (N => 32, L => L)--N: data width in bits; L: address width in bits
-	port map(CLK => CLK,
-				
-				WDAT_A => stack_in,--data for write
-				ADDR_A => sp,--address for read/write
-				WREN_A => push,--enables write on port A
-				Q_A => stack_out,
-				
-				WDAT_B => D,--data for write
-				ADDR_B => ADDR,--address for read/write
-				WREN_B => WREN,--enables write on port A
-				Q_B	 => Q
-		);
+	single_port_ram_inst: if not USE_TDP_RAM generate
+		mem_addr <= sp when (push='1' or pop='1') else ADDR;
+		mem_wren <= '1' when (push='1') else WREN;
+		mem_d		<= stack_in when (push='1') else D;
+		
+		process(CLK,RST,mem_q,pop)
+		begin
+			if(RST='1')then
+				stack_out <= (others=>'0');
+			elsif(rising_edge(CLK) and pop='1')then
+				stack_out <= mem_q;
+			end if;
+		end process;
+		
+		Q <= mem_q;
+		
+		--single port ram
+		process(CLK,mem_wren,mem_addr,mem_d,ram)
+		begin
+			if(rising_edge(CLK) and mem_wren='1')then
+				if(mem_wren='1')then
+					ram(to_integer(unsigned(mem_addr))) <= mem_d;
+				end if;
+				-- read-during-write returns OLD data
+				mem_q <= ram(to_integer(unsigned(mem_addr)));
+			end if;
+		end process;
+	end generate single_port_ram_inst;
+	
+	tdp_ram_inst: if USE_TDP_RAM generate
+	memory_inst: tdp_ram
+		generic map (N => 32, L => L)--N: data width in bits; L: address width in bits
+		port map(CLK => CLK,
+					
+					WDAT_A => stack_in,--data for write
+					ADDR_A => sp,--address for read/write
+					WREN_A => push,--enables write on port A
+					Q_A => stack_out,
+					
+					WDAT_B => D,--data for write
+					ADDR_B => ADDR,--address for read/write
+					WREN_B => WREN,--enables write on port A
+					Q_B	 => Q
+			);
+	end generate tdp_ram_inst;
 
 	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
 	--			popping empty stack, pushing to full stack
