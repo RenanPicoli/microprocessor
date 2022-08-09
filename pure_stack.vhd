@@ -32,6 +32,19 @@ port (CLK: in std_logic;--active edge: rising_edge
 end entity;
 
 architecture bhv of stack is
+
+component ram_1_port
+	PORT
+	(
+		address		: IN STD_LOGIC_VECTOR (5 DOWNTO 0);
+		clock		: IN STD_LOGIC  := '1';
+		data		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+		wren		: IN STD_LOGIC ;
+		q		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
+	);
+END component;
+
+
 type memory is array (0 to 2**L-1) of std_logic_vector(31 downto 0);
 signal ram: memory;
 --since the upper hierarchy guarantees there will be no read-during-write
@@ -67,26 +80,33 @@ attribute ramstyle of ram : signal is "no_rw_check";
 --				'1' when sp=(others=>'0') else
 --				'0';
 	
-	stack_io: process(CLK,rst,stack_in,sp,push)
-	begin
---		if(rst='1')then
---			ram <= (others=>(others=>'0'));
---		elsif(rising_edge(CLK))then
-		if(rising_edge(CLK))then
-			--only one of these inputs/interfaces can be asserted in one cycle
-			if(push='1')then
-				-- sp-1 because position pointed by sp is already used,
-				--concurrently, sp will be updated (decremented) by other process
-				ram(to_integer(unsigned(sp))) <= stack_in;
-				-- read-during-write on the same port returns NEW data
-				stack_out <= stack_in;
-			else
-				-- read-during-write on mixed port returns OLD data
-				--if addsp='1' or pop='1', memory contents is not updated
-				stack_out <= ram(to_integer(unsigned(sp)));
-			end if;
-		end if;
-	end process;
+--	stack_io: process(CLK,rst,stack_in,sp,push)
+--	begin
+----		if(rst='1')then
+----			ram <= (others=>(others=>'0'));
+----		elsif(rising_edge(CLK))then
+--		if(rising_edge(CLK))then
+--			--only one of these inputs/interfaces can be asserted in one cycle
+--			if(push='1')then
+--				-- sp-1 because position pointed by sp is already used,
+--				--concurrently, sp will be updated (decremented) by other process
+--				ram(to_integer(unsigned(sp))) <= stack_in;
+--				-- read-during-write on the same port returns NEW data
+--				stack_out <= stack_in;
+--			else
+--				-- read-during-write on mixed port returns OLD data
+--				--if addsp='1' or pop='1', memory contents is not updated
+--				stack_out <= ram(to_integer(unsigned(sp)));
+--			end if;
+--		end if;
+--	end process;
+	memory_inst : ram_1_port PORT MAP (
+			address	=> sp,
+			clock		=> CLK,
+			data		=> stack_in,
+			wren		=> push,
+			q			=> stack_out
+		);
 	
 	--TODO:	signal error conditions: sp incremented/decremented beyond limits
 	--			popping empty stack, pushing to full stack
