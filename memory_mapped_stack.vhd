@@ -67,7 +67,7 @@ component ram_2_port
 	);
 END component;
 
-constant USE_TDP_RAM: boolean := true;
+constant USE_TDP_RAM: boolean := false;
 
 --signal empty: std_logic;
 --signal full: std_logic;
@@ -90,7 +90,7 @@ attribute ramstyle of ram : signal is "no_rw_check";
 	begin
 		if(rst='1')then
 			sp <= (others=>'0');--sp=xffffffff means stack with one element, x00000000-1=xffffffff
-		elsif(falling_edge(CLK))then--there must be a falling_edge even when recovering from a cache miss
+		elsif(rising_edge(CLK))then--there must be a falling_edge even when recovering from a cache miss
 			--only one of these inputs can be asserted in one cycle
 			if(pop='1')then
 				sp <= sp + 1;
@@ -111,19 +111,22 @@ attribute ramstyle of ram : signal is "no_rw_check";
 --				'0';
 	
 	single_port_ram_inst: if not USE_TDP_RAM generate
-		mem_addr <= sp when (push='1' or pop='1') else ADDR;
+		mem_addr <= sp-1 when (push='1') else-- sp is already in use, sp-1 is the next available location
+						sp when (pop='1') else
+						ADDR;
 		mem_wren <= '1' when (push='1') else WREN;
 		mem_d		<= stack_in when (push='1') else D;
 		
-		process(CLK,RST,mem_q,pop)
-		begin
-			if(RST='1')then
-				stack_out <= (others=>'0');
-			elsif(rising_edge(CLK) and pop='1')then
-				stack_out <= mem_q;
-			end if;
-		end process;
-		
+--		process(CLK,RST,mem_q,pop)
+--		begin
+--			if(RST='1')then
+--				stack_out <= (others=>'0');
+--			elsif(rising_edge(CLK) and pop='1')then
+--				stack_out <= mem_q;
+--			end if;
+--		end process;
+		stack_out <= ram(to_integer(unsigned(sp)));
+
 		Q <= mem_q;
 		
 		--registers
@@ -137,33 +140,33 @@ attribute ramstyle of ram : signal is "no_rw_check";
 --				end if;
 --			end if;
 --		end process;
---		ram_i: for i in 0 to 2**L-1 generate
---			mem_en(i) <= '1' when (i=to_integer(unsigned(mem_addr))) else '0';
---			process(RST,CLK,mem_wren,mem_addr,mem_d,ram)
---			begin
---				if(RST='1')then
---					ram(i) <= (others=>'0');
---				elsif(rising_edge(CLK))then
---					if(mem_wren='1' and mem_en(i)='1')then
---						ram(i) <= mem_d;
---					end if;
---				end if;
---			end process;
---		end generate ram_i;
---		-- asynchronous reading logic
---		mem_q <= ram(to_integer(unsigned(mem_addr)));
+		ram_i: for i in 0 to 2**L-1 generate
+			mem_en(i) <= '1' when (i=to_integer(unsigned(mem_addr))) else '0';
+			process(RST,CLK,mem_wren,mem_addr,mem_d,ram)
+			begin
+				if(RST='1')then
+					ram(i) <= (others=>'0');
+				elsif(rising_edge(CLK))then
+					if(mem_wren='1' and mem_en(i)='1')then
+						ram(i) <= mem_d;
+					end if;
+				end if;
+			end process;
+		end generate ram_i;
+		-- asynchronous reading logic
+		mem_q <= ram(to_integer(unsigned(mem_addr)));
 		
 		--single port ram
-		process(CLK,mem_wren,mem_addr,mem_d,ram)
-		begin
-			if(rising_edge(CLK))then
-				if(mem_wren='1')then
-					ram(to_integer(unsigned(mem_addr))) <= mem_d;
-				end if;
-				-- read-during-write returns OLD data
-				mem_q <= ram(to_integer(unsigned(mem_addr)));
-			end if;
-		end process;
+--		process(CLK,mem_wren,mem_addr,mem_d,ram)
+--		begin
+--			if(rising_edge(CLK))then
+--				if(mem_wren='1')then
+--					ram(to_integer(unsigned(mem_addr))) <= mem_d;
+--				end if;
+--				-- read-during-write returns OLD data
+--				mem_q <= ram(to_integer(unsigned(mem_addr)));
+--			end if;
+--		end process;
 	end generate single_port_ram_inst;
 	
 	tdp_ram_inst: if USE_TDP_RAM generate

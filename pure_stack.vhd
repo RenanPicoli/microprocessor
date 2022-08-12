@@ -60,7 +60,7 @@ attribute ramstyle of ram : signal is "no_rw_check";
 	begin
 		if(rst='1')then
 			sp <= (others=>'0');--sp=xffffffff means stack with one element, x00000000-1=xffffffff
-		elsif(falling_edge(CLK))then
+		elsif(rising_edge(CLK))then
 			--only one of these inputs can be asserted in one cycle
 			if(pop='1')then
 				sp <= sp + 1;
@@ -80,33 +80,36 @@ attribute ramstyle of ram : signal is "no_rw_check";
 --				'1' when sp=(others=>'0') else
 --				'0';
 	
---	stack_io: process(CLK,rst,stack_in,sp,push)
---	begin
-----		if(rst='1')then
-----			ram <= (others=>(others=>'0'));
-----		elsif(rising_edge(CLK))then
+	stack_io: process(CLK,rst,stack_in,sp,push)
+	begin
+		if(rst='1')then
+			ram <= (others=>(others=>'0'));
+		elsif(rising_edge(CLK))then
 --		if(rising_edge(CLK))then
---			--only one of these inputs/interfaces can be asserted in one cycle
---			if(push='1')then
---				-- sp-1 because position pointed by sp is already used,
---				--concurrently, sp will be updated (decremented) by other process
---				ram(to_integer(unsigned(sp))) <= stack_in;
+			--only one of these inputs/interfaces can be asserted in one cycle
+			if(push='1')then
+				-- sp-1 because position pointed by sp is already used,
+				--concurrently, sp will be updated (decremented) by other process
+				ram(to_integer(unsigned(sp-1))) <= stack_in;
 --				-- read-during-write on the same port returns NEW data
 --				stack_out <= stack_in;
 --			else
 --				-- read-during-write on mixed port returns OLD data
 --				--if addsp='1' or pop='1', memory contents is not updated
 --				stack_out <= ram(to_integer(unsigned(sp)));
---			end if;
---		end if;
---	end process;
-	memory_inst : ram_1_port PORT MAP (
-			address	=> sp,
-			clock		=> CLK,
-			data		=> stack_in,
-			wren		=> push,
-			q			=> stack_out
-		);
+			end if;
+		end if;
+	end process;
+	-- read-during-write on mixed port returns OLD data
+	stack_out <= ram(to_integer(unsigned(sp)));
+
+--	memory_inst : ram_1_port PORT MAP (
+--			address	=> sp,
+--			clock		=> CLK,
+--			data		=> stack_in,
+--			wren		=> push,
+--			q			=> stack_out
+--		);
 	
 	--TODO:	signal error conditions: sp incremented/decremented beyond limits
 	--			popping empty stack, pushing to full stack
