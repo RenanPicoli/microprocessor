@@ -66,28 +66,28 @@ architecture memArch of mini_rom is
 	33=> addi & r5 & r5 & x"014C",								-- addi r5 r5 x"014C";
 	34=> sw & r4 & r5 & x"0080",									-- sw [r4+32*4] r5; escreve r5 no endereco da ISR IRQ0_Handler (filter_CLK rising_edge)
 	35=> addi & r11 & r11 & x"0000",								-- addi r11 r11 x"0000";
-	36=> sw & r4 & r11 & x"0100",									-- sw [r4+64*4] r11; escreve r11 na prioridade da ISR IRQ0_Handler (filter_CLK rising_edge)
+	36=> sw & r4 & r11 & x"0100",									-- sw [r4+64*4] r11; coloca ISR IRQ0_Handler (filter_CLK rising_edge) na prioridade 0
 
 	37=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5
 	38=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
 	39=> addi & r5 & r5 & x"035C",								-- addi r5 r5 x"035C";
 	40=> sw & r4 & r5 & x"0084",									-- sw [r4+33*4] r5; escreve r5 no endereco da ISR IRQ1_Handler (I2C)
-	41=> addi & r11 & r11 & x"0002",								-- addi r11 r11 x"0002";
-	42=> sw & r4 & r11 & x"0104",									-- sw [r4+65*4] r11; escreve r11 na prioridade da ISR IRQ1_Handler (I2C)
+	41=> addi & r11 & r11 & x"0001",								-- addi r11 r11 x"0001";
+	42=> sw & r4 & r11 & x"010C",									-- sw [r4+67*4] r11; coloca ISR IRQ1_Handler (I2C) na prioridade 3
 
 	43=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5
 	44=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
 	45=> addi & r5 & r5 & x"0214",								-- addi r5 r5 x"0214";
 	46=> sw & r4 & r5 & x"0088",									-- sw [r4+34*4] r5; escreve r5 no endereco da ISR IRQ2_Handler (I2S)
-	47=> addi & r11 & r11 & x"0000",								-- addi r11 r11 x"0000";
-	48=> sw & r4 & r11 & x"0108",									-- sw [r4+66*4] r11; escreve r11 na prioridade da ISR IRQ2_Handler (I2S)
+	47=> addi & r11 & r11 & x"0002",								-- addi r11 r11 x"0002";
+	48=> sw & r4 & r11 & x"0104",									-- sw [r4+65*4] r11; coloca ISR IRQ2_Handler (I2S) na prioridade 1
 
 	49=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5
 	50=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
 	51=> addi & r5 & r5 & x"019C",								-- addi r5 r5 x"019C";
 	52=> sw & r4 & r5 & x"008C",									-- sw [r4+35*4] r5; escreve r5 no endereco da ISR IRQ3_Handler (filter_CLK falling_edge)
-	53=> addi & r11 & r11 & x"0001",								-- addi r11 r11 x"0001";
-	54=> sw & r4 & r11 & x"010C",									-- sw [r4+67*4] r11; escreve r11 na prioridade da ISR IRQ3_Handler (filter_CLK falling_edge)
+	53=> addi & r11 & r11 & x"0003",								-- addi r11 r11 x"0003";
+	54=> sw & r4 & r11 & x"0108",									-- sw [r4+66*4] r11; coloca ISR IRQ3_Handler (filter_CLK falling_edge) na prioridade 2
 
 	55=> R_type & r5 & r5 & r5 & "00000" & xor_funct,		--	xor r5 r5 r5; zera r5
 	56=> R_type & r11 & r11 & r11 & "00000" & xor_funct,	--	xor r11 r11 r11; zera r11
