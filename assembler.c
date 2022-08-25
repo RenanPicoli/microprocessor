@@ -11,7 +11,7 @@
 //for printf, fopen, fgets, fwrite, etc.
 #include <stdio.h>
 
-//for malloc
+//for malloc, strtod
 #include <stdlib.h>
 
 //for UINT_MAX
@@ -34,7 +34,7 @@
 typedef struct
 {
 	char name[11];//up to 10 chars and one null byte
-	char binary_string[7];//string containing up to 6 chars in {'0','1'} and one null byte
+	char binary_string[33];//string containing up to 6 chars in {'0','1'} and one null byte
 }node;
 
 //function to convert hex strings to unsigned int
@@ -54,7 +54,11 @@ char* uint2bin(unsigned int n, unsigned int L);
 //function to return index of string in dictionary names, or -1 if it fails
 int find(node* dict, int dict_size, char* str);
 
+//prints the dictionary
+void print_dict(node* dict,unsigned int L);
+
 int main(int argc,char *argv[]){
+	printf("Started\n");
 	FILE *fp;//file pointer for read
 	FILE *fp_types;//file pointer for read, contains the opcodes and codes for registers
 	FILE *of;//file pointer for outputfile
@@ -76,6 +80,10 @@ int main(int argc,char *argv[]){
 	char* data_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store data (constants) read from files
 	char* comment_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store single line comment read from files
 	unsigned int *ptr=malloc(1*sizeof(unsigned int));//temporary pointer to store instruction generated from a single line of fp
+	char ** R_type_mnemonics=calloc(64,sizeof(char*));
+	for(int k=0;k<64;k++){
+		R_type_mnemonics[k]=calloc(5,sizeof(char));//4 chars of mnemonics + '\0'
+	}
 	char **s=calloc(4,sizeof(char*));
 	s[0]=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
 	s[1]=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
@@ -91,13 +99,13 @@ int main(int argc,char *argv[]){
 		return 6;
 	}
 	fp=fopen(argv[1],"r");//instructions will only be read
-	fp_types=fopen("./my_types.vhd","r");//instructions will only be read
+	fp_types=fopen("./assembly_syntax.txt","r");//instructions will only be read
 	if(fp==NULL){
 		printf("Erro ao ler o arquivo %s\n",argv[1]);
 		return 2;
 	}
 	if(fp_types==NULL){
-		printf("Erro ao ler o arquivo my_types.vhd\n");
+		printf("Erro ao ler o arquivo assembly_syntax.txt\n");
 		return 3;
 	}
 	int sscanf_retval=0;//to store sscanf return value to check if it was successful
@@ -105,60 +113,119 @@ int main(int argc,char *argv[]){
 	int sscanf_retval_bin=0;
 	int sscanf_retval_hex=0;
 
-	printf("Parsing my_types.vhd\n");
+	printf("Parsing assembly_syntax.txt\n");
 	int j=0;
 	while (!feof(fp_types)){
 		fgets((char*)tmp_str,MAX_STR_LENGTH,fp_types);//reads a single line of fp_types, terminated with '\n', expects at most 199 chars
-		sscanf_retval=sscanf(tmp_str,"constant %[a-zA-Z0-9&\"_ ] : %*[a-zA-Z0-9&\"_() ] := \"%[01]\" ;",s[0],s[1]);
-		if(sscanf_retval>1){
-			//printf("Opcode j=%d: %s := %s\n",j,s0,s1);
-			dictionary = realloc(dictionary,(j+1)*sizeof(node));
-			//TODO: convert s0, s1 to lower case
-			strncpy(dictionary[j].name,s[0],11);
-			strncpy(dictionary[j].binary_string,s[1],7);
-			printf("Opcode j=%d: %s := %s\n",j,dictionary[j].name,dictionary[j].binary_string);
-			j++;
+
+		sscanf_retval=sscanf(tmp_str,"R_type_mnemonics := {%[a-zA-Z,_]};",s[0]);
+		if(sscanf_retval==1){
+			printf("s[0]=%s\n",s[0]);
+			//n: index of chars in s[0] (list)
+			//k: index of word in R_type_mnemonics
+			int m=0;int n=0;int k=0;
+			for(;k<64 && (s[0][n]!='\0' && s[0][n]!='\n');n++){
+				if(s[0][n]!=',' && s[0][n]!='\0' && s[0][n]!='\n'){
+					R_type_mnemonics[k][m]=s[0][n];
+				}else{
+					R_type_mnemonics[k][m]='\0';
+					printf("R_type_mnemonics[k]=%s\n",R_type_mnemonics[k]);
+					k++;
+					m=0;
+				}
+			}
+		}else{
+			sscanf_retval=sscanf(tmp_str,"%[a-zA-Z0-9&\"_ ] := \"%[01]\" ;",s[0],s[1]);
+			if(sscanf_retval>1){
+				//printf("Opcode j=%d: %s := %s\n",j,s0,s1);
+				dictionary = realloc(dictionary,(j+1)*sizeof(node));
+				//TODO: convert s0, s1 to lower case
+				strncpy(dictionary[j].name,s[0],11);
+				strncpy(dictionary[j].binary_string,s[1],7);
+				printf("Opcode j=%d: %s := %s\n",j,dictionary[j].name,dictionary[j].binary_string);
+				j++;
+			}
+	
 		}
+
 		fgetc(fp_types);//reads and discards the newline
 	}
-	printf("my_types.vhd parsed!\n");
+	printf("R_type instructions:\n");
+	for(int k=63;k>=0;k--){
+		printf("%s\n",R_type_mnemonics[k]);
+	}
+	printf("assembly_syntax.txt parsed!\n");
+	//print_dict(dictionary,j);
 
 	printf("Parsing %s\n",argv[1]);
 	int i=0;
 	char binary_string[33];//string containing 32 chars in {'0','1'} and one null byte
 	char termination_char;
-	//processes constant declarations (OPTIONAL section)
+	//processes initial comments (OPTIONAL section)
 	while (!feof(fp)){
 		fgets((char*)tmp_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
 		sscanf_retval=sscanf(tmp_str,"; %s",comment_str);//reads a single line comment
 		//TODO: convert instruction_str to lower case
-		if(sscanf_retval==0){
-			sscanf_retval=sscanf(tmp_str,"%s %s",s[0],s[1]);//parses the instruction
-			if(strcmp(s[0],".section")==0){
-				if(strcmp(s[1],"data")==0){
-					//loop for processing constant declarations
-					//adds the constants to the dictionary
-					while (!feof(fp)){
-						//printf("Opcode j=%d: %s := %s\n",j,s0,s1);
-						dictionary = realloc(dictionary,(j+1)*sizeof(node));
-						//TODO: convert s0, s1 to lower case
-						strncpy(dictionary[j].name,s[0],11);
-						//converts s[1] to a binary string
-
-						//decimal number
-						if(s[1][0]!='x'){
-							
-						}
-						//hex number
-						else{}
-						strncpy(dictionary[j].binary_string,s[1],7);
-						printf("Opcode j=%d: %s := %s\n",j,dictionary[j].name,dictionary[j].binary_string);
-						j++;
-						
+		if(sscanf_retval==0){//fails to match
+			break;
+		}
+	}
+	
+	printf("%s\n",tmp_str);
+	//parses the instruction or data declaration
+	sscanf_retval=sscanf(tmp_str,"%s %s",s[0],s[1]);
+	if(strcmp(s[0],".section")==0){
+		if(strcmp(s[1],"data")==0){
+			printf("Found data section!\n");
+			//loop for processing constant declarations
+			//adds the constants to the dictionary
+			while (!feof(fp)){
+				fgets((char*)tmp_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
+				sscanf_retval=sscanf(tmp_str,"%s %s; %*s",s[0],s[1]);
+				//checks for beginning of instruction section
+				if(strcmp(s[0],".section")==0){
+					if(strcmp(s[1],"code")==0){
+						printf("Found code section");
+						break;//breaks the loop, goes to print_dict
+					}else{
+						printf("Invalid section: %s\n",tmp_str);
+						return -1;
 					}
-				}
+				}else{//expects constant declaration
+					sscanf_retval=sscanf(tmp_str,"%s %[a-fA-F0-9xX+-]; %*s",s[0],s[1]);//parses the constant declaration
+					printf("%s\ns[0]=%s\ns[1]=%s\n",tmp_str,s[0],s[1]);
+					dictionary = realloc(dictionary,(j+1)*sizeof(node));
+					//TODO: convert s0, s1 to lower case
+					strncpy(dictionary[j].name,s[0],11);
+					//converts s[1] to a binary string
 
+					unsigned int tmp;
+					//decimal number
+					if(s[1][0]!='x'){
+						tmp=strtod(s[1],NULL);
+						strncpy(dictionary[j].binary_string,uint2bin(tmp,32),32);
+					}else{//hex number
+						strncpy(dictionary[j].binary_string,hex2bin(&(s[1][1])),32);
+					}
+					printf("Opcode j=%d: %s := %s\n",j,dictionary[j].name,dictionary[j].binary_string);
+					j++;
+				}
 			}
+		}
+	}
+	print_dict(dictionary,j);
+	//return	0;
+
+	//processes instructions ONLY
+	printf("\nProcessing instructions\n");
+	while (!feof(fp)){
+		fgets((char*)tmp_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
+		sscanf_retval=sscanf(tmp_str,"%[]a-zA-Z0-9.+_[ -] %1[:;] %*s",instruction_str,&termination_char);//reads a single line of fp, with no spaces, terminated with '\n'
+		strncat(instruction_str,&termination_char,1);//inserts back the termination_char
+		printf("%s\n",instruction_str);
+		//TODO: convert instruction_str to lower case
+		if(sscanf_retval>1){
+			sscanf_retval=sscanf(instruction_str,"%s %s %s %s",s[0],s[1],s[2],s[3]);//parses the instruction
 			binary_string[0]='\0';
 			printf("Instrução i=%d: ",i);
 			i++;
@@ -197,54 +264,6 @@ int main(int argc,char *argv[]){
 		}
 		fgetc(fp);//reads and discards the newline
 	}
-
-		//processes instructions ONLY
-		while (!feof(fp)){
-			fgets((char*)tmp_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
-			sscanf_retval=sscanf(tmp_str,"%[]a-zA-Z0-9.+[ -] %1[:;] %*s",instruction_str,&termination_char);//reads a single line of fp, with no spaces, terminated with '\n', expects 8 hexadecimal digits (32bit data)
-			strncat(instruction_str,&termination_char,1);
-			printf("%s\n",instruction_str);
-			//TODO: convert instruction_str to lower case
-			if(sscanf_retval>1){
-				sscanf_retval=sscanf(instruction_str,"%s %s %s %s",s[0],s[1],s[2],s[3]);//parses the instruction
-				binary_string[0]='\0';
-				printf("Instrução i=%d: ",i);
-				i++;
-				for(int k=0;k<sscanf_retval;k++){
-					printf("%s ",s[k]);
-					int pos=find(dictionary,j,s[k]);
-					if(pos!=-1){
-						strcat(binary_string,dictionary[pos].binary_string);
-					}else{
-						//test for hex constant
-						sscanf_retval_hex = sscanf(s[k],"x\"%[0-9a-fA-F]\"",s[k]);
-						if(sscanf_retval_hex!=0){//is hex constant
-							strcat(binary_string,hex2bin(s[k]));
-						}else{
-							sscanf_retval_bin = sscanf(s[k],"\"%[01]\"",s[k]);
-							if(sscanf_retval_bin!=0){//is bin constant
-								strcat(binary_string,s[k]);
-							}else{
-								printf("Constante inválida!\n");
-								return -1;
-							}
-						}
-					}
-				}
-				printf(" --> %s\n",binary_string);
-				if(strlen(binary_string)!=32){
-					printf("Erro de conversão, instrução não tem 32 bits!\n");
-					return -2;
-				}
-				instruction = bin2uint(binary_string);
-				fwrite_retval=fwrite(&instruction,sizeof(unsigned int),1,of);//writes the 32bit unsigned int
-				if(fwrite_retval!=1){
-					printf("Erro de fwrite!\ns");
-					return 8;
-				}
-			}
-			fgetc(fp);//reads and discards the newline
-		}
 	printf("%s parsed!\n",argv[1]);
 	fclose(fp);//closes code file
 	fclose(fp_types);//closes my_types.vhd
@@ -279,6 +298,7 @@ char* hex2bin(char* str){
 	int L=strlen(str);//string length, does not count the '\0'
 	char* bin_str=calloc(4*L+1,sizeof(char));
 	unsigned int numeric = hex2uint(str);
+	printf("hex2bin: conversão: %s => %d\n",str,numeric);
 	
 	for(int i=0;i <= 4*L-1;i++){//goes from most significant digit to least significant (left to right)
 		if(numeric & (1<<(4*L-1-i))){
@@ -308,7 +328,7 @@ unsigned int hex2uint(char* str){
 			return retval;
 		}
 	}
-	//printf(" hex returns: %X ",retval);
+	printf("hex2uint returns: %X\n",retval);
 	return retval;
 }
 
@@ -329,7 +349,7 @@ unsigned int bin2uint(char* str){
 
 //function to convert unsigned int to bin strings
 //L is the number of bits to use (does not include \0)
-char* str uint2bin(unsigned int n, unsigned int L){
+char* uint2bin(unsigned int n, unsigned int L){
 	char* bin_str=calloc(L+1,sizeof(char));// +1 for the \0
 	
 	for(int i=0;i <= L-1;i++){//goes from most significant digit to least significant (left to right)
@@ -340,4 +360,14 @@ char* str uint2bin(unsigned int n, unsigned int L){
 		}
 	}
 	return bin_str;
+}
+
+//prints the dictionary
+void print_dict(node* dict,unsigned int L){
+	//unsigned int L=sizeof(dict)/sizeof(node);
+	printf("Dictionary's size: %d\n",L);
+	for(int i=0;i<L;i++){
+		printf("{%s,%s}\n",dict[i].name,dict[i].binary_string);
+	}
+	return;
 }

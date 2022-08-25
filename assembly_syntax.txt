@@ -1,0 +1,82 @@
+R_type_mnemonics := {add,sub,and,or,xor,nor,slt,fadd,fsub,fdiv,fmul};
+--opcodes (keep it in ascending order)
+R_type	:= "000000";
+ori	:= "000001";
+jmp	:= "000010";
+andi	:= "000011";
+beq	:= "000100";
+mult	:= "000101";
+halt	:= "000110";
+lvec	:= "000111";
+addi	:= "001000";
+subi	:= "001001";
+--	 iack	:= "001010";
+imul	:= "001101";
+vmac	:= "001111";
+xori	:= "010000";
+
+nori	:= "010100";
+slti	:= "010101";
+
+lw		:= "100011";
+mflo	:= "100101";
+sw		:= "101011";
+mfhi	:= "101101";
+
+ldfp	:= "110000";--loads fp to register
+ldrv	:= "110001";--loads rv to register
+addsp	:= "110010";--adds sp to immediate
+push	:= "110011";--pushs specified GPR to program stack
+pop	:= "110100";--pops specified GPR from program stack
+call	:= "110101";--jumps to immediate and save return address to LR
+ret	:= "110110";--jumps to link register, stores return value in RV and restores FP
+iret	:= "110111";--jumps to link register and restores FP (IRQHandlers don't have return value)
+	
+nop	:= "111111";--no operation (bubble)	
+
+--funct codes: use only with R_type
+add_funct	:= "100000";
+sub_funct	:= "100010";
+and_funct	:= "100100";
+or_funct	:= "100101";
+xor_funct	:= "100111";
+nor_funct	:= "101000";
+slt_funct	:= "101010";
+fadd_funct	:= "000000";
+fsub_funct	:= "000010";
+fmul_funct	:= "000001";
+fdiv_funct	:= "000011";	 
+
+--register codes
+r0:= "00000";
+r1:= "00001";
+r2:= "00010";
+r3:= "00011";
+r4:= "00100";
+r5:= "00101";
+r6:= "00110";
+r7:= "00111";
+r8:= "01000";
+r9:= "01001";
+r10:= "01010";
+r11:= "01011";
+r12:= "01100";
+r13:= "01101";
+r14:= "01110";
+r15:= "01111";
+r16:= "10000";
+r17:= "10001";
+r18:= "10010";
+r19:= "10011";
+r20:= "10100";
+r21:= "10101";
+r22:= "10110";
+r23:= "10111";
+r24:= "11000";
+r25:= "11001";
+r26:= "11010";
+r27:= "11011";
+r28:= "11100";
+r29:= "11101";
+r30:= "11110";
+r31:= "11111";
