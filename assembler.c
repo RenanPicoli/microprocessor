@@ -118,18 +118,20 @@ int main(int argc,char *argv[]){
 	while (!feof(fp_types)){
 		fgets((char*)tmp_str,MAX_STR_LENGTH,fp_types);//reads a single line of fp_types, terminated with '\n', expects at most 199 chars
 
+		//printf("tmp_str=%s\n",tmp_str);
 		sscanf_retval=sscanf(tmp_str,"R_type_mnemonics := {%[a-zA-Z,_]};",s[0]);
 		if(sscanf_retval==1){
-			printf("s[0]=%s\n",s[0]);
+			//printf("s[0]=%s\n",s[0]);
 			//n: index of chars in s[0] (list)
 			//k: index of word in R_type_mnemonics
 			int m=0;int n=0;int k=0;
 			for(;k<64 && (s[0][n]!='\0' && s[0][n]!='\n');n++){
 				if(s[0][n]!=',' && s[0][n]!='\0' && s[0][n]!='\n'){
 					R_type_mnemonics[k][m]=s[0][n];
+					m++;
 				}else{
 					R_type_mnemonics[k][m]='\0';
-					printf("R_type_mnemonics[k]=%s\n",R_type_mnemonics[k]);
+					//printf("R_type_mnemonics[k]=%s\n",R_type_mnemonics[k]);
 					k++;
 					m=0;
 				}
@@ -137,7 +139,7 @@ int main(int argc,char *argv[]){
 		}else{
 			sscanf_retval=sscanf(tmp_str,"%[a-zA-Z0-9&\"_ ] := \"%[01]\" ;",s[0],s[1]);
 			if(sscanf_retval>1){
-				//printf("Opcode j=%d: %s := %s\n",j,s0,s1);
+				//printf("Opcode j=%d: %s := %s\n",j,s[0],s[1]);
 				dictionary = realloc(dictionary,(j+1)*sizeof(node));
 				//TODO: convert s0, s1 to lower case
 				strncpy(dictionary[j].name,s[0],11);
@@ -151,8 +153,8 @@ int main(int argc,char *argv[]){
 		fgetc(fp_types);//reads and discards the newline
 	}
 	printf("R_type instructions:\n");
-	for(int k=63;k>=0;k--){
-		printf("%s\n",R_type_mnemonics[k]);
+	for(int k=0;k<64;k++){
+		printf("\t%s\n",R_type_mnemonics[k]);
 	}
 	printf("assembly_syntax.txt parsed!\n");
 	//print_dict(dictionary,j);
@@ -185,7 +187,7 @@ int main(int argc,char *argv[]){
 				//checks for beginning of instruction section
 				if(strcmp(s[0],".section")==0){
 					if(strcmp(s[1],"code")==0){
-						printf("Found code section");
+						printf("Found code section!\n");
 						break;//breaks the loop, goes to print_dict
 					}else{
 						printf("Invalid section: %s\n",tmp_str);
@@ -222,20 +224,52 @@ int main(int argc,char *argv[]){
 		fgets((char*)tmp_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
 		sscanf_retval=sscanf(tmp_str,"%[]a-zA-Z0-9.+_[ -] %1[:;] %*s",instruction_str,&termination_char);//reads a single line of fp, with no spaces, terminated with '\n'
 		strncat(instruction_str,&termination_char,1);//inserts back the termination_char
-		printf("%s\n",instruction_str);
+		printf("instruction_str=%s\n",instruction_str);
 		//TODO: convert instruction_str to lower case
 		if(sscanf_retval>1){
 			sscanf_retval=sscanf(instruction_str,"%s %s %s %s",s[0],s[1],s[2],s[3]);//parses the instruction
 			binary_string[0]='\0';
 			printf("Instrução i=%d: ",i);
-			i++;
-			for(int k=0;k<sscanf_retval;k++){
-				printf("%s ",s[k]);
-				int pos=find(dictionary,j,s[k]);
-				if(pos!=-1){
-					strcat(binary_string,dictionary[pos].binary_string);
+
+			printf("%s ",s[0]);
+			int pos=find(dictionary,j,s[0]);
+			if(pos!=-1){
+				strcat(binary_string,dictionary[pos].binary_string);
+			}else{
+				//test for R_type instruction
+				int m=0;
+				for(;m<64;m++){
+					if(strcmp(s[0],R_type_mnemonics[m])==0)
+						break;
+				}
+				//printf("Found %s in R_type_mnemonics at position %d\n",s[0],m);
+				if(m<64){//s[0] is of R_type
+					printf("R_type found in dictionary at position %d",find(dictionary,j,"R_type"));
+					strcat(binary_string,dictionary[find(dictionary,j,"R_type")].binary_string);
+					printf("opcode: %s",binary_string);
+					for(int i=1;i<sscanf_retval;i++){
+						//printf("%s ",s[i]);
+						//remove the termination char
+						if(i==sscanf_retval-1){
+							if(termination_char==';'){
+							sscanf(s[i],"%[a-zA-Z0-9_];",s[i]);//removes the punctuation
+							}else{
+								printf("line %d: Expected ; instead of %c\n",i,termination_char);
+								return -1;
+							}
+						}
+						pos=find(dictionary,j,s[i]);
+						if(pos==-1){
+							printf("Invalid argument %s\n",s[i]);
+							return -1;
+						}
+						strcat(binary_string,dictionary[pos].binary_string);
+					}
+					strcat(binary_string,"00000");//shift_amount field (not used)
+					strcat(binary_string,dictionary[find(dictionary,j,strcat(s[0],"_funct"))].binary_string);
 				}else{
-					//test for hex constant
+					//TODO: test for load/store
+/*					//test for hex constant
 					sscanf_retval_hex = sscanf(s[k],"x\"%[0-9a-fA-F]\"",s[k]);
 					if(sscanf_retval_hex!=0){//is hex constant
 						strcat(binary_string,hex2bin(s[k]));
@@ -247,9 +281,10 @@ int main(int argc,char *argv[]){
 							printf("Constante inválida!\n");
 							return -1;
 						}
-					}
+					}*/
 				}
 			}
+
 			printf(" --> %s\n",binary_string);
 			if(strlen(binary_string)!=32){
 				printf("Erro de conversão, instrução não tem 32 bits!\n");
@@ -263,6 +298,7 @@ int main(int argc,char *argv[]){
 			}
 		}
 		fgetc(fp);//reads and discards the newline
+		i++;
 	}
 	printf("%s parsed!\n",argv[1]);
 	fclose(fp);//closes code file
