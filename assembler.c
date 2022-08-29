@@ -73,17 +73,34 @@ int main(int argc,char *argv[]){
 		printf("Erro ao criar o arquivo de saída!\n");
 		return 1;
 	}
-
+	
 	node* dictionary=NULL;
 	char* tmp_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
 	char* instruction_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store instructions read from files
 	char* data_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store data (constants) read from files
 	char* comment_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store single line comment read from files
 	unsigned int *ptr=malloc(1*sizeof(unsigned int));//temporary pointer to store instruction generated from a single line of fp
+
 	char ** R_type_mnemonics=calloc(64,sizeof(char*));
+	char ** I_type_mnemonics=calloc(64,sizeof(char*));
+	char ** J_type_mnemonics=calloc(64,sizeof(char*));
+	char ** O_type_mnemonics=calloc(64,sizeof(char*));
+	char ** P_type_mnemonics=calloc(64,sizeof(char*));
+	char ** M_type_mnemonics=calloc(64,sizeof(char*));
+	char ** L_type_mnemonics=calloc(64,sizeof(char*));
+	char ** S_type_mnemonics=calloc(64,sizeof(char*));
+
 	for(int k=0;k<64;k++){
-		R_type_mnemonics[k]=calloc(5,sizeof(char));//4 chars of mnemonics + '\0'
+		R_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
+		I_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
+		J_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
+		O_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
+		P_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
+		M_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
+		L_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
+		S_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
 	}
+
 	char **s=calloc(4,sizeof(char*));
 	s[0]=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
 	s[1]=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
