@@ -157,6 +157,7 @@ int main(int argc,char *argv[]){
 		printf("\t%s\n",R_type_mnemonics[k]);
 	}
 	printf("assembly_syntax.txt parsed!\n");
+	int base_dict_size=j;//base dictionary size (only language and registers)
 	//print_dict(dictionary,j);
 
 	printf("Parsing %s\n",argv[1]);
@@ -224,7 +225,7 @@ int main(int argc,char *argv[]){
 		fgets((char*)tmp_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
 		sscanf_retval=sscanf(tmp_str,"%[]a-zA-Z0-9.+_[ -] %1[:;] %*s",instruction_str,&termination_char);//reads a single line of fp, with no spaces, terminated with '\n'
 		strncat(instruction_str,&termination_char,1);//inserts back the termination_char
-		printf("instruction_str=%s\n",instruction_str);
+		printf("\ninstruction_str=%s\n",instruction_str);
 		//TODO: convert instruction_str to lower case
 		if(sscanf_retval>1){
 			sscanf_retval=sscanf(instruction_str,"%s %s %s %s",s[0],s[1],s[2],s[3]);//parses the instruction
@@ -234,7 +235,55 @@ int main(int argc,char *argv[]){
 			printf("%s ",s[0]);
 			int pos=find(dictionary,j,s[0]);
 			if(pos!=-1){
-				strcat(binary_string,dictionary[pos].binary_string);
+				strcat(binary_string,dictionary[pos].binary_string);//concatenates opcode, unless it is of R_type
+
+				//TODO: test for load/store
+
+				//normal instructions arguments (addi,subi,ori,push,pop,ret,ldrv,ldfp,etc)
+				for(int k=1;k<sscanf_retval;k++){
+					//remove the termination char
+					if(k==sscanf_retval-1){
+						if(termination_char==';'){
+						sscanf(s[k],"%[a-zA-Z0-9_];",s[k]);//removes the punctuation
+						}else{
+							printf("line %d: Expected ; instead of %c\n",i,termination_char);
+							return -1;
+						}
+					}
+
+					pos=find(dictionary,j,s[k]);
+					if(pos!=-1){
+						if(pos >= base_dict_size){//it is a constant in data section or label
+							//must adjust the size to fit in instruction
+							int lsb_to_use= strlen(dictionary[pos].binary_string)-(32 - strlen(binary_string));//how many bits of constant will be used
+							printf("\nbinary_string=%s\n",binary_string);
+							printf("\nlsb_to_use=%d\n",lsb_to_use);
+							strcat(binary_string,(dictionary[pos].binary_string)+(strlen(dictionary[pos].binary_string)-lsb_to_use)*sizeof(char));
+						}else{//base dictionary word
+							strcat(binary_string,dictionary[pos].binary_string);
+						}
+					}else{
+						//test for hex constant
+						sscanf_retval_hex = sscanf(s[k],"x\"%[0-9a-fA-F]\"",s[k]);
+						if(sscanf_retval_hex!=0){//is hex constant
+							strcat(binary_string,hex2bin(s[k]));
+						}else{
+							sscanf_retval_bin = sscanf(s[k],"\"%[01]\"",s[k]);
+							if(sscanf_retval_bin!=0){//is bin constant
+								strcat(binary_string,s[k]);
+							}else{
+								printf("\nConstante inválida: %s\n",s[k]);
+								return -1;
+							}
+						}
+					}
+				}
+				//after parsing normal instruction arguments,
+				//there might be unused bits, those should be filled with zeros
+				int tmp_instr_size=strlen(binary_string);
+				for (int k=0;k<32-tmp_instr_size;k++){
+					strcat(binary_string,"0");
+				}
 			}else{
 				//test for R_type instruction
 				int m=0;
@@ -268,32 +317,21 @@ int main(int argc,char *argv[]){
 					strcat(binary_string,"00000");//shift_amount field (not used)
 					strcat(binary_string,dictionary[find(dictionary,j,strcat(s[0],"_funct"))].binary_string);
 				}else{
-					//TODO: test for load/store
-/*					//test for hex constant
-					sscanf_retval_hex = sscanf(s[k],"x\"%[0-9a-fA-F]\"",s[k]);
-					if(sscanf_retval_hex!=0){//is hex constant
-						strcat(binary_string,hex2bin(s[k]));
-					}else{
-						sscanf_retval_bin = sscanf(s[k],"\"%[01]\"",s[k]);
-						if(sscanf_retval_bin!=0){//is bin constant
-							strcat(binary_string,s[k]);
-						}else{
-							printf("Constante inválida!\n");
-							return -1;
-						}
-					}*/
+					//INVALID OPCODE
+					printf("Unknow opcode: %s\n",s[0]);
+					return -1;
 				}
 			}
 
 			printf(" --> %s\n",binary_string);
 			if(strlen(binary_string)!=32){
-				printf("Erro de conversão, instrução não tem 32 bits!\n");
+				printf("Erro de conversão, instrução não tem 32 bits! (%s possui %ld bits)\n",binary_string,strlen(binary_string));
 				return -2;
 			}
 			instruction = bin2uint(binary_string);
 			fwrite_retval=fwrite(&instruction,sizeof(unsigned int),1,of);//writes the 32bit unsigned int
 			if(fwrite_retval!=1){
-				printf("Erro de fwrite!\ns");
+				printf("Erro de fwrite!\n");
 				return 8;
 			}
 		}
