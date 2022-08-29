@@ -4,9 +4,9 @@
 	THICKNESS xA4;
 .section code
     xor r0 r0 r0;
-    addi r0 BASE;
+    addi r0 r0 BASE;
     xor r1 r1 r1;
-    addi r1 MAX_HEIGHT;
+    addi r1 r1 MAX_HEIGHT;
     push r0; passes 1st argument
     push r1; passes 2nd argument
     call FOO;
