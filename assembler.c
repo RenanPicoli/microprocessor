@@ -57,6 +57,38 @@ int find(node* dict, int dict_size, char* str);
 //prints the dictionary
 void print_dict(node* dict,unsigned int L);
 
+//mounts the binary string for a R_type instruction
+void R_type_parse(char *binary_string,char *instruction_str);
+
+//mounts the binary string for a I_type instruction
+void I_type_parse(char *binary_string,char *instruction_str);
+
+//mounts the binary string for a J_type instruction
+void J_type_parse(char *binary_string,char *instruction_str);
+
+//mounts the binary string for a O_type instruction
+void O_type_parse(char *binary_string,char *instruction_str);
+
+//mounts the binary string for a P_type instruction
+void P_type_parse(char *binary_string,char *instruction_str);
+
+//mounts the binary string for a M_type instruction
+void M_type_parse(char *binary_string,char *instruction_str);
+
+//mounts the binary string for a L_type instruction
+void L_type_parse(char *binary_string,char *instruction_str);
+
+//mounts the binary string for a S_type instruction
+void S_type_parse(char *binary_string,char *instruction_str);
+
+//searches for a given mnemonic in a vector of mnemonics
+int find_mnemonic_in_vector(char *opcode, char ** mnemonics_vector);
+
+//global variables
+char **s;
+node* dictionary=NULL;
+unsigned int dictionary_size=0;
+
 int main(int argc,char *argv[]){
 	printf("Started\n");
 	FILE *fp;//file pointer for read
@@ -74,7 +106,6 @@ int main(int argc,char *argv[]){
 		return 1;
 	}
 	
-	node* dictionary=NULL;
 	char* tmp_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
 	char* instruction_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store instructions read from files
 	char* data_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store data (constants) read from files
@@ -101,7 +132,7 @@ int main(int argc,char *argv[]){
 		S_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
 	}
 
-	char **s=calloc(4,sizeof(char*));
+	s=calloc(4,sizeof(char*));
 	s[0]=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
 	s[1]=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
 	s[2]=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
@@ -131,14 +162,13 @@ int main(int argc,char *argv[]){
 	int sscanf_retval_hex=0;
 
 	printf("Parsing assembly_syntax.txt\n");
-	int j=0;
 	while (!feof(fp_types)){
 		fgets((char*)tmp_str,MAX_STR_LENGTH,fp_types);//reads a single line of fp_types, terminated with '\n', expects at most 199 chars
 
 		//printf("tmp_str=%s\n",tmp_str);
 		sscanf_retval=sscanf(tmp_str,"R_type_mnemonics := {%[a-zA-Z,_]};",s[0]);
 		if(sscanf_retval==1){
-			//printf("s[0]=%s\n",s[0]);
+			printf("s[0]=%s\n",s[0]);
 			//n: index of chars in s[0] (list)
 			//k: index of word in R_type_mnemonics
 			int m=0;int n=0;int k=0;
@@ -148,7 +178,7 @@ int main(int argc,char *argv[]){
 					m++;
 				}else{
 					R_type_mnemonics[k][m]='\0';
-					//printf("R_type_mnemonics[k]=%s\n",R_type_mnemonics[k]);
+					printf("R_type_mnemonics[k]=%s\n",R_type_mnemonics[k]);
 					k++;
 					m=0;
 				}
@@ -156,13 +186,13 @@ int main(int argc,char *argv[]){
 		}else{
 			sscanf_retval=sscanf(tmp_str,"%[a-zA-Z0-9&\"_ ] := \"%[01]\" ;",s[0],s[1]);
 			if(sscanf_retval>1){
-				//printf("Opcode j=%d: %s := %s\n",j,s[0],s[1]);
-				dictionary = realloc(dictionary,(j+1)*sizeof(node));
+				//printf("Opcode j=%d: %s := %s\n",dictionary_size,s[0],s[1]);
+				dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
 				//TODO: convert s0, s1 to lower case
-				strncpy(dictionary[j].name,s[0],11);
-				strncpy(dictionary[j].binary_string,s[1],7);
-				printf("Opcode j=%d: %s := %s\n",j,dictionary[j].name,dictionary[j].binary_string);
-				j++;
+				strncpy(dictionary[dictionary_size].name,s[0],11);
+				strncpy(dictionary[dictionary_size].binary_string,s[1],7);
+				printf("Opcode j=%d: %s := %s\n",dictionary_size,dictionary[dictionary_size].name,dictionary[dictionary_size].binary_string);
+				dictionary_size++;
 			}
 	
 		}
@@ -174,7 +204,7 @@ int main(int argc,char *argv[]){
 		printf("\t%s\n",R_type_mnemonics[k]);
 	}
 	printf("assembly_syntax.txt parsed!\n");
-	int base_dict_size=j;//base dictionary size (only language and registers)
+	int base_dict_size=dictionary_size;//base dictionary size (only language and registers)
 	//print_dict(dictionary,j);
 
 	printf("Parsing %s\n",argv[1]);
@@ -214,43 +244,141 @@ int main(int argc,char *argv[]){
 				}else{//expects constant declaration
 					sscanf_retval=sscanf(tmp_str,"%s %[a-fA-F0-9xX+-]; %*s",s[0],s[1]);//parses the constant declaration
 					printf("%s\ns[0]=%s\ns[1]=%s\n",tmp_str,s[0],s[1]);
-					dictionary = realloc(dictionary,(j+1)*sizeof(node));
+					dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
 					//TODO: convert s0, s1 to lower case
-					strncpy(dictionary[j].name,s[0],11);
+					strncpy(dictionary[dictionary_size].name,s[0],11);
 					//converts s[1] to a binary string
 
 					unsigned int tmp;
 					//decimal number
 					if(s[1][0]!='x'){
 						tmp=strtod(s[1],NULL);
-						strncpy(dictionary[j].binary_string,uint2bin(tmp,32),32);
+						strncpy(dictionary[dictionary_size].binary_string,uint2bin(tmp,32),32);
 					}else{//hex number
-						strncpy(dictionary[j].binary_string,hex2bin(&(s[1][1])),32);
+						strncpy(dictionary[dictionary_size].binary_string,hex2bin(&(s[1][1])),32);
 					}
-					printf("Opcode j=%d: %s := %s\n",j,dictionary[j].name,dictionary[j].binary_string);
-					j++;
+					printf("Opcode j=%d: %s := %s\n",dictionary_size,dictionary[dictionary_size].name,dictionary[dictionary_size].binary_string);
+					dictionary_size++;
 				}
 			}
 		}
 	}
-	print_dict(dictionary,j);
+	print_dict(dictionary,dictionary_size);
 	//return	0;
 
 	//processes instructions ONLY
 	printf("\nProcessing instructions\n");
 	while (!feof(fp)){
-		fgets((char*)tmp_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
-		sscanf_retval=sscanf(tmp_str,"%[]a-zA-Z0-9.+_[ -] %1[:;] %*s",instruction_str,&termination_char);//reads a single line of fp, with no spaces, terminated with '\n'
-		strncat(instruction_str,&termination_char,1);//inserts back the termination_char
-		printf("\ninstruction_str=%s\n",instruction_str);
+		fgets((char*)instruction_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
+		sscanf_retval=sscanf(instruction_str,"%s %*s",s[0]);//parses the instruction, s[0] stores the opcode
 		//TODO: convert instruction_str to lower case
-		if(sscanf_retval>1){
-			sscanf_retval=sscanf(instruction_str,"%s %s %s %s",s[0],s[1],s[2],s[3]);//parses the instruction
+		if(sscanf_retval!=0){
 			binary_string[0]='\0';
 			printf("Instrução i=%d: ",i);
 
 			printf("%s ",s[0]);
-			int pos=find(dictionary,j,s[0]);
+
+			//checks if the opcode belongs to some set
+			//then calls the corresponding function to mount the binary string
+
+			//checks if mnemonic belongs to R_type
+			if(find_mnemonic_in_vector(s[0],R_type_mnemonics)!=-1){
+				printf("Found %s in R_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],R_type_mnemonics));
+				R_type_parse(binary_string,instruction_str);
+			}else{
+				//checks if mnemonic belongs to I_type
+				if(find_mnemonic_in_vector(s[0],I_type_mnemonics)!=-1){
+					printf("Found %s in I_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],I_type_mnemonics));
+					I_type_parse(binary_string,instruction_str);
+				}else{
+					//checks if mnemonic belongs to J_type
+					if(find_mnemonic_in_vector(s[0],J_type_mnemonics)!=-1){
+						printf("Found %s in J_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],J_type_mnemonics));
+						J_type_parse(binary_string,instruction_str);
+					}else{
+						//checks if mnemonic belongs to O_type
+						if(find_mnemonic_in_vector(s[0],O_type_mnemonics)!=-1){
+							printf("Found %s in O_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],O_type_mnemonics));
+							O_type_parse(binary_string,instruction_str);
+						}else{
+							//checks if mnemonic belongs to P_type
+							if(find_mnemonic_in_vector(s[0],P_type_mnemonics)!=-1){
+								printf("Found %s in P_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],P_type_mnemonics));
+								P_type_parse(binary_string,instruction_str);
+							}else{
+								//checks if mnemonic belongs to M_type
+								if(find_mnemonic_in_vector(s[0],M_type_mnemonics)!=-1){
+									printf("Found %s in M_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],M_type_mnemonics));
+									M_type_parse(binary_string,instruction_str);
+								}else{
+									//checks if mnemonic belongs to L_type
+									if(find_mnemonic_in_vector(s[0],L_type_mnemonics)!=-1){
+										printf("Found %s in L_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],L_type_mnemonics));
+										L_type_parse(binary_string,instruction_str);
+									}else{
+										//checks if mnemonic belongs to S_type
+										if(find_mnemonic_in_vector(s[0],S_type_mnemonics)!=-1){
+											printf("Found %s in S_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],S_type_mnemonics));
+											S_type_parse(binary_string,instruction_str);
+										}else{
+											//checks if it is a label definition
+											sscanf_retval=sscanf(instruction_str,"%s: %*s",s[0]);//parses the instruction, s[0] stores the opcode
+											if(sscanf_retval != 0){
+												printf("Found label definition: %s\n",s[0]);
+												dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
+												//TODO: convert s0, s1 to lower case
+												strncpy(dictionary[dictionary_size].name,s[0],11);
+												strncpy(dictionary[dictionary_size].binary_string,uint2bin((unsigned int)i,32),32);
+												dictionary_size++;
+												
+											}else{
+												printf("Invalid instruction: %s\n",s[0]);
+												return -1;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+			}
+			printf(" --> %s\n",binary_string);
+			if(strlen(binary_string)!=32){
+				printf("Erro de conversão, instrução não tem 32 bits! (%s possui %ld bits)\n",binary_string,strlen(binary_string));
+				return -2;
+			}
+			instruction = bin2uint(binary_string);
+			fwrite_retval=fwrite(&instruction,sizeof(unsigned int),1,of);//writes the 32bit unsigned int
+			if(fwrite_retval!=1){
+				printf("Erro de fwrite!\n");
+				return 8;
+			}
+		}
+		fgetc(fp);//reads and discards the newline
+		i++;
+	}
+	printf("%s parsed!\n",argv[1]);
+	fclose(fp);//closes code file
+	fclose(fp_types);//closes my_types.vhd
+
+	//close output file
+	fclose(of);
+	printf("Arquivo \"executable\" gerado com sucesso!\n");
+	free(dictionary);
+	free(tmp_str);
+	free(instruction_str);
+	free(comment_str);
+	free(ptr);
+	free(s[0]);
+	free(s[1]);
+	free(s[2]);
+	free(s[3]);
+	free(s);
+	return 0;
+
+			int pos=find(dictionary,dictionary_size,s[0]);
 			if(pos!=-1){
 				strcat(binary_string,dictionary[pos].binary_string);//concatenates opcode, unless it is of R_type
 
@@ -268,7 +396,7 @@ int main(int argc,char *argv[]){
 						}
 					}
 
-					pos=find(dictionary,j,s[k]);
+					pos=find(dictionary,dictionary_size,s[k]);
 					if(pos!=-1){
 						if(pos >= base_dict_size){//it is a constant in data section or label
 							//must adjust the size to fit in instruction
@@ -310,8 +438,8 @@ int main(int argc,char *argv[]){
 				}
 				//printf("Found %s in R_type_mnemonics at position %d\n",s[0],m);
 				if(m<64){//s[0] is of R_type
-					printf("R_type found in dictionary at position %d",find(dictionary,j,"R_type"));
-					strcat(binary_string,dictionary[find(dictionary,j,"R_type")].binary_string);
+					printf("R_type found in dictionary at position %d",find(dictionary,dictionary_size,"R_type"));
+					strcat(binary_string,dictionary[find(dictionary,dictionary_size,"R_type")].binary_string);
 					printf("opcode: %s",binary_string);
 					for(int i=1;i<sscanf_retval;i++){
 						//printf("%s ",s[i]);
@@ -324,7 +452,7 @@ int main(int argc,char *argv[]){
 								return -1;
 							}
 						}
-						pos=find(dictionary,j,s[i]);
+						pos=find(dictionary,dictionary_size,s[i]);
 						if(pos==-1){
 							printf("Invalid argument %s\n",s[i]);
 							return -1;
@@ -332,7 +460,7 @@ int main(int argc,char *argv[]){
 						strcat(binary_string,dictionary[pos].binary_string);
 					}
 					strcat(binary_string,"00000");//shift_amount field (not used)
-					strcat(binary_string,dictionary[find(dictionary,j,strcat(s[0],"_funct"))].binary_string);
+					strcat(binary_string,dictionary[find(dictionary,dictionary_size,strcat(s[0],"_funct"))].binary_string);
 				}else{
 					//INVALID OPCODE
 					printf("Unknow opcode: %s\n",s[0]);
@@ -340,39 +468,6 @@ int main(int argc,char *argv[]){
 				}
 			}
 
-			printf(" --> %s\n",binary_string);
-			if(strlen(binary_string)!=32){
-				printf("Erro de conversão, instrução não tem 32 bits! (%s possui %ld bits)\n",binary_string,strlen(binary_string));
-				return -2;
-			}
-			instruction = bin2uint(binary_string);
-			fwrite_retval=fwrite(&instruction,sizeof(unsigned int),1,of);//writes the 32bit unsigned int
-			if(fwrite_retval!=1){
-				printf("Erro de fwrite!\n");
-				return 8;
-			}
-		}
-		fgetc(fp);//reads and discards the newline
-		i++;
-	}
-	printf("%s parsed!\n",argv[1]);
-	fclose(fp);//closes code file
-	fclose(fp_types);//closes my_types.vhd
-
-	//close output file
-	fclose(of);
-	printf("Arquivo \"executable\" gerado com sucesso!\n");
-	free(dictionary);
-	free(tmp_str);
-	free(instruction_str);
-	free(comment_str);
-	free(ptr);
-	free(s[0]);
-	free(s[1]);
-	free(s[2]);
-	free(s[3]);
-	free(s);
-	return 0;
 }
 
 //function to return index of  string in dictionary names, or -1 if fails
@@ -461,4 +556,97 @@ void print_dict(node* dict,unsigned int L){
 		printf("{%s,%s}\n",dict[i].name,dict[i].binary_string);
 	}
 	return;
+}
+
+//mounts the binary string for R_type instruction
+void R_type_parse(char *binary_string,char *instruction_str){
+	int sscanf_retval=sscanf(instruction_str,"%s %s %s %s",s[0],s[1],s[2],s[3]);//parses the instruction, s[0] stores the opcode
+	if(sscanf_retval!=4){
+		printf("Invalid number of arguments:%d\n",sscanf_retval);
+		return;
+	}
+	//TODO: convert instruction_str to lower case
+	binary_string[0]='\0';
+	int pos;
+	pos=find(dictionary,dictionary_size,"R_type");
+	if(pos==-1){
+		printf("Opcode not found: %s\n",s[0]);
+		return;
+	}
+	strcat(binary_string,dictionary[pos].binary_string);
+	char termination_char;
+	for(int i=1;i<sscanf_retval;i++){
+		//remove the termination char
+		if(i==sscanf_retval-1){
+			//printf("s[%d]=%s ",i,s[i]);
+
+			if(s[i][strlen(s[i])-1]==';'){
+				s[i][strlen(s[i])-1]='\0';//removes the punctuation
+				//printf("s[%d]=%s ",i,s[i]);
+			}else{
+				printf("Argument %d: expected ; instead of %c in %s\n",i,termination_char,s[i]);
+				return;
+			}
+		}
+		pos=find(dictionary,dictionary_size,s[i]);
+		if(pos==-1){
+			printf("Argument not found: %s\n",s[i]);
+			return;
+		}
+		strcat(binary_string,dictionary[pos].binary_string);
+	}
+	strcat(binary_string,"00000");
+	pos=find(dictionary,dictionary_size,strcat(s[0],"_funct"));
+	strcat(binary_string,dictionary[pos].binary_string);
+	return;
+}
+
+//mounts the binary string for I_type instruction
+void I_type_parse(char *binary_string,char *instruction_str){
+	return;
+}
+
+//mounts the binary string for J_type instruction
+void J_type_parse(char *binary_string,char *instruction_str){
+	return;
+}
+
+//mounts the binary string for O_type instruction
+void O_type_parse(char *binary_string,char *instruction_str){
+	return;
+}
+
+//mounts the binary string for P_type instruction
+void P_type_parse(char *binary_string,char *instruction_str){
+	return;
+}
+
+//mounts the binary string for M_type instruction
+void M_type_parse(char *binary_string,char *instruction_str){
+	return;
+}
+
+//mounts the binary string for L_type instruction
+void L_type_parse(char *binary_string,char *instruction_str){
+	return;
+}
+
+//mounts the binary string for S_type instruction
+void S_type_parse(char *binary_string,char *instruction_str){
+	return;
+}
+
+//searches for a given mnemonic in a vector of mnemonics
+//if it finds the opcode, returns the index
+//else, returns -1
+int find_mnemonic_in_vector(char *opcode, char ** mnemonics_vector){
+	int pos;
+	for(pos=0;pos<64;pos++){
+		if(strcmp(opcode,mnemonics_vector[pos])==0)//checks if mnemonic belongs to R_type 
+			break;
+	}
+	if(pos==64){
+		pos=-1;
+	}
+	return pos;
 }
