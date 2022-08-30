@@ -288,10 +288,10 @@ int main(int argc,char *argv[]){
 						if(s[0][strlen(s[0])-1]==';'){
 							s[0][strlen(s[0])-1]='\0';//removes the punctuation
 							//printf("s[0]=%s ",s[0]);
-						}else{
+						}/*else{
 							printf("Argument 0: expected ; instead of %c in %s\n",s[0][strlen(s[0])-1],s[0]);
 							return -1;
-						}
+						}*/
 						//printf("s[0]=%s ",s[0]);
 						if(find_mnemonic_in_vector(s[0],O_type_mnemonics)!=-1){
 							printf("Found %s in O_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],O_type_mnemonics));
@@ -604,6 +604,45 @@ void O_type_parse(char *binary_string,char *instruction_str){
 
 //mounts the binary string for P_type instruction
 void P_type_parse(char *binary_string,char *instruction_str){
+	int sscanf_retval=sscanf(instruction_str,"%s %s",s[0],s[1]);//parses the instruction, s[0] stores the opcode, s[1] stores a register
+	if(sscanf_retval!=2){
+		printf("Invalid number of arguments:%d\n",sscanf_retval);
+		return;
+	}
+	//TODO: convert instruction_str to lower case
+	binary_string[0]='\0';
+	int pos;
+	pos=find(dictionary,dictionary_size,s[0]);
+	if(pos==-1){
+		printf("Opcode not found: %s\n",s[0]);
+		return;
+	}
+	strcat(binary_string,dictionary[pos].binary_string);
+	for(int i=1;i<sscanf_retval;i++){
+		//remove the termination char
+		if(i==sscanf_retval-1){
+			//printf("s[%d]=%s ",i,s[i]);
+
+			if(s[i][strlen(s[i])-1]==';'){
+				s[i][strlen(s[i])-1]='\0';//removes the punctuation
+				//printf("s[%d]=%s ",i,s[i]);
+			}else{
+				printf("Argument %d: expected ; instead of %c in %s\n",i,s[i][strlen(s[i])-1],s[i]);
+				return;
+			}
+		}
+		pos=find(dictionary,dictionary_size,s[i]);
+		if(pos==-1){
+			printf("Argument not found: %s\n",s[i]);
+			return;
+		}
+		strcat(binary_string,dictionary[pos].binary_string);
+	}
+	//there should be unused bits, those should be filled with zeros
+	int tmp_instr_size=strlen(binary_string);
+	for (int k=0;k<32-tmp_instr_size;k++){
+		strcat(binary_string,"0");
+	}
 	return;
 }
 
