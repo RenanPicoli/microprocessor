@@ -4,6 +4,7 @@
 	THICKNESS xA4;
 .section code
     xor r0 r0 r0;
+	halt;
     addi r0 r0 BASE;
     xor r1 r1 r1;
     addi r1 r1 MAX_HEIGHT;
