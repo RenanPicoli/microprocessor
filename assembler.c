@@ -184,7 +184,7 @@ int main(int argc,char *argv[]){
 				}
 			}
 		}else{
-			sscanf_retval=sscanf(tmp_str,"%[a-zA-Z0-9&\"_ ] := \"%[01]\" ;",s[0],s[1]);
+			sscanf_retval=sscanf(tmp_str,"%s := \"%[01]\" ;",s[0],s[1]);
 			if(sscanf_retval>1){
 				//printf("Opcode j=%d: %s := %s\n",dictionary_size,s[0],s[1]);
 				dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
@@ -196,8 +196,6 @@ int main(int argc,char *argv[]){
 			}
 	
 		}
-
-		fgetc(fp_types);//reads and discards the newline
 	}
 	printf("R_type instructions:\n");
 	for(int k=0;k<64;k++){
