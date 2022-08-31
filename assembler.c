@@ -404,6 +404,13 @@ int main(int argc,char *argv[]){
 		free(binary_string[j]);
 	}
 	free(binary_string);
+
+	//iterates through unresolved_instructions, freeing instruction_str
+	for(int j=0;j < unresolved_instructions_size;j++){
+		free(unresolved_instructions[j].instruction_str);
+	}
+	free(unresolved_instructions);
+
 	return 0;
 }
 
