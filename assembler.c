@@ -83,7 +83,7 @@ void P_type_parse(char *binary_string,char *instruction_str);
 void M_type_parse(char *binary_string,char *instruction_str);
 
 //mounts the binary string for a L_type instruction
-void L_type_parse(char *binary_string,char *instruction_str);
+void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size);
 
 //mounts the binary string for a S_type instruction
 void S_type_parse(char *binary_string,char *instruction_str);
@@ -300,10 +300,7 @@ int main(int argc,char *argv[]){
 						if(s[0][strlen(s[0])-1]==';'){
 							s[0][strlen(s[0])-1]='\0';//removes the punctuation
 							//printf("s[0]=%s ",s[0]);
-						}/*else{
-							printf("Argument 0: expected ; instead of %c in %s\n",s[0][strlen(s[0])-1],s[0]);
-							return -1;
-						}*/
+						}
 						//printf("s[0]=%s ",s[0]);
 						if(find_mnemonic_in_vector(s[0],O_type_mnemonics)!=-1){
 							printf("Found %s in O_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],O_type_mnemonics));
@@ -322,7 +319,7 @@ int main(int argc,char *argv[]){
 									//checks if mnemonic belongs to L_type
 									if(find_mnemonic_in_vector(s[0],L_type_mnemonics)!=-1){
 										printf("Found %s in L_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],L_type_mnemonics));
-										L_type_parse(binary_string[i],instruction_str);
+										L_type_parse(binary_string[i],instruction_str,base_dict_size);
 									}else{
 										//checks if mnemonic belongs to S_type
 										if(find_mnemonic_in_vector(s[0],S_type_mnemonics)!=-1){
@@ -832,7 +829,80 @@ void M_type_parse(char *binary_string,char *instruction_str){
 }
 
 //mounts the binary string for L_type instruction
-void L_type_parse(char *binary_string,char *instruction_str){
+void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size){
+	int sscanf_retval=sscanf(instruction_str,"%s %s %s",s[0],s[1],s[2]);//parses the instruction, s[0] stores the opcode, s[1] stores a immediate (decimal or hexadecimal)
+	if(sscanf_retval!=3){
+		printf("Invalid number of arguments:%d\n",sscanf_retval);
+		return;
+	}
+	//TODO: convert instruction_str to lower case
+	binary_string[0]='\0';
+	int pos;
+	pos=find(dictionary,dictionary_size,s[0]);
+	if(pos==-1){
+		printf("Opcode not found: %s\n",s[0]);
+		return;
+	}
+	strcat(binary_string,dictionary[pos].binary_string);
+	strcat(binary_string,"0000000000");
+	for(int i=1;i<sscanf_retval;i++){
+		//remove the termination char
+		if(i==sscanf_retval-1){
+			//printf("s[%d]=%s ",i,s[i]);
+
+			if(s[i][strlen(s[i])-1]==';'){
+				s[i][strlen(s[i])-1]='\0';//removes the punctuation
+				//printf("s[%d]=%s ",i,s[i]);
+			}else{
+				printf("Argument %d: expected ; instead of %c in %s\n",i,s[i][strlen(s[i])-1],s[i]);
+				return;
+			}
+		}
+
+		pos=find(dictionary,dictionary_size,s[i]);
+		if(pos!=-1){
+			if(pos >= base_dict_size){//it is a constant in data section or label
+				printf("Found constant %s at dictionary: %s\n",dictionary[pos].name,dictionary[pos].binary_string);
+				//must adjust the size to fit in instruction
+				int lsb_to_use = 32 - strlen(binary_string);//how many bits of constant will be used
+				//printf("\nbinary_string=%s\n",binary_string);
+				printf("\nlsb_to_use=%d\n",lsb_to_use);
+				if(lsb_to_use <= strlen(dictionary[pos].binary_string)){
+					strcat(binary_string,(dictionary[pos].binary_string)+(strlen(dictionary[pos].binary_string)-lsb_to_use)*sizeof(char));
+				}else{//dictionary[pos].binary_string is not wide enough to fill the instruction
+					//some zeros are insterted (zero-extension)
+					int zero_fill=lsb_to_use - strlen(dictionary[pos].binary_string);
+					for (int k=0;k<zero_fill;k++){
+						strcat(binary_string,"0");
+					}
+					strcat(binary_string,(dictionary[pos].binary_string));
+				}
+			}else{//base dictionary word
+				strcat(binary_string,dictionary[pos].binary_string);
+			}
+		}else{
+			//test for hex constant
+			int sscanf_retval_hex = sscanf(s[i],"x\"%[0-9a-fA-F]\"",s[i]);
+			if(sscanf_retval_hex!=0){//is hex constant
+				strcat(binary_string,hex2bin(s[i]));
+			}else{
+				int sscanf_retval_bin = sscanf(s[i],"\"%[01]\"",s[i]);
+				if(sscanf_retval_bin!=0){//is bin constant
+					strcat(binary_string,s[i]);
+				}else{
+					printf("\nInvalid constant: %s\n",s[i]);
+					return;
+				}
+			}
+		}
+		strcat(binary_string,dictionary[pos].binary_string);
+	}
+
+	//there should be unused bits, those should be filled with zeros
+	int tmp_instr_size=strlen(binary_string);
+	for (int k=0;k<32-tmp_instr_size;k++){
+		strcat(binary_string,"0");
+	}
 	return;
 }
 
