@@ -12,6 +12,8 @@
   push r1; passes 2nd argument
   call FOO;
   ldrv r2;
+	lvec x"02" x"58";
+	sw [r0 + 8] r2; offset is mandatory, even if it is zero, for negative offsets, use "- |offset|"
   ret;
 FOO:
   pop r1;
