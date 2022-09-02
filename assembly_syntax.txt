@@ -7,7 +7,7 @@ O_type_mnemonics := {halt,vmac,iack,ret,iret,nop};-- opcode ONLY
 P_type_mnemonics := {push,pop,ldrv,ldfp,mflo,mfhi};-- opcode and 1 register
 M_type_mnemonics := {mult,imul};-- opcode and 2 register
 L_type_mnemonics := {lvec};-- opcode and 2 IMMEDIATES
-S_type_mnemonics := {sw,lw};-- opcode, 2 registers and 1 IMMEDIATE for MEMORY access (uses squared brackets, fills all bits)
+S_type_mnemonics := {sw,lw};-- opcode, 2 registers and 1 IMMEDIATE for MEMORY access (uses squared brackets, fills all bits), offset is mandatory, even if it is zero, for negative offsets, use "- |offset|"
 
 --opcodes (keep it in ascending order)
 
