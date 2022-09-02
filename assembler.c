@@ -86,7 +86,7 @@ void M_type_parse(char *binary_string,char *instruction_str);
 void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size);
 
 //mounts the binary string for a S_type instruction
-void S_type_parse(char *binary_string,char *instruction_str);
+void S_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size);
 
 //searches for a given mnemonic in a vector of mnemonics
 int find_mnemonic_in_vector(char *opcode, char ** mnemonics_vector);
@@ -324,7 +324,7 @@ int main(int argc,char *argv[]){
 										//checks if mnemonic belongs to S_type
 										if(find_mnemonic_in_vector(s[0],S_type_mnemonics)!=-1){
 											printf("Found %s in S_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],S_type_mnemonics));
-											S_type_parse(binary_string[i],instruction_str);
+											S_type_parse(binary_string[i],instruction_str,base_dict_size);
 										}else{
 											//checks if it is a label definition
 											sscanf_retval=sscanf(instruction_str,"%[a-zA-Z0-9_]: %*s",s[0]);//parses the instruction, s[0] stores the opcode
@@ -907,7 +907,120 @@ void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 }
 
 //mounts the binary string for S_type instruction
-void S_type_parse(char *binary_string,char *instruction_str){
+void S_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size){
+	char op;// '+' or '-', offset is mandatory
+	char tmp_offset_binary_string[33];//determined only from s[2], up to 32 chars ('0' or '1') + '\0'
+	char offset_binary_string[33];//the final offset, depends on op, up to 32 chars ('0' or '1') + '\0'
+	int sscanf_retval=sscanf(instruction_str," %[a-zA-Z0-9_] [ %[a-zA-Z0-9_] %1[+-] %[a-zA-Z0-9\"_] ] %s",s[0],s[1],&op,s[2],s[3]);//parses the instruction, s[0] stores the opcode, s[1] stores a register, s[2] stores a immediate (decimal or hexadecimal), s[3] stores a register
+	if(sscanf_retval!=5){
+		printf("Invalid number of arguments:%d\n",sscanf_retval);
+		return;
+	}
+
+	//TODO: convert instruction_str to lower case
+	binary_string[0]='\0';
+	int pos;
+	pos=find(dictionary,dictionary_size,s[0]);
+	if(pos==-1){
+		printf("Opcode not found: %s\n",s[0]);
+		return;
+	}
+	strcat(binary_string,dictionary[pos].binary_string);
+	//printf("\nAppended s[0].\n");
+
+	for(int i=1;i<=3;i++){
+		//remove the termination char
+		if(i==3){
+			//printf("s[%d]=%s ",i,s[i]);
+
+			if(s[i][strlen(s[i])-1]==';'){
+				s[i][strlen(s[i])-1]='\0';//removes the punctuation
+				//printf("s[%d]=%s ",i,s[i]);
+			}else{
+				printf("Argument %d: expected ; instead of %c in %s\n",i,s[i][strlen(s[i])-1],s[i]);
+				return;
+			}
+		}
+
+		//the OFFSET argument (constant,label or immediate)
+		//the OFFSET must be appended to the END of binary_string
+		//the OFFSET is determined from s[2] AND op (+/-)
+		if(i==2){
+			pos=find(dictionary,dictionary_size,s[i]);
+			if(pos!=-1){
+				if(pos >= base_dict_size){//it is a constant in data section or label
+					//must adjust the size to fit in instruction
+					//int lsb_to_use= strlen(dictionary[pos].binary_string)-(32 - strlen(binary_string));//how many bits of constant will be used
+					//printf("\nbinary_string=%s\n",binary_string);
+					//printf("\nlsb_to_use=%d\n",lsb_to_use);
+					//strcat(binary_string,(dictionary[pos].binary_string)+(strlen(dictionary[pos].binary_string)-lsb_to_use)*sizeof(char));
+					
+					strcpy(tmp_offset_binary_string,dictionary[pos].binary_string);
+				}else{//base dictionary word, this is not allowed
+					printf("\nInvalid offset argument: %s\n",s[i]);
+					return;
+				}
+			}else{
+				//test for hex constant
+				int sscanf_retval_hex = sscanf(s[i],"x\"%[0-9a-fA-F]\"",s[i]);
+				if(sscanf_retval_hex!=0){//is hex constant
+					//strcat(binary_string,hex2bin(s[i]));
+					strcpy(tmp_offset_binary_string,hex2bin(s[i]));
+					//adjusts the length to 32, extends with ZEROS
+					int L=strlen(tmp_offset_binary_string);
+					//shifts the string by 32-L bytes
+					strncpy(tmp_offset_binary_string+(32-L)*sizeof(char),tmp_offset_binary_string,L+1);//L+1 counts the '\0'
+					for(int j=0;j<32-L;j++){
+						tmp_offset_binary_string[j]='0';//prepends zeros
+					}
+				}else{
+					int sscanf_retval_bin = sscanf(s[i],"\"%[01]\"",s[i]);
+					if(sscanf_retval_bin!=0){//is bin constant
+						//strcat(binary_string,s[i]);
+						strcpy(tmp_offset_binary_string,s[i]);
+						//adjusts the length to 32, extends with ZEROS
+						int L=strlen(tmp_offset_binary_string);
+						//shifts the string by 32-L bytes
+						strncpy(tmp_offset_binary_string+(32-L)*sizeof(char),tmp_offset_binary_string,L+1);//L+1 counts the '\0'
+						for(int j=0;j<32-L;j++){
+							tmp_offset_binary_string[j]='0';//prepends zeros
+						}
+					}else{
+						//test for decimal constant
+						unsigned int tmp;
+						char *ptr_non_numeric=calloc(2,sizeof(char));
+						//decimal number
+						tmp=strtod(s[i],&ptr_non_numeric);
+						strcpy(tmp_offset_binary_string,uint2bin(tmp,32));
+						if(ptr_non_numeric[0]!='\0'){
+							printf("\nConstante inválida: %s\n",s[i]);
+							return;
+						}
+					}
+				}
+			}
+		}else{// register arguments
+			pos=find(dictionary,dictionary_size,s[i]);
+			if(pos==-1){
+				printf("Argument not found: %s\n",s[i]);
+				return;
+			}
+			strcat(binary_string,dictionary[pos].binary_string);
+			//printf("\nAppended s[%d].\n",i);
+		}
+	}
+	printf("\ntmp_offset_binary_string: %s\n",tmp_offset_binary_string);
+	printf("op=%c\n",op);
+	if(op=='+'){
+		strcpy(offset_binary_string,tmp_offset_binary_string);
+	}else{
+		int tmp=bin2uint(tmp_offset_binary_string);
+		tmp=-tmp;
+		strcpy(offset_binary_string,uint2bin((unsigned int)tmp,32));
+	}
+	//must adjust the size to fit in instruction
+	int lsb_to_use= strlen(offset_binary_string)-(32 - strlen(binary_string));//how many bits of constant will be used
+	strcat(binary_string,offset_binary_string+(strlen(offset_binary_string)-lsb_to_use)*sizeof(char));
 	return;
 }
 
