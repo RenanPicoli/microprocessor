@@ -274,6 +274,11 @@ int main(int argc,char *argv[]){
 			binary_string[i]=calloc(33,sizeof(char));
 			binary_string[i][0]='\0';
 			printf("\nInstrução i=%d: %s",i,instruction_str);
+			//printf("instruction_str[0]=%d\n",(int)instruction_str[0]);
+
+			if(instruction_str[0]==';'||instruction_str[0]=='\n'||instruction_str[0]=='\t'){//comment line or empty line, must be ignored
+				continue;
+			}
 
 			//checks if the opcode belongs to some set
 			//then calls the corresponding function to mount the binary string
@@ -365,6 +370,7 @@ int main(int argc,char *argv[]){
 	//loop for rewriting the unresolved instructions
 	//iterates through unresolved_instructions, calls again J_type_parse
 	for(int j=0;j < unresolved_instructions_size;j++){
+		printf("unresolved_instructions[j].instruction_str=%s\n",unresolved_instructions[j].instruction_str);
 		J_type_parse(binary_string[unresolved_instructions[j].line_number],unresolved_instructions[j].instruction_str,base_dict_size,unresolved_instructions[j].line_number);
 	}
 
@@ -683,6 +689,7 @@ void J_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 						strcpy(unresolved_instructions[unresolved_instructions_size].instruction_str,instruction_str);
 						unresolved_instructions_size++;
 						printf("\nConstant added for later resolution: %s\n",s[i]);
+						//return;
 					}
 				}
 			}
