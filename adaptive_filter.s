@@ -185,7 +185,7 @@ sw [r3+4] r5; escreve r5 no DR do I2S (duplica para improvisar upsampling sem pe
 lw [r3+0] r11; armazena em r11 a configuração atual do I2S (CR)
 xor r12 r12 r12; zera r12
 addi r12 r12 x"0001"; r12 <- x0001 (máscara do bit 0)
-xor r11 r12 r11; r11 <- r11 xor x"0001", ativa o bit I2S_EN (inicia transmissão)
+or r11 r12 r11; r11 <- r11 or x"0001", ativa o bit I2S_EN (inicia transmissão)
 sw [r3+0] r11; armazena r11 em I2S:CR ativa o bit I2S_EN
 halt; waits for I2S interruption (assumes sucess)
 iret; (IRQ 1 do filtro, IRQ3 global)
@@ -329,7 +329,7 @@ mult r4 r5; [hi lo] <- x0000_0000_8000_0000
 mflo r4; r4 <- x8000_0000
 ;if bit 31 of r3 is zero, return  x, else return y
 and r3 r4 r3; r3 <- r3 and r4, zero todos os bits, menos 31
-beq r3 r4 x"2"; beq r3 r4 (+2); se r3 = x80000000, (x-y)<0
+beq r3 r4 x"0002"; beq r3 r4 (+2); se r3 = x80000000, (x-y)<0
 ;case x-y>=0
 push r1; return y
 ret;
