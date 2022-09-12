@@ -210,7 +210,7 @@ architecture memArch of mini_rom is
 	126=> lw & r3 & r11 & x"0000",								-- lw [r3+0] r11, armazena em r11 a configuração atual do I2S (CR)
 	127=> R_type & r12 & r12 & r12 & "00000" & xor_funct,	-- xor r12 r12 r12; zera r12
 	128=> addi & r12 & r12 & x"0001",							--addi r12 r12 x"0001", r12 <- x0001 (máscara do bit 0)
-	129=> R_type & r11 & r12 & r11 & "00000" & or_funct,	--xor r11 r12 r11, r11 <- r11 xor x"0001", ativa o bit I2S_EN (inicia transmissão)
+	129=> R_type & r11 & r12 & r11 & "00000" & or_funct,	--or r11 r12 r11, r11 <- r11 or x"0001", ativa o bit I2S_EN (inicia transmissão)
 	130=> sw & r3 & r11 & x"0000",								-- sw [r3+0] r11, armazena r11 em I2S:CR ativa o bit I2S_EN
 	131=> halt & "00" & x"000000",								-- halt; waits for I2S interruption (assumes sucess)
 	132=> iret & "00" & x"000000",								-- iret (IRQ 1 do filtro, IRQ3 global)
