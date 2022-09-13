@@ -85,17 +85,35 @@ int main(int argc,char* argv[])
 				{
 					//printf("Found load-store instruction");
 					sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %d ( %[$a-zA-Z0-9] ) ", opcode, arg1, &offset, arg2);
+							if(strcmp(opcode,"lw")==0||strcmp(arg1,"$fp")==0){//instructions that update FP must be skipped because this is handled by HW
+								arg1[0]='\0';
+								arg2[0]='\0';
+								arg3[0]='\0';
+								continue;
+							}
 					sprintf(new_instr, "%s \[%s+%d\] %s", opcode, arg2, offset, arg1);
 				}
 				else
 				{
 					if(strcmp(opcode, "move") == 0){						
 						sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9], %[$a-zA-Z0-9] ", opcode, arg1, arg2);
+						if(strcmp(arg1,"$sp")==0){//instructions that update SP must be skipped because this is handled by HW
+							arg1[0]='\0';
+							arg2[0]='\0';
+							arg3[0]='\0';
+							continue;
+						}
 						sprintf(new_instr, "addi %s %s 0", arg2,arg1);
 					}else{
 						if(strcmp(opcode, "addi") == 0 || strcmp(opcode, "addiu") == 0)
 						{
 							sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9], %[$a-zA-Z0-9] , %d ", opcode, arg1, arg2, &offset);
+							if(strcmp(arg1,"$sp")==0){//instructions that update SP must be skipped because this is handled by HW
+								arg1[0]='\0';
+								arg2[0]='\0';
+								arg3[0]='\0';
+								continue;
+							}
 							sprintf(new_instr, "addi %s %s %d", arg2,arg1,offset);
 						}else{
 							//jump instructions
