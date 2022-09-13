@@ -35,7 +35,6 @@ int main(int argc,char* argv[])
 		return 2;
 	}
 
-
 	printf("Parsing %s\n",argv[1]);
 
 	char *new_instr = (char *)calloc(20, sizeof(char));
@@ -81,7 +80,7 @@ int main(int argc,char* argv[])
 			if(sscanf_retval==2 && termination==':'){
 				strcpy(new_instr,instr);
 			}else{
-
+				//instructions
 				if (strcmp(opcode, "sw") == 0 || strcmp(opcode, "lw") == 0)
 				{
 					//printf("Found load-store instruction");
@@ -89,9 +88,45 @@ int main(int argc,char* argv[])
 					sprintf(new_instr, "%s \[%s+%d\] %s", opcode, arg2, offset, arg1);
 				}
 				else
-				{ // R-type: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
-					sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
-					sprintf(new_instr, "%s %s %s %s", opcode, arg2, arg3, arg1);
+				{
+					if(strcmp(opcode, "move") == 0){						
+						sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9], %[$a-zA-Z0-9] ", opcode, arg1, arg2);
+						sprintf(new_instr, "addi %s %s 0", arg2,arg1);
+					}else{
+						if(strcmp(opcode, "addi") == 0 || strcmp(opcode, "addiu") == 0)
+						{
+							sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9], %[$a-zA-Z0-9] , %d ", opcode, arg1, arg2, &offset);
+							sprintf(new_instr, "addi %s %s %d", arg2,arg1,offset);
+						}else{
+							//jump instructions
+							if(strcmp(opcode, "jr") == 0||strcmp(opcode, "j") == 0||strcmp(opcode, "jalx") == 0||strcmp(opcode, "jal") == 0||strcmp(opcode, "jalr") == 0){
+								if(strcmp(opcode, "jr") == 0){
+									sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9]", opcode, arg1);
+									if(strcmp(arg1, "$31") != 0){
+										printf("Instruction not (yet) supported: %s\n",instr);
+										return -1;
+									}
+									sprintf(new_instr, "ret");
+								}
+								if(strcmp(opcode, "jalr") == 0){
+									printf("Instruction not (yet) supported: %s\n",instr);
+									return -1;
+								}
+								if(strcmp(opcode, "jalx") == 0||strcmp(opcode, "jal") == 0){
+									sscanf(instr, "%[a-zA-Z] %d", opcode, &offset);
+									sprintf(new_instr, "call %d",offset);
+								}
+								if(strcmp(opcode, "j") == 0){
+									sscanf(instr, "%[a-zA-Z] %d", opcode, &offset);
+									sprintf(new_instr, "jmp %d",offset);
+								}
+							}else{
+								// R-type: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
+								sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
+								sprintf(new_instr, "%s %s %s %s", opcode, arg2, arg3, arg1);
+							}
+						}
+					}
 				}
 				replace_char(new_instr, '$', 'r');
 				strcat(new_instr, ";");

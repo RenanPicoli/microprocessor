@@ -10,5 +10,5 @@ square:
 		move    $sp,$fp
 		lw      $fp,4($sp)
 		addiu   $sp,$sp,8
-		jr      $31
+		jr		$31
 		nop
