@@ -40,6 +40,7 @@ int main(int argc,char* argv[])
 
 	char *new_instr = (char *)calloc(20, sizeof(char));
 	char *opcode = (char *)calloc(6, sizeof(char));
+	int L;
 
 	while (!feof(fp)){
 		char* fgets_retval=fgets((char*)instr,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
@@ -52,6 +53,16 @@ int main(int argc,char* argv[])
 					break;
 				}
 			}
+			//remove newline ending, if any
+			L=strlen(instr);
+			if(instr[L-1]=='\n'){
+				instr[L-1]='\0';
+			}else{
+				if(instr[L-2]=='\r' && instr[L-1]=='\n'){
+					instr[L-2]='\0';
+					instr[L-1]='\0';
+				}
+			}
 
 			sscanf(instr, "%[a-zA-Z] %*s", opcode);
 
@@ -60,24 +71,38 @@ int main(int argc,char* argv[])
 			char arg1[4];
 			char arg2[4];
 			char arg3[4];
-			if (strcmp(opcode, "sw") == 0 || strcmp(opcode, "lw") == 0)
-			{
-				//printf("Found load-store instruction");
-				sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %d ( %[$a-zA-Z0-9] ) ", opcode, arg1, &offset, arg2);
-				sprintf(new_instr, "%s \[%s+%d\] %s", opcode, arg2, offset, arg1);
+			arg1[0]='\0';
+			arg2[0]='\0';
+			arg3[0]='\0';
+			char termination;
+
+			//check for label definition
+			int sscanf_retval=sscanf(instr,"%[$a-zA-Z0-9_] %c", opcode, &termination);
+			if(sscanf_retval==2 && termination==':'){
+				strcpy(new_instr,instr);
+			}else{
+
+				if (strcmp(opcode, "sw") == 0 || strcmp(opcode, "lw") == 0)
+				{
+					//printf("Found load-store instruction");
+					sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %d ( %[$a-zA-Z0-9] ) ", opcode, arg1, &offset, arg2);
+					sprintf(new_instr, "%s \[%s+%d\] %s", opcode, arg2, offset, arg1);
+				}
+				else
+				{ // R-type: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
+					sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
+					sprintf(new_instr, "%s %s %s %s", opcode, arg2, arg3, arg1);
+				}
+				replace_char(new_instr, '$', 'r');
+				strcat(new_instr, ";");
 			}
-			else
-			{ // R-type: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
-				sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
-				sprintf(new_instr, "%s %s %s %s", opcode, arg2, arg3, arg1);
-			}
-			replace_char(new_instr, '$', 'r');
-			strcat(new_instr, ";");
 			printf("%s\n", new_instr);
+			fprintf(of,"%s\n",new_instr);		
 		}
 	}
 
 	free(beginning_of_allocated_str);
+	fclose(of);
 	return 0;
 }
 
