@@ -103,6 +103,18 @@ int main(int argc,char* argv[])
 							arg3[0]='\0';
 							continue;
 						}
+						if(strcmp(arg1,"$fp")==0){//instructions that update FP must be skipped because this is handled by HW
+
+							if(strcmp(arg2,"$sp")==0){//instructions that update FP must be skipped because this is handled by HW
+								//TODO:
+								//select an unused register $x in this function
+								//do ldfp $x ($x <- FP)
+								//replace all instructions lw $y, offset($fp) por lw [$x + offset - 8] $y
+							}else{// FP can be updated only with SP contents
+								printf("Instruction not (yet) supported: %s\n",instr);
+								return -1;
+							}
+						}
 						sprintf(new_instr, "addi %s %s 0", arg2,arg1);
 					}else{
 						if(strcmp(opcode, "addi") == 0 || strcmp(opcode, "addiu") == 0)
