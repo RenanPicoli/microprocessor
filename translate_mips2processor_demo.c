@@ -13,11 +13,11 @@ int main(int argc,char* argv[])
 	FILE *of;//file pointer for outputfile
 
 	if(argc != 2){
-		printf("Uso: assembler FILE\n");
+		printf("Uso: %s FILE\n",argv[0]);
 		return 1;
 	}
 
-	of=fopen("./main.s","w");// opens a text file for write
+	of=fopen("./main.i","w");// opens a text file for write
 	if(of==NULL){
 		printf("Erro ao criar o arquivo de saída!\n");
 		return 1;
@@ -95,7 +95,7 @@ int main(int argc,char* argv[])
 				}
 				else
 				{
-					if(strcmp(opcode, "move") == 0){						
+					if(strcmp(opcode, "move") == 0){
 						sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9], %[$a-zA-Z0-9] ", opcode, arg1, arg2);
 						if(strcmp(arg1,"$sp")==0){//instructions that update SP must be skipped because this is handled by HW
 							arg1[0]='\0';
@@ -107,9 +107,9 @@ int main(int argc,char* argv[])
 
 							if(strcmp(arg2,"$sp")==0){//instructions that update FP must be skipped because this is handled by HW
 								//TODO:
-								//select an unused register $x in this function
-								//do ldfp $x ($x <- FP)
-								//replace all instructions lw $y, offset($fp) por lw [$x + offset - 8] $y
+								//	select an unused register $x in this function
+								//	do ldfp $x ($x <- FP)
+								//	replace all instructions lw $y, offset($fp) por lw [$x + (offset - 8)] $y
 							}else{// FP can be updated only with SP contents
 								printf("Instruction not (yet) supported: %s\n",instr);
 								return -1;
@@ -158,7 +158,7 @@ int main(int argc,char* argv[])
 						}
 					}
 				}
-				replace_char(new_instr, '$', 'r');
+				//replace_char(new_instr, '$', 'r');
 				strcat(new_instr, ";");
 			}
 			printf("%s\n", new_instr);
