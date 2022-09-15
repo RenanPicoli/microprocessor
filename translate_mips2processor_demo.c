@@ -54,6 +54,7 @@ int main(int argc,char* argv[])
 			}
 			//remove newline ending, if any
 			L=strlen(instr);
+			//printf("L=%d\n",L);
 			if(instr[L-1]=='\n'){
 				instr[L-1]='\0';
 			}else{
@@ -62,8 +63,17 @@ int main(int argc,char* argv[])
 					instr[L-1]='\0';
 				}
 			}
+			//skips empty lines
+			if(instr[0]=='\0'){
+				continue;
+			}
 
-			sscanf(instr, "%[a-zA-Z] %*s", opcode);
+			int sscanf_retval=sscanf(instr, "%[.a-zA-Z$_]", opcode);
+
+			//ignores directives started with dot '.', used only by compiler
+			if(opcode[0]=='.'){
+				continue;
+			}
 
 			printf("%s -> ", instr);
 			int offset = 0;
@@ -76,7 +86,7 @@ int main(int argc,char* argv[])
 			char termination;
 
 			//check for label definition
-			int sscanf_retval=sscanf(instr,"%[$a-zA-Z0-9_] %c", opcode, &termination);
+			sscanf_retval=sscanf(instr,"%[$a-zA-Z0-9_] %c", opcode, &termination);
 			if(sscanf_retval==2 && termination==':'){
 				strcpy(new_instr,instr);
 			}else{
@@ -85,13 +95,50 @@ int main(int argc,char* argv[])
 				{
 					//printf("Found load-store instruction");
 					sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %d ( %[$a-zA-Z0-9] ) ", opcode, arg1, &offset, arg2);
-							if(strcmp(opcode,"lw")==0||strcmp(arg1,"$fp")==0){//instructions that update FP must be skipped because this is handled by HW
-								arg1[0]='\0';
-								arg2[0]='\0';
-								arg3[0]='\0';
-								continue;
-							}
-					sprintf(new_instr, "%s \[%s+%d\] %s", opcode, arg2, offset, arg1);
+
+					//default case
+					sprintf(new_instr, "\t%s \[%s+%d\] %s;", opcode, arg2, offset, arg1);
+
+					//check for special cases,
+					//if matches, overwrite new_instr
+
+					if(strcmp(opcode,"lw")==0 && strcmp(arg1,"$fp")==0){//instructions that update FP must be skipped because this is handled by HW
+						arg1[0]='\0';
+						arg2[0]='\0';
+						arg3[0]='\0';
+						continue;
+					}
+					//	replace all instructions that get/put arguments from/to stack: lw $y, offset($fp) by lw [$30 + (offset - 8)] $y
+					if((strcmp(opcode,"lw")==0||strcmp(opcode,"sw")==0) && strcmp(arg2,"$fp")==0){//instructions that uses FP to get vars from stack or write to it mmust be translated
+						sprintf(new_instr, "\t%s \[$30+%d\] %s;", opcode, offset-8, arg1);
+						arg1[0]='\0';
+						arg2[0]='\0';
+						arg3[0]='\0';
+					}
+					//	skips instructions that save FP to stack because this is done automatically by HW
+					if(strcmp(opcode,"sw")==0 && strcmp(arg1,"$fp")==0 && strcmp(arg2,"$sp")==0){
+						//sprintf(new_instr, "\0", arg1);
+						arg1[0]='\0';
+						arg2[0]='\0';
+						arg3[0]='\0';
+						continue;
+					}
+					//	replaces instructions that save GPR to stack by push
+					//TODO: check offset to see if it is decreasing between registers being saved
+					if(strcmp(opcode,"sw")==0 && strcmp(arg1,"$fp")!=0 && strcmp(arg2,"$sp")==0){
+						sprintf(new_instr, "\tpush %s;", arg1);
+						arg1[0]='\0';
+						arg2[0]='\0';
+						arg3[0]='\0';
+					}
+					//	replaces instructions that load register with stack contents by pop
+					//TODO: check offset to see if it is decreasing between registers being loaded
+					if(strcmp(opcode,"lw")==0 && strcmp(arg2,"$sp")==0){
+						sprintf(new_instr, "\tpop %s;", arg1);
+						arg1[0]='\0';
+						arg2[0]='\0';
+						arg3[0]='\0';
+					}
 				}
 				else
 				{
@@ -106,16 +153,18 @@ int main(int argc,char* argv[])
 						if(strcmp(arg1,"$fp")==0){//instructions that update FP must be skipped because this is handled by HW
 
 							if(strcmp(arg2,"$sp")==0){//instructions that update FP must be skipped because this is handled by HW
-								//TODO:
-								//	select an unused register $x in this function
-								//	do ldfp $x ($x <- FP)
-								//	replace all instructions lw $y, offset($fp) por lw [$x + (offset - 8)] $y
+								//	Since the input assembly is generated according to MIPS calling convention and that convention uses $30 as the FP
+								//	we can be sure that $30 will not be used for other purposes, then:
+								//	do ldfp $30 ($30 <- FP)
+								//	replace all instructions lw $y, offset($fp) por lw [$30 + (offset - 8)] $y
+								sprintf(new_instr, "\tldfp $30;");
 							}else{// FP can be updated only with SP contents
 								printf("Instruction not (yet) supported: %s\n",instr);
 								return -1;
 							}
+						}else{
+							sprintf(new_instr, "\taddi %s %s 0;", arg2,arg1);
 						}
-						sprintf(new_instr, "addi %s %s 0", arg2,arg1);
 					}else{
 						if(strcmp(opcode, "addi") == 0 || strcmp(opcode, "addiu") == 0)
 						{
@@ -126,7 +175,7 @@ int main(int argc,char* argv[])
 								arg3[0]='\0';
 								continue;
 							}
-							sprintf(new_instr, "addi %s %s %d", arg2,arg1,offset);
+							sprintf(new_instr, "\taddi %s %s %d;", arg2,arg1,offset);
 						}else{
 							//jump instructions
 							if(strcmp(opcode, "jr") == 0||strcmp(opcode, "j") == 0||strcmp(opcode, "jalx") == 0||strcmp(opcode, "jal") == 0||strcmp(opcode, "jalr") == 0){
@@ -136,30 +185,37 @@ int main(int argc,char* argv[])
 										printf("Instruction not (yet) supported: %s\n",instr);
 										return -1;
 									}
-									sprintf(new_instr, "ret");
+									sprintf(new_instr, "\tret;");
 								}
 								if(strcmp(opcode, "jalr") == 0){
 									printf("Instruction not (yet) supported: %s\n",instr);
 									return -1;
 								}
 								if(strcmp(opcode, "jalx") == 0||strcmp(opcode, "jal") == 0){
-									sscanf(instr, "%[a-zA-Z] %d", opcode, &offset);
-									sprintf(new_instr, "call %d",offset);
+									sscanf(instr, "%[a-zA-Z] %s", opcode, arg1);
+									sprintf(new_instr, "\tcall %s;",arg1);
 								}
 								if(strcmp(opcode, "j") == 0){
-									sscanf(instr, "%[a-zA-Z] %d", opcode, &offset);
-									sprintf(new_instr, "jmp %d",offset);
+									sscanf(instr, "%[a-zA-Z] %s", opcode, arg1);
+									sprintf(new_instr, "\tjmp %s;",arg1);
 								}
 							}else{
-								// R-type: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
-								sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
-								sprintf(new_instr, "%s %s %s %s", opcode, arg2, arg3, arg1);
+								if(strcmp(opcode, "li") == 0){
+									// zeroes register, then adds immediate
+									sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %d", opcode, arg1, &offset);
+									sprintf(new_instr, "\txor %s %s %s;\n\taddi %s %s %d;", arg1, arg1, arg1, arg1, arg1, offset);
+
+								}else{
+									// R-type: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
+									sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
+									sprintf(new_instr, "\t%s %s %s %s;", opcode, arg2, arg3, arg1);
+								}
 							}
 						}
 					}
 				}
 				//replace_char(new_instr, '$', 'r');
-				strcat(new_instr, ";");
+				//strcat(new_instr, ";");
 			}
 			printf("%s\n", new_instr);
 			fprintf(of,"%s\n",new_instr);		
