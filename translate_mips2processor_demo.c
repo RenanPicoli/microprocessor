@@ -206,9 +206,17 @@ int main(int argc,char* argv[])
 									sprintf(new_instr, "\txor %s %s %s;\n\taddi %s %s %d;", arg1, arg1, arg1, arg1, arg1, offset);
 
 								}else{
-									// R-type: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
-									sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
-									sprintf(new_instr, "\t%s %s %s %s;", opcode, arg2, arg3, arg1);
+									//branch instructions
+									if(opcode[0]=='b'){
+										if(strcmp(opcode, "b") == 0){
+											sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %d", opcode, arg1);
+											sprintf(new_instr, "\tjmp %s;", arg1);
+										}
+									}else{
+										// R-type: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
+										sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
+										sprintf(new_instr, "\t%s %s %s %s;", opcode, arg2, arg3, arg1);
+									}
 								}
 							}
 						}
