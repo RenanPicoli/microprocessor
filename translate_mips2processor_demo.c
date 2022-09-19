@@ -88,7 +88,12 @@ int main(int argc,char* argv[])
 			//check for label definition
 			sscanf_retval=sscanf(instr,"%[$a-zA-Z0-9_] %c", opcode, &termination);
 			if(sscanf_retval==2 && termination==':'){
-				strcpy(new_instr,instr);
+				if(strcmp(opcode, "main") == 0){
+					strcpy(new_instr,instr);
+					strcat(new_instr,"\n\txor $0 $0 $0;");//includes instruction to reset $0 since this is reserved for zero in MIPS assembly
+				}else{
+					strcpy(new_instr,instr);
+				}
 			}else{
 				//instructions
 				if (strcmp(opcode, "sw") == 0 || strcmp(opcode, "lw") == 0)
@@ -211,6 +216,14 @@ int main(int argc,char* argv[])
 										if(strcmp(opcode, "b") == 0){
 											sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %d", opcode, arg1);
 											sprintf(new_instr, "\tjmp %s;", arg1);
+										}
+										if(strcmp(opcode, "bne") == 0){
+											sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
+											sprintf(new_instr, "\tbeq %s %s x\"0001\";\n\tjmp %s;", arg1, arg2, arg3);
+										}
+										if(strcmp(opcode, "beq") == 0){
+											sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9] , %[$a-zA-Z0-9] , %[$a-zA-Z0-9]", opcode, arg1, arg2, arg3);
+											sprintf(new_instr, "\tbeq %s %s x\"0001\";\n\tbeq $0 $0 x\"0001\";\n\tjmp %s;", arg1, arg2, arg3);
 										}
 									}else{
 										// R-type: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
