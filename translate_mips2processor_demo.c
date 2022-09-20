@@ -171,16 +171,22 @@ int main(int argc,char* argv[])
 							sprintf(new_instr, "\taddi %s %s 0;", arg2,arg1);
 						}
 					}else{
-						if(strcmp(opcode, "addi") == 0 || strcmp(opcode, "addiu") == 0)
+						if(strcmp(opcode, "addi") == 0 || strcmp(opcode, "addiu") == 0||strcmp(opcode, "slti") == 0 || strcmp(opcode, "sltiu") == 0||strcmp(opcode, "slt") == 0 || strcmp(opcode, "sltu") == 0)
 						{
-							sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9], %[$a-zA-Z0-9] , %d ", opcode, arg1, arg2, &offset);
-							if(strcmp(arg1,"$sp")==0){//instructions that update SP must be skipped because this is handled by HW
-								arg1[0]='\0';
-								arg2[0]='\0';
-								arg3[0]='\0';
-								continue;
+							if(strcmp(opcode, "addi") == 0 || strcmp(opcode, "addiu") == 0){
+								sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9], %[$a-zA-Z0-9] , %d ", opcode, arg1, arg2, &offset);
+								if(strcmp(arg1,"$sp")==0){//instructions that update SP must be skipped because this is handled by HW
+									arg1[0]='\0';
+									arg2[0]='\0';
+									arg3[0]='\0';
+									continue;
+								}
+								sprintf(new_instr, "\taddi %s %s %d;", arg2,arg1,offset);
 							}
-							sprintf(new_instr, "\taddi %s %s %d;", arg2,arg1,offset);
+							if(strcmp(opcode, "slti") == 0 || strcmp(opcode, "sltiu") == 0||strcmp(opcode, "slt") == 0 || strcmp(opcode, "sltu") == 0){
+								sscanf(instr, "%[a-zA-Z] %[$a-zA-Z0-9], %[$a-zA-Z0-9] , %d ", opcode, arg1, arg2, &offset);
+								sprintf(new_instr, "\tslti %s %s %d;", arg2,arg1,offset);
+							}
 						}else{
 							//jump instructions
 							if(strcmp(opcode, "jr") == 0||strcmp(opcode, "j") == 0||strcmp(opcode, "jalx") == 0||strcmp(opcode, "jal") == 0||strcmp(opcode, "jalr") == 0){
