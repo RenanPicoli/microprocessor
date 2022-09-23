@@ -203,6 +203,7 @@ def main(argv):
     #print(x)
     print(line + "->" + new_instr)
     of.write(new_instr+"\n")
-    #print(str(len(line))+":"+line)
+    
+  of.close()
 
 main(sys.argv)
