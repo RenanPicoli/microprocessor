@@ -285,8 +285,9 @@ int main(int argc,char *argv[]){
 				binary_string[i][0]='\0';
 				printf("\nInstrução i=%d: %s",i,instruction_str);
 				//printf("instruction_str[0]=%d\n",(int)instruction_str[0]);
+				//printf("instruction_str[1]=%d\n",(int)instruction_str[1]);
 
-				if(instruction_str[0]==';'||instruction_str[0]=='\n'){//comment line or empty line, must be ignored
+				if(instruction_str[0]==';'||instruction_str[0]=='\n'||instruction_str[0]=='\r'||instruction_str[0]=='\0'){//comment line or empty line, must be ignored
 					continue;
 				}
 
