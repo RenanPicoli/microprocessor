@@ -8,7 +8,7 @@ def main(argv):
     return 1;
 
   try:
-	of=open("./main.i","wt") # opens a text file for write
+	  of=open("./main.i","wt") # opens a text file for write
   except:
     print("Erro ao criar o arquivo de saída!\n");
     return 1
@@ -20,6 +20,8 @@ def main(argv):
     return 2
 
   print("Parsing %s\n" % argv[1]);
+  
+  labels_dict={} # labels started with $ must be translated 
 
   for line in fp:
     #line = "xor $0, $0, $0"
@@ -56,6 +58,7 @@ def main(argv):
 
     # check for label definition
     if(opcode[-1]==":" and len(words)==1):
+      labels_dict.update({opcode[0:-1]:""})
       if(opcode[0:-1]=="main"): # index -1 (last element) is NOT included
         # concatenate strings
         new_instr=words[0]+"\n\txor $0 $0 $0;" # includes instruction to reset $0 since this is reserved for zero in MIPS assembly
@@ -199,11 +202,57 @@ def main(argv):
       raise ValueError("Unknown instruction: {}".format(opcode))
 
     #print(txt)
-    x = re.sub("\${1}(?=\d)", "r", line)# register renaming
-    #print(x)
     print(line + "->" + new_instr)
     of.write(new_instr+"\n")
-    
+
+  # keep only labels started with '$' (those which need translation)
+  for l in labels_dict.keys():
+    if(l.startswith("$")):
+      labels_dict[l] = l[1:]
+    else:
+      labels_dict.pop(l)
+  #print(labels_dict)
   of.close()
+  
+  # re-opens intermediary file, in reading mode
+  try:
+	  of=open("./main.i","rt") # opens a text file for reading
+  except:
+    print("Erro ao ler o arquivo intermediário!\n");
+    return 2
+
+  # opens final file, in writing mode
+  try:
+	  ff=open("./main.s","wt") # opens a text file for writing
+  except:
+    print("Erro ao criar o arquivo final!\n");
+    return 3
+
+  l=list(labels_dict.keys()) # get a list of dictionary keys
+  
+  # sort it in descending order to avoid replacing a substring of a label
+  # e.g: if you have labels $L5 and $L5X, you should not look for $L5 before looking for $L5X
+  # $L5 would be found inside $L5X
+  l.sort(reverse = True)
+  
+  of_lines=[] # empty list, will store all lines of intermediary file
+  for line in of: # iterates over lines of intermediary file
+    of_lines.append(line)
+
+  for label in l: # iterates over labels_dict keys
+    #print(label)
+    for i in range(len(of_lines)): # iterates over lines of intermediary file
+      # searches for label l
+      of_lines[i] = of_lines[i].replace(label,labels_dict[label])
+      
+
+  for i in range(len(of_lines)): # iterates over lines of intermediary file
+    of_lines[i] = re.sub("\${1}(?=\d)", "r", of_lines[i])# register renaming
+      
+  # final file write
+  for i in range(len(of_lines)): # iterates over lines of intermediary file
+    ff.write(of_lines[i])
+  of.close()
+  ff.close()
 
 main(sys.argv)
