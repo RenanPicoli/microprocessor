@@ -122,20 +122,20 @@ def main(argv):
           raise ValueError("Instruction not (yet) supported: %s\n" % line);
 
       else:
-        frmt_str = "\taddi {} {} 0;"
+        frmt_str = "\taddi {} {} x\"0000\";"
         new_instr= frmt_str.format(arg[2],arg[1])
 
     elif(opcode=="addi" or opcode=="addiu" or opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu"):
 
       if(opcode=="addi" or opcode=="addiu"):
-        frmt_str="addi {} {} {};"
+        frmt_str="\taddi {} {} x\"{:04X}\";"
         if(arg[1]=="$sp"):
           continue
         else:
-          new_instr = frmt_str.format(arg[2],arg[3],arg[1])
+          new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
       elif(opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu"):
-        frmt_str="\tslti {} {} {};"
-        new_instr = frmt_str.format(arg[2],arg[1],arg[3])
+        frmt_str="\tslti {} {} x\"{:04X}\";"
+        new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
 
     # jump instructions
     elif(opcode=="jr" or opcode=="j" or opcode=="jalx" or opcode=="jal" or opcode=="jalr"):
@@ -156,8 +156,8 @@ def main(argv):
         raise ValueError("Instruction not (yet) supported: %s\n" % line);
 
     elif(opcode=="li"):
-      frmt_str="\txor {} {} {};\n\taddi {} {} {};" # zeroes register, then adds immediate
-      new_instr = frmt_str.format(arg[1],arg[1],arg[1],arg[1],arg[1],arg[2])
+      frmt_str="\txor {} {} {};\n\taddi {} {} x\"{:04X}\";" # zeroes register, then adds immediate
+      new_instr = frmt_str.format(arg[1],arg[1],arg[1],arg[1],arg[1],int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]))
 
     # branch instructions
     elif(opcode[0]=="b"):
