@@ -2,6 +2,10 @@
 import re
 import sys # for C-like command line arguments
 
+# registers available for argument passing in MIPS
+arg_regs=["$4","$5","$6","$7"]
+used_arg_regs=[]
+
 def main(argv):
   if(len(argv)!=2):
     print("Uso: %s FILE\n" % argv[0]);
@@ -147,8 +151,14 @@ def main(argv):
       elif(opcode=="jalr"):
         raise ValueError("Instruction not (yet) supported: %s\n" % line)
       elif(opcode=="jalx" or opcode=="jal"):
+        # before function call, will push used register arguments
+        used_arg_regs.sort(reverse = True)
+        new_instr=""
+        print(used_arg_regs)
+        for r in used_arg_regs:
+          new_instr = new_instr+"\tpush {};\n".format(r)
         frmt_str="\tcall {};"
-        new_instr = frmt_str.format(arg[1])
+        new_instr = new_instr + frmt_str.format(arg[1])
       elif(opcode=="j"):
         frmt_str="\tjmp {};"
         new_instr = frmt_str.format(arg[1])
@@ -200,6 +210,14 @@ def main(argv):
 
     else:
       raise ValueError("Unknown instruction: {}".format(opcode))
+      
+    if(opcode!="ext" and opcode!="div" and opcode!="divu" and opcode!="madd" and opcode!="maddu" and opcode!="msub" and opcode!="msubu" and opcode!="mult" and opcode!="multu"and opcode!="call"):
+      if(len(arg)>=2 and arg[1] in arg_regs and arg[1] not in used_arg_regs):
+        used_arg_regs.append(arg[1])
+    elif(opcode=="call"):
+      ## já fiz o push dos registradores usados, posso limpar a lista
+      used_arg_regs.clear();
+      #print (used_arg_regs)
 
     #print(txt)
     print(line + "->" + new_instr)
@@ -244,6 +262,14 @@ def main(argv):
     for i in range(len(of_lines)): # iterates over lines of intermediary file
       # searches for label l
       of_lines[i] = of_lines[i].replace(label,labels_dict[label])
+
+  for i in range(len(of_lines)): # iterates over lines of intermediary file
+    # adds instruction to load $2 with return value
+    # in MIPS convention, the return value is placed at $2 (also use $3 for 64 bit value)
+    # in my processor, there a special register RV, ldrv $2 loads $2 with the return value
+    # there is no support for returning wider values
+    if(of_lines[i].startswith("\tcall")):
+      of_lines[i] = of_lines[i]+"\tldrv $2;\n"
       
 
   for i in range(len(of_lines)): # iterates over lines of intermediary file
