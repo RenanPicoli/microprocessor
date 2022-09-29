@@ -1,4 +1,6 @@
+#!/usr/bin/python
 # -*- coding: UTF-8 -*-
+
 import re
 import sys # for C-like command line arguments
 
@@ -9,19 +11,19 @@ used_arg_regs=[]
 def main(argv):
   if(len(argv)!=2):
     print("Uso: %s FILE\n" % argv[0]);
-    return 1;
+    sys.exit(1)
 
   try:
 	  of=open("./main.i","wt") # opens a text file for write
   except:
     print("Erro ao criar o arquivo de saída!\n");
-    return 1
+    sys.exit(1)
 
   try:
     fp=open(argv[1],"rt") # instructions will only be read
   except:
     print("Erro ao ler o arquivo %s\n" % argv[1])
-    return 2
+    sys.exit(2)
 
   print("Parsing %s\n" % argv[1]);
   
@@ -74,7 +76,9 @@ def main(argv):
       # arg2 will be parsed in the form offset($x)      
       tmp = arg[2].split("(")
       if(len(tmp)!=2 or (not tmp[1].endswith(")"))):
-        raise ValueError("Syntax error: {}".format(line))
+        #raise ValueError("Syntax error: {}".format(line))
+        print("Syntax error: {}".format(line))
+        sys.exit(-1)
       tmp[1]=tmp[1][:-1] # remove ')' from tmp[1] 
       arg[2]=tmp[1]
       arg.append(tmp[0]) # arg[3] <- tmp[0]
@@ -123,7 +127,9 @@ def main(argv):
           new_instr="\tldfp $30;"
 
         else:# FP can be updated only with SP contents
-          raise ValueError("Instruction not (yet) supported: %s\n" % line);
+          #raise ValueError("Instruction not (yet) supported: %s\n" % line);
+          print("Instruction not (yet) supported: {}\n".format(line))
+          sys.exit(-1)
 
       else:
         frmt_str = "\taddi {} {} x\"0000\";"
@@ -146,10 +152,14 @@ def main(argv):
 
       if(opcode=="jr"):
         if(arg[1]!="$31"):
-          raise ValueError("Instruction not (yet) supported: %s\n" % line)
+          #raise ValueError("Instruction not (yet) supported: %s\n" % line)
+          print("Instruction not (yet) supported: {}\n".format(line))
+          sys.exit(-1)
         new_instr="\tret;"
       elif(opcode=="jalr"):
-        raise ValueError("Instruction not (yet) supported: %s\n" % line)
+        #raise ValueError("Instruction not (yet) supported: %s\n" % line)
+        print("Instruction not (yet) supported: {}\n".format(line))
+        sys.exit(-1)
       elif(opcode=="jalx" or opcode=="jal"):
         # before function call, will push used register arguments
         used_arg_regs.sort(reverse = True)
@@ -163,7 +173,9 @@ def main(argv):
         frmt_str="\tjmp {};"
         new_instr = frmt_str.format(arg[1])
       else:
-        raise ValueError("Instruction not (yet) supported: %s\n" % line);
+        #raise ValueError("Instruction not (yet) supported: %s\n" % line);
+        print("Instruction not (yet) supported: {}\n".format(line))
+        sys.exit(-1)
 
     elif(opcode=="li"):
       frmt_str="\txor {} {} {};\n\taddi {} {} x\"{:04X}\";" # zeroes register, then adds immediate
@@ -209,7 +221,9 @@ def main(argv):
       new_instr="\tnop;"
 
     else:
-      raise ValueError("Unknown instruction: {}".format(opcode))
+      #raise ValueError("Unknown instruction: {}".format(opcode))
+        print("Instruction not (yet) supported: {}\n".format(opcode))
+        sys.exit(-1)
       
     if(opcode!="ext" and opcode!="div" and opcode!="divu" and opcode!="madd" and opcode!="maddu" and opcode!="msub" and opcode!="msubu" and opcode!="mult" and opcode!="multu"and opcode!="call"):
       if(len(arg)>=2 and arg[1] in arg_regs and arg[1] not in used_arg_regs):
@@ -237,14 +251,14 @@ def main(argv):
 	  of=open("./main.i","rt") # opens a text file for reading
   except:
     print("Erro ao ler o arquivo intermediário!\n");
-    return 2
+    sys.exit(2)
 
   # opens final file, in writing mode
   try:
 	  ff=open("./main.s","wt") # opens a text file for writing
   except:
     print("Erro ao criar o arquivo final!\n");
-    return 3
+    sys.exit(3)
 
   l=list(labels_dict.keys()) # get a list of dictionary keys
   
@@ -283,5 +297,6 @@ def main(argv):
     ff.write(of_lines[i])
   of.close()
   ff.close()
+  sys.exit(0)
 
 main(sys.argv)
