@@ -270,6 +270,9 @@ def main(argv):
     # there is no support for returning wider values
     if(of_lines[i].startswith("\tcall")):
       of_lines[i] = of_lines[i]+"\tldrv $2;\n"
+      #of_lines[i] = of_lines[i]+"\tpop $2;\n"
+    elif(of_lines[i].startswith("\tret")):
+      of_lines[i] = "\tpush $2;\n"+of_lines[i]
       
 
   for i in range(len(of_lines)): # iterates over lines of intermediary file
