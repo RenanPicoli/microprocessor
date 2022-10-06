@@ -7,6 +7,7 @@ package my_types is
 	type array32 is array (natural range <>) of std_logic_vector (31 downto 0);
 	type array4 is array (natural range <>) of std_logic_vector (3 downto 0);
 	type array7 is array (natural range <>) of std_logic_vector (6 downto 0);
+	subtype vector_bus_t is array32 (0 to 7);
 	
 	type tuple is array (natural range <>) of integer;--meant to be a list of addresses
 	type boundaries is array (natural range <>) of tuple (0 to 1);--meant to be a list of pair (start:0, end:1)
