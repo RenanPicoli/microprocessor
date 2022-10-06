@@ -21,6 +21,7 @@ port (CLK_IN: in std_logic;
 		irq: in std_logic;--interrupt request
 		iack: out std_logic;--interrupt acknowledgement
 		instruction_addr: out std_logic_vector (31 downto 0);--AKA read address
+		return_value: out std_logic_vector (31 downto 0);-- output of RV register
 		ISR_addr: in std_logic_vector (31 downto 0);--address for interrupt handler, loaded when irq is asserted, it is valid one clock cycle after the IRQ detection
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
@@ -299,7 +300,8 @@ begin
 										ENA => ret,-- DO NOT use iret, because ISR should not return values
 										D => rv_in,
 										Q => rv_out);
-	rv_in <= program_stack_out;								
+	rv_in <= program_stack_out;
+	return_value <= rv_out;
 
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
