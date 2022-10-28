@@ -1,7 +1,7 @@
 # microprocessor
 small and simple MIPS processor, written in VHDL
 
-![processor_demo_diagram](https://user-images.githubusercontent.com/19754679/198403732-9cdec3b2-5c44-44ea-aee1-94fdf0adceeb.svg)
+![processor_demo_diagram](https://user-images.githubusercontent.com/19754679/198656644-863de509-2e4f-4a0a-afcc-c0e799dcba09.svg)
 
 * Single cycle datapath.
 
