@@ -3,6 +3,8 @@ small and simple MIPS processor, written in VHDL
 
 ![processor_demo_diagram](https://user-images.githubusercontent.com/19754679/198846429-f12997f6-c96a-46dd-a934-3f044b6e0c1c.svg)
 
+![processor_demo_timing](https://user-images.githubusercontent.com/19754679/198850892-ba2ec52a-6975-4611-bc4e-1ac79194e33d.svg)
+
 * Single cycle datapath.
 
 * It fetches instructions during rinsig edge of clock, accesses register file, perform operations and accesses a D-cache (mini_ram),
