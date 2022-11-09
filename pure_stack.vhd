@@ -1,7 +1,7 @@
 -------------------------------------------------------------
 --full descending stack
 --32-bit data
---contents is memory-mapped
+--contents is NOT memory-mapped
 --sp is the position of the last stasked item (32-bit word)
 --when pop signal is asserted, sp is incremented by 1 and
 --		data at position sp is copied to output
@@ -27,18 +27,29 @@ port (CLK: in std_logic;--active edge: rising_edge
 		imm: in std_logic_vector(L-1 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
 		stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
 		sp: buffer std_logic_vector(L-1 downto 0);-- points to last stacked item (address of a 32-bit word)
-		stack_out: out std_logic_vector(31 downto 0);--data retrieved from stack
-		--MEMORY-MAPPED INTERFACE
-		D: in std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
-		WREN: in std_logic;--write enable for memory-mapped interface
-		ADDR: in std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
-		Q:		out std_logic_vector(31 downto 0)-- data output for memory-mapped interface
+		stack_out: out std_logic_vector(31 downto 0)--data retrieved from stack
 );
 end entity;
 
 architecture bhv of stack is
+
+component ram_1_port
+	PORT
+	(
+		address		: IN STD_LOGIC_VECTOR (5 DOWNTO 0);
+		clock		: IN STD_LOGIC  := '1';
+		data		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+		wren		: IN STD_LOGIC ;
+		q		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
+	);
+END component;
+
+
 type memory is array (0 to 2**L-1) of std_logic_vector(31 downto 0);
 signal ram: memory;
+--since the upper hierarchy guarantees there will be no read-during-write
+attribute ramstyle : string;
+attribute ramstyle of ram : signal is "no_rw_check";
 
 --signal empty: std_logic;
 --signal full: std_logic;
@@ -69,32 +80,37 @@ signal ram: memory;
 --				'1' when sp=(others=>'0') else
 --				'0';
 	
-	mem_update: process(CLK,rst,D,ADDR,WREN,stack_in,sp,push)
+	stack_io: process(CLK,rst,stack_in,sp,push)
 	begin
---		if(rst='1')then
---			ram <= (others=>(others=>'0'));
---		elsif(rising_edge(CLK))then
-		if(rising_edge(CLK))then
+		if(rst='1')then
+			ram <= (others=>(others=>'0'));
+		elsif(rising_edge(CLK))then
+--		if(rising_edge(CLK))then
 			--only one of these inputs/interfaces can be asserted in one cycle
 			if(push='1')then
 				-- sp-1 because position pointed by sp is already used,
 				--concurrently, sp will be updated (decremented) by other process
 				ram(to_integer(unsigned(sp-1))) <= stack_in;
-			--if addsp='1' or pop='1', memory contents is not updated
-			elsif(WREN='1')then
-				ram(to_integer(unsigned(ADDR))) <= D;
+--				-- read-during-write on the same port returns NEW data
+--				stack_out <= stack_in;
+--			else
+--				-- read-during-write on mixed port returns OLD data
+--				--if addsp='1' or pop='1', memory contents is not updated
+--				stack_out <= ram(to_integer(unsigned(sp)));
 			end if;
 		end if;
 	end process;
+	-- read-during-write on mixed port returns OLD data
+	stack_out <= ram(to_integer(unsigned(sp)));
+
+--	memory_inst : ram_1_port PORT MAP (
+--			address	=> sp,
+--			clock		=> CLK,
+--			data		=> stack_in,
+--			wren		=> push,
+--			q			=> stack_out
+--		);
 	
-	--synchronous reading logic to allow ram inference
-	mem_reading: process(ram,sp,ADDR,CLK)
-	begin
-		if(falling_edge(CLK))then
-			stack_out <= ram(to_integer(unsigned(sp)));
-			Q <=  ram(to_integer(unsigned(ADDR)));
-		end if;
-	end process;
-	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
+	--TODO:	signal error conditions: sp incremented/decremented beyond limits
 	--			popping empty stack, pushing to full stack
 end bhv;

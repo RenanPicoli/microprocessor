@@ -31,6 +31,9 @@ architecture memArch of mini_ram is
 	1=> x"7FFFFFFF",-- constant for comparison
 	2=> x"3F000000",-- 0.5
 	3=> x"40000000",-- 2.0
+	--the following locations are used to communicate data between interruptions:
+	--4: (2*step)
+	--5: desired response
 	others 	=> x"0000_0000"
 	);
 	
