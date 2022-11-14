@@ -19,17 +19,24 @@ use work.my_types.all;--opcode and register "defines"
 entity mini_rom is
 	port (CLK: in std_logic;--borda de subida para escrita, se desativado, memória é lida
 			RST: in std_logic;--asynchronous reset
-			ADDR: in std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
-			Q:	out std_logic_vector(31 downto 0)
+			--interface de instrução (read-only)
+			ADDR_A: in std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
+			Q_A:	out std_logic_vector(31 downto 0);
+			--interface de dados (read-write)
+			D_B:	in std_logic_vector(31 downto 0);
+			ADDR_B: in std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
+			WREN_B: std_logic;
+			Q_B:	out std_logic_vector(31 downto 0)
 			);
 end mini_rom;
 
 architecture memArch of mini_rom is
 
-	signal ADDR_reg: std_logic_vector(7 downto 0);--ADDR is registered, then it is used to select instruction
+	signal ADDR_reg_A: std_logic_vector(7 downto 0);--ADDR_A is registered, then it is used to select instruction
+	signal ADDR_reg_B: std_logic_vector(7 downto 0);--ADDR_B is registered, then it is used to select instruction
 
 	type memory is array (0 to 255) of std_logic_vector(31 downto 0);
-	constant rom: memory := (
+	signal rom: memory := (
 0=> x"00000027",
 1=> x"00210827",
 2=> x"00421027",
@@ -278,13 +285,28 @@ others=> x"00000000"
 	begin
 		--output behaviour:
 		--necessary turn Auto ROM Replacement on
-		process(CLK,ADDR)
+		process(CLK,RST,ADDR_A)
 		begin
 			if(RST='1')then
-				ADDR_reg <= (others=>'0');
+				ADDR_reg_A <= (others=>'0');
 			elsif(rising_edge(CLK))then
-				ADDR_reg <= ADDR;
+				ADDR_reg_A <= ADDR_A;
 			end if;
 		end process;
-		Q <= rom(to_integer(unsigned(ADDR_reg)));
+		--surprisingly, the design also works with the synchronous reading logic (ram inferrence)
+--		Q_A <= rom(to_integer(unsigned(ADDR_reg_A)));
+		Q_A <= rom(to_integer(unsigned(ADDR_A)));
+		
+		process(CLK,RST,ADDR_B,WREN_B)
+		begin
+			if(RST='1')then
+				ADDR_reg_B <= (others=>'0');
+			elsif(rising_edge(CLK) and WREN_B='1')then
+				ADDR_reg_B <= ADDR_B;
+				rom(to_integer(unsigned(ADDR_B))) <= D_B;
+			end if;
+		end process;		
+		--surprisingly, the design also works with the synchronous reading logic (ram inferrence)
+--		Q_B <= rom(to_integer(unsigned(ADDR_reg_B)));
+		Q_B <= rom(to_integer(unsigned(ADDR_B)));
 end memArch;
