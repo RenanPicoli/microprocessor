@@ -36,7 +36,7 @@ architecture memArch of mini_rom is
 	signal ADDR_reg_B: std_logic_vector(7 downto 0);--ADDR_B is registered, then it is used to select instruction
 
 	type memory is array (0 to 255) of std_logic_vector(31 downto 0);
-	signal rom: memory := (
+	constant initial_value: memory := (
 0=> x"00000027",
 1=> x"00210827",
 2=> x"00421027",
@@ -281,18 +281,19 @@ architecture memArch of mini_rom is
 241=> x"D8000000",
 others=> x"00000000"
 	);
+	signal rom: memory := initial_value;
 
 	begin
 		--output behaviour:
 		--necessary turn Auto ROM Replacement on
-		process(CLK,RST,ADDR_A)
-		begin
-			if(RST='1')then
-				ADDR_reg_A <= (others=>'0');
-			elsif(rising_edge(CLK))then
-				ADDR_reg_A <= ADDR_A;
-			end if;
-		end process;
+--		process(CLK,RST,ADDR_A)
+--		begin
+--			if(RST='1')then
+--				ADDR_reg_A <= (others=>'0');
+--			elsif(rising_edge(CLK))then
+--				ADDR_reg_A <= ADDR_A;
+--			end if;
+--		end process;
 		--surprisingly, the design also works with the synchronous reading logic (ram inferrence)
 --		Q_A <= rom(to_integer(unsigned(ADDR_reg_A)));
 		Q_A <= rom(to_integer(unsigned(ADDR_A)));
@@ -300,10 +301,14 @@ others=> x"00000000"
 		process(CLK,RST,ADDR_B,WREN_B)
 		begin
 			if(RST='1')then
-				ADDR_reg_B <= (others=>'0');
-			elsif(rising_edge(CLK) and WREN_B='1')then
-				ADDR_reg_B <= ADDR_B;
-				rom(to_integer(unsigned(ADDR_B))) <= D_B;
+--				ADDR_reg_B <= (others=>'0');
+				rom <= initial_value;
+--			elsif(rising_edge(CLK) and WREN_B='1')then
+			elsif(rising_edge(CLK))then
+--				ADDR_reg_B <= ADDR_B;
+				if(WREN_B='1')then
+					rom(to_integer(unsigned(ADDR_B))) <= D_B;
+				end if;
 			end if;
 		end process;		
 		--surprisingly, the design also works with the synchronous reading logic (ram inferrence)
