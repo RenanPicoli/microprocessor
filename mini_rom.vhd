@@ -286,32 +286,34 @@ others=> x"00000000"
 	begin
 		--output behaviour:
 		--necessary turn Auto ROM Replacement on
---		process(CLK,RST,ADDR_A)
---		begin
+		process(CLK,RST,ADDR_A)
+		begin
 --			if(RST='1')then
 --				ADDR_reg_A <= (others=>'0');
---			elsif(rising_edge(CLK))then
---				ADDR_reg_A <= ADDR_A;
---			end if;
---		end process;
+			if(rising_edge(CLK))then
+--				ADDR_reg_A <= ADDR_A;				
+				Q_A <= rom(to_integer(unsigned(ADDR_A)));
+			end if;
+		end process;
 		--surprisingly, the design also works with the synchronous reading logic (ram inferrence)
 --		Q_A <= rom(to_integer(unsigned(ADDR_reg_A)));
-		Q_A <= rom(to_integer(unsigned(ADDR_A)));
+--		Q_A <= rom(to_integer(unsigned(ADDR_A)));
 		
 		process(CLK,RST,ADDR_B,WREN_B)
 		begin
-			if(RST='1')then
+--			if(RST='1')then
 --				ADDR_reg_B <= (others=>'0');
-				rom <= initial_value;
+--				rom <= initial_value;
 --			elsif(rising_edge(CLK) and WREN_B='1')then
-			elsif(rising_edge(CLK))then
+			if(rising_edge(CLK))then
 --				ADDR_reg_B <= ADDR_B;
 				if(WREN_B='1')then
 					rom(to_integer(unsigned(ADDR_B))) <= D_B;
 				end if;
+				Q_B <= rom(to_integer(unsigned(ADDR_B)));
 			end if;
 		end process;		
 		--surprisingly, the design also works with the synchronous reading logic (ram inferrence)
 --		Q_B <= rom(to_integer(unsigned(ADDR_reg_B)));
-		Q_B <= rom(to_integer(unsigned(ADDR_B)));
+--		Q_B <= rom(to_integer(unsigned(ADDR_B)));
 end memArch;
