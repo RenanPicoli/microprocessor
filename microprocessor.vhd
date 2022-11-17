@@ -27,12 +27,13 @@ port (CLK_IN: in std_logic;
 		ADDR_rom: out std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		CLK_rom: out std_logic;--clock for mini_rom (is like moving a PC register duplicate to mini_rom)
 		Q_rom:	in std_logic_vector(31 downto 0);
-		cache_ready: in std_logic;--indicates cache is ready (Q_rom is valid)
+		i_cache_ready: in std_logic;--indicates i_cache is ready (Q_rom is valid)
 		-----RAM-----------
 		ADDR_ram: out std_logic_vector(N-1 downto 0);--addr é endereço de byte, mas os Lsb são 00
 		write_data_ram: out std_logic_vector(31 downto 0);
 		rden_ram: out std_logic;--enables read on ram
 		wren_ram: out std_logic;--enables write on ram
+		d_cache_ready: in std_logic;--indicates d_cache is ready (Q_ram is valid)
 		wren_lvec: out std_logic;--enables load vector: loads vector of 8 std_logic_vector in parallel
 		lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
 		lvec_dst_mask: out std_logic_vector(6 downto 0);--mask for destination(s) address(es) for lvec
@@ -251,20 +252,20 @@ signal reg_pop: std_logic;
 
 begin
 	
-	process(rst,halt,irq,cache_ready,CLK_IN,gating_signal)
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,CLK_IN,gating_signal)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
-		elsif(falling_edge(CLK_IN))then--cache_ready,halt are stable @ falling_edge(CLK_IN)
-			if(cache_ready='1' and halt='1')then--necessary test cache_ready to prevent halt during cache miss (unknown instruction)
+		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt are stable @ falling_edge(CLK_IN)
+			if(i_cache_ready='1' and halt='1')then--necessary test i_cache_ready to prevent halt during cache miss (unknown instruction)
 				if(irq='1')then
 					clk_enable <= '1';
 				else
 					clk_enable <= '0';
 				end if;
-			elsif(cache_ready='1')then
+			elsif(i_cache_ready='1' and d_cache_ready='1')then
 				clk_enable <= '1';
-			else--if(cache_ready='0')then
+			else--if(i_cache_ready='0' or d_cache_ready='0')then
 				clk_enable <= '0';
 			end if;
 		end if;
@@ -305,7 +306,7 @@ begin
 	
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
-										ENA => cache_ready,
+										ENA => i_cache_ready,
 										D => pc_in,
 										Q => pc_out);
 										
@@ -316,7 +317,7 @@ begin
 	program_stack: mm_stack
 						generic map (L => PROGRAM_STACK_LEVELS_LOG2)
 						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
-						--during the cycle of valid instruction (cache_ready='1')
+						--during the cycle of valid instruction (i_cache_ready='1')
 						port map(CLK => CLK_IN,--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
 									--STACK INTERFACE
@@ -346,7 +347,7 @@ begin
 	fp_stack: stack
 						generic map (L => STACK_LEVELS_LOG2)
 						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
-						--during the cycle of valid instruction (cache_ready='1')
+						--during the cycle of valid instruction (i_cache_ready='1')
 						port map(CLK => CLK_IN,--active edge: rising_edge
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
 									--STACK INTERFACE
@@ -364,7 +365,7 @@ begin
 	lr_stack: stack
 						generic map (L => STACK_LEVELS_LOG2)
 						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
-						--during the cycle of valid instruction (cache_ready='1')
+						--during the cycle of valid instruction (i_cache_ready='1')
 						port map(CLK => CLK_IN,--active edge: rising_edge
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
 									--STACK INTERFACE
@@ -460,7 +461,7 @@ begin
 
 --	ADDR_rom <= pc_out(9 downto 2);
 	ADDR_rom <= pc_in(9 downto 2);--because now mini_rom and i_cache are synchronous
-	instruction <= Q_rom when cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
+	instruction <= Q_rom when i_cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
 	addressRelativeExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
