@@ -98,8 +98,9 @@ sw [r3+0] r5; escreve em filter control and status, habilita o filtro
 
 halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
 xor r5 r5 r5; zera r5
-addi r5 r5 x"FFFF"; r5 <- 0x0000FFFF (para teste do 7 segmentos)
-sw [r3+16] r5; screve r5 no registrador DR do display de 7 segmentos
+addi r5 r5 x"0132"; r5 <- 0x00000132 (endereco da instr. 50)
+lw [r5+0] r5; (carrega r5 com o valor da instrucao 50 -> x016B5827) (para teste do 7 segmentos)
+sw [r3+16] r5; escreve r5 no registrador DR do display de 7 segmentos
 jmp x"51"; volta pro halt (loop infinito)
 	
 ;r5 será um registrador para carregamento temporário de dados
