@@ -12,14 +12,15 @@ use work.my_types.all;--array32
 
 entity tdp_ram is
 	generic (N: natural; L: natural);--N: data width in bits; L: address width in bits
-	port (CLK: in std_logic;
+	port (CLK_A: in std_logic;
 			WDAT_A: in std_logic_vector(N-1 downto 0);--data for write
 			ADDR_A: in std_logic_vector(L-1 downto 0);--address for read/write
 			WREN_A: in std_logic;--enables write on port A
 			Q_A: out std_logic_vector(N-1 downto 0);
+			CLK_B: in std_logic;
 			WDAT_B: in std_logic_vector(N-1 downto 0);--data for write
 			ADDR_B: in std_logic_vector(L-1 downto 0);--address for read/write
-			WREN_B: in std_logic;--enables write on port A
+			WREN_B: in std_logic;--enables write on port B
 			Q_B: out std_logic_vector(N-1 downto 0)
 	);
 end tdp_ram;
@@ -36,9 +37,9 @@ signal RADDR_reg : std_logic_vector(L-1 downto 0);
 begin
 	-- I am following the template at "Recommend HDL coing styles" (qts-qii51007.pdf)
 
-	process(CLK)
+	process(CLK_A)
 	begin
-		if(rising_edge(CLK)) then -- Port A
+		if(rising_edge(CLK_A)) then -- Port A
 			if(WREN_A = '1') then
 				ram(to_integer(unsigned(ADDR_A))) <= WDAT_A;
 				-- Read-during-write on the same port returns NEW data
@@ -50,9 +51,9 @@ begin
 		end if;
 	end process;
 	
-	process(CLK)
+	process(CLK_B)
 	begin
-		if(rising_edge(CLK)) then -- Port B
+		if(rising_edge(CLK_B)) then -- Port B
 			if(WREN_B = '1') then
 				ram(to_integer(unsigned(ADDR_B))) <= WDAT_B;
 				-- Read-during-write on the same port returns NEW data
