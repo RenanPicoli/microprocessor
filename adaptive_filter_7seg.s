@@ -34,32 +34,32 @@
 	xor r30 r30 r30; zera r30
 	xor r31 r31 r31; zera r31
 	;configure global interrupt controller
-	addi r4 r4 x"0200"; (x80*4), r4 aponta a posição do reg do controlador de interrupção
+	addi r4 r4 x"0080"; (x80), r4 aponta a posição do reg do controlador de interrupção
 	addi r5 r5 IRQ0_Handler;
-	sw [r4+128] r5; escreve r5 no endereco da ISR IRQ0_Handler (filter_CLK rising_edge)
+	sw [r4+32] r5; escreve r5 no endereco da ISR IRQ0_Handler (filter_CLK rising_edge)
 	addi r11 r11 x"0000";
-	sw [r4+256] r11; coloca ISR IRQ0_Handler (filter_CLK rising_edge) na prioridade 0
+	sw [r4+64] r11; coloca ISR IRQ0_Handler (filter_CLK rising_edge) na prioridade 0
 
 	xor r5 r5 r5; zera r5
 	xor r11 r11 r11; zera r11
 	addi r5 r5 IRQ1_Handler;
-	sw [r4+132] r5; escreve r5 no endereco da ISR IRQ1_Handler (I2C)
+	sw [r4+33] r5; escreve r5 no endereco da ISR IRQ1_Handler (I2C)
 	addi r11 r11 x"0001";
-	sw [r4+268] r11; coloca ISR IRQ1_Handler (I2C) na prioridade 3
+	sw [r4+67] r11; coloca ISR IRQ1_Handler (I2C) na prioridade 3
 
 	xor r5 r5 r5; zera r5
 	xor r11 r11 r11; zera r11
 	addi r5 r5 IRQ2_Handler;
-	sw [r4+136] r5; escreve r5 no endereco da ISR IRQ2_Handler (I2S)
+	sw [r4+34] r5; escreve r5 no endereco da ISR IRQ2_Handler (I2S)
 	addi r11 r11 x"0002";
-	sw [r4+260] r11; coloca ISR IRQ2_Handler (I2S) na prioridade 1
+	sw [r4+65] r11; coloca ISR IRQ2_Handler (I2S) na prioridade 1
 
 	xor r5 r5 r5; zera r5
 	xor r11 r11 r11; zera r11
 	addi r5 r5 IRQ3_Handler;
-	sw [r4+140] r5; escreve r5 no endereco da ISR IRQ3_Handler (filter_CLK falling_edge)
+	sw [r4+35] r5; escreve r5 no endereco da ISR IRQ3_Handler (filter_CLK falling_edge)
 	addi r11 r11 x"0003";
-	sw [r4+264] r11; coloca ISR IRQ3_Handler (filter_CLK falling_edge) na prioridade 2
+	sw [r4+66] r11; coloca ISR IRQ3_Handler (filter_CLK falling_edge) na prioridade 2
 
 	xor r5 r5 r5; zera r5
 	xor r11 r11 r11; zera r11
@@ -67,30 +67,30 @@
 ;Feintuch’s Algorithm
 ;initialize
 addi r0 r0 x"0008"; stores N=P+Q+1=8 in r0
-addi r3 r3 x"0040"; 16*4 é a posição 0 do cache
+addi r3 r3 x"0010"; 16 é a posição 0 do cache
 lw [r3 + 0] r2; r2<- x"461C4000", armazena a cte 1E4, na posição 0 do cache
 addi r7 r7 x"0008"; r7 <- 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 	
 xor r3 r3 r3; zera r3
-addi r3 r3 x"01C8"; x72*4 é a posição 0 do filter control and status
+addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
 lw [r3+0] r5; armazena em r5 o valor do filter control and status
 xor r5 r5 r5; zera r5
 sw [r3+0] r5; escreve em filter control and status, desabilita o filtro
 
 ;I2S configuration
 xor r3 r3 r3; zera r3
-addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
+addi r3 r3 x"0068"; x68 é a posição 0 do I2S (CR register)
 xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
 addi r5 r5 "0000_0000_0_011_010_0"; configura CR: seleciona left fifo, DS 16 bits, 2 frames, aguardando início
 sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
-lw [r3+8] r5; r5 recebe o valor de I2S:SR
+lw [r3+2] r5; r5 recebe o valor de I2S:SR
 andi r5 r5 x"0080"; (zera todos os bits, menos o bit 7 - pll locked)
 beq r5 r11 x"FFFD"; beq r5 r11 (-3), se r5 = 0, pll não deu lock, repetir leitura (instrucao 46)
 	
 call CODEC_INIT; (makes I2C transfers to configure codec registers)
 	
 xor r3 r3 r3; zera r3
-addi r3 r3 x"01C8"; x72*4 é a posição 0 do filter control and status
+addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
 lw [r3+0] r5; armazena em r5 o valor do filter control and status
 xor r5 r5 r5; zera r5
 addi r5 r5 x"0001"; r5 <- x0001 habilitará filtro
@@ -98,14 +98,14 @@ sw [r3+0] r5; escreve em filter control and status (x72), habilita o filtro
 
 halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
 xor r13 r13 r13; zera r13
-addi r13 r13 x"04C8"; r13 <- 4*0x132 (endereco da instr. 50)
+addi r13 r13 x"0132"; r13 <- 0x132 (endereco da instr. 50)
 lw [r13+0] r5; (carrega r5 com o valor da instrucao 50 -> x016B5827) (para teste do 7 segmentos)
 xor r6 r6 r6; zera r6
 addi r6 r6 x"7FFF"; r6 <- 0x00007FFF
 and r5 r6 r5; r5 <- r5 and 0x00007FFF
 sw [r13+0] r5; saves modified instruction to program memory
 lw [r13+0] r5; (carrega r5 com o valor NOVO da instrucao 50 -> x00005827) (para teste do 7 segmentos)
-sw [r3+8] r5; escreve r5 no registrador DR do display de 7 segmentos (x74)
+sw [r3+2] r5; escreve r5 no registrador DR do display de 7 segmentos (x74)
 jmp x"51"; volta pro halt (loop infinito)
 	
 ;r5 será um registrador para carregamento temporário de dados
@@ -123,12 +123,12 @@ IRQ0_Handler:
 lvec x"02" x"58";
 
 xor r3 r3 r3; zera r3
-addi r3 r3 x"0080"; x20*4 é a posição 0 do inner_product
-lw [r3 + 64] r1; stores squared norm in r1
+addi r3 r3 x"0020"; x20 é a posição 0 do inner_product
+lw [r3 + 16] r1; stores squared norm in r1
 xor r3 r3 r3; zera r3
-addi r3 r3 x"0040"; x10*4 é a posição 0 do cache
+addi r3 r3 x"0010"; x10 é a posição 0 do cache
 
-lw [r3+8] r6; r6 <- 0.5
+lw [r3+2] r6; r6 <- 0.5
 fdiv r6 r1 r1; r1 <- r6/r1 (0.5/squared norm)
 push r2; 1E4
 push r1; (0.5/squared norm)
@@ -137,32 +137,32 @@ pop r1; r1 <- step=MIN(0.5/squared norm,1E4), this value is removed from program
 
 ;If you want a interrupt handler to produce permanent data modification, write it to ram
 ;changes kept in register file will be lost after interrup return (iret)
-lw [r3 + 12] r6; r6<- x"40000000", armazena a cte 2.0, na posição 3 do cache
+lw [r3 + 3] r6; r6<- x"40000000", armazena a cte 2.0, na posição 3 do cache
 fmul r1 r6 r1; r1 <- (2*step)
-sw [r3 + 16] r1; saves r1 (2*step) to position 4 of cache
+sw [r3 + 4] r1; saves r1 (2*step) to position 4 of cache
 
 xor r4 r4 r4; zera o r4
-addi r4 r4 x"01C4"; r4 aponta para o registrador da resposta desejada (x71*4)
+addi r4 r4 x"0071"; r4 aponta para o registrador da resposta desejada (x71)
 lw [r4+0] r9; lê a resposta desejada e armazena em r9 (PRECISA SER antes de filter_CLK descer)
-sw [r3 + 20] r9; saves r9 (desired response) to position 5 of cache
+sw [r3 + 5] r9; saves r9 (desired response) to position 5 of cache
 iret; (IRQ 0 do filtro)
 	
 ;IRQ3_Handler(void): Processes filter output
 IRQ3_Handler:
 xor r3 r3 r3; zera o r3
-addi r3 r3 x"01C0"; r3 aponta para o registrador da saída atual do filtro (x70*4)
+addi r3 r3 x"0070"; r3 aponta para o registrador da saída atual do filtro (x70*4)
 lw [r3+0] r8; lê a resposta do filtro e armazena em r8
 
 xor r4 r4 r4; zera o r4
-addi r4 r4 x"0040"; x10*4 é a posição 0 do cache	
-lw [r4 + 20] r9; loads r9 with position 5 of cache (desired response)
+addi r4 r4 x"0010"; x10 é a posição 0 do cache	
+lw [r4 + 5] r9; loads r9 with position 5 of cache (desired response)
 fsub r9 r8 r10; Calcula e armazena o erro (d-y) em r10
 	
-lw [r4 + 16] r1; loads r1 with position 4 of cache (2*step) 
+lw [r4 + 4] r1; loads r1 with position 4 of cache (2*step) 
 fmul r1 r10 r1; r1 <- (2*step)*erro
 xor r4 r4 r4; zera o r4
-addi r4 r4 x"0100"; x40*4, r4 aponta posição 0 do vmac
-sw [r4 + 64] r1; armazena step*erro no lambda
+addi r4 r4 x"0040"; x40, r4 aponta posição 0 do vmac
+sw [r4 + 16] r1; armazena step*erro no lambda
 	
 ;Carrega VMAC:A(5) com as componentes do filtro atual(0)
 lvec x"00" x"20";
@@ -182,13 +182,13 @@ lvec x"00" x"02";
 ;escreve 2x no DR (upsampling fator 2)
 ;habilita a transmissão
 xor r3 r3 r3; zera r3
-addi r3 r3 x"01CC"; x73*4 é a posição do converted_output register
+addi r3 r3 x"0073"; x73 é a posição do converted_output register
 lw [r3+0] r5; loads r5 with filter response converted to 2's complement
 xor r3 r3 r3; zera r3
-addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)
-sw [r3+4] r5; escreve r5 no DR do I2S
+addi r3 r3 x"0068"; x68 é a posição 0 do I2S (CR register)
+sw [r3+1] r5; escreve r5 no DR do I2S
 ;r31 deve estar zerado, faz upsampling de 22050 Hz para 44100 Hz
-sw [r3+4] r5; escreve r5 no DR do I2S (duplica para improvisar upsampling sem perder ganho)
+sw [r3+1] r5; escreve r5 no DR do I2S (duplica para improvisar upsampling sem perder ganho)
 
 ;usar r11 para armazenar a configuração do I2S
 lw [r3+0] r11; armazena em r11 a configuração atual do I2S (CR)
@@ -202,17 +202,17 @@ iret; (IRQ 1 do filtro, IRQ3 global)
 ;IRQ2_Handler(void): Processes I2S IRQ (assumes sucess)
 IRQ2_Handler:
 xor r3 r3 r3; zera r3
-addi r3 r3 x"01A0"; x68*4 é a posição 0 do I2S (CR register)	
+addi r3 r3 x"0068"; x68 é a posição 0 do I2S (CR register)	
 xor r11 r11 r11; zera r11
 addi r11 r11 x"FFFE"; r11 <- FFFE
-sw [r3+16] r11; escreve zero no bit 0 do reg de IRQ pendentes do I2S
+sw [r3+4] r11; escreve zero no bit 0 do reg de IRQ pendentes do I2S
 iret; (IRQ do I2S)
 	
 ;CODEC_INIT(void):
 ;Audio codec configuration
 CODEC_INIT:
 xor r3 r3 r3; zera r3
-addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
+addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
 xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
 addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
 sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
@@ -306,9 +306,9 @@ I2C_WRITE:
 ;retrieving arguments from program stack (popping would increment SP)
 ldfp r4; r4 <- FP (frame pointer,first parameter, last passed by caller)
 lw [r4+0] r0; r0 <- endereco-base do I2C
-lw [r4+4] r1; r1 <- valor de CR
-lw [r4+8] r2; r2 <- valor de DR
-sw [r0+4] r2; armazena em DR o valor a ser transmitido
+lw [r4+1] r1; r1 <- valor de CR
+lw [r4+2] r2; r2 <- valor de DR
+sw [r0+1] r2; armazena em DR o valor a ser transmitido
 sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
 halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
 ret;
@@ -316,16 +316,16 @@ ret;
 ;IRQ1_Handler(void): processes I2C IRQ
 IRQ1_Handler:
 xor r3 r3 r3; zera r3
-addi r3 r3 x"0180"; x60*4 é a posição 0 do I2C (CR register)
+addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
 xor r11 r11 r11; zera r11
-sw [r0+16] r11; escreve zero no reg de IRQ pendentes do I2C
+sw [r3+4] r11; escreve zero no reg de IRQ pendentes do I2C
 iret;
 	
 ;function MIN(x,y): retorna o menor entre dois floats: x e y
 MIN:
 ldfp r2; r2 <- FP (frame pointer, points to first parameter, last passed by caller)
 lw [r2+0] r0; r0 <- x (float)
-lw [r2+4] r1; r1 <- y (float)
+lw [r2+1] r1; r1 <- y (float)
 fsub r0 r1 r3; r3 <- (x-y)
 ;creates mask for bit 31:
 xor r4 r4 r4; zera r4,
