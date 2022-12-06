@@ -50,9 +50,11 @@ typedef struct
 //function to convert hex strings to unsigned int
 unsigned int hex2uint(char* str);
 
+// tests if it is a string of N hexadecimal digits
+bool is_hex(char* str,int N);
+
 //function to convert hex strings to binary string
 char* hex2bin(char* str);
-
 
 //function to convert bin strings to unsigned int
 unsigned int bin2uint(char* str);
@@ -227,9 +229,10 @@ int main(int argc,char *argv[]){
 	//processes initial comments (OPTIONAL section)
 	while (!feof(fp)){
 		fgets((char*)tmp_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
-		sscanf_retval=sscanf(tmp_str,"; %s",comment_str);//reads a single line comment
-		//TODO: convert instruction_str to lower case
-		if(sscanf_retval==0){//fails to match
+
+		if(tmp_str[0]==';'||tmp_str[0]=='\n'||tmp_str[0]=='\r'||tmp_str[0]=='\0'){//comment line or empty line, must be ignored
+			continue;
+		}else{
 			break;
 		}
 	}
@@ -238,8 +241,8 @@ int main(int argc,char *argv[]){
 	//parses the instruction or data declaration
 	sscanf_retval=sscanf(tmp_str,"%s %s",s[0],s[1]);
 	if(strcmp(s[0],".section")==0){
-		if(strcmp(s[1],"data")==0){
-			printf("Found data section!\n");
+		if(strcmp(s[1],"rodata")==0){
+			printf("Found read-only data section!\n");
 			//loop for processing constant declarations
 			//adds the constants to the dictionary
 			while (!feof(fp)){
@@ -342,10 +345,23 @@ int main(int argc,char *argv[]){
 				}else{
 					break;
 				}
-			}
-			sscanf_retval=sscanf(instruction_str,"%s %*s",s[0]);//parses the instruction, s[0] stores the opcode
+			}			
+			
+			sscanf_retval=sscanf(instruction_str,"%s %s",s[0],s[1]);//parses the instruction, s[0] stores the opcode
 			//TODO: convert instruction_str to lower case
-			if(sscanf_retval!=0){
+			if(sscanf_retval!=0){			
+			
+				// tests for beggining of data section
+				if(strcmp(s[0],".section")==0){
+					if(strcmp(s[1],"data")==0){
+						printf("Found read-write data section!\n");
+						break;//breaks the loop, goes to print message "FILE parsed!"
+					}else{
+						printf("Invalid section: %s\n",s[1]);
+						return -1;
+					}
+				}
+			
 				binary_string=realloc(binary_string,(i+1)*sizeof(char*));
 				binary_string[i]=calloc(33,sizeof(char));
 				binary_string[i][0]='\0';
@@ -443,6 +459,51 @@ int main(int argc,char *argv[]){
 			i++;
 		}
 	}
+	
+	// processes read-write data section
+	while (!feof(fp)){
+		char* fgets_retval=fgets((char*)instruction_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
+		if(fgets_retval!=NULL){
+			//removes initial blank spaces
+			while(1){
+				if(instruction_str[0]=='\t'||instruction_str[0]==' '){
+					instruction_str++;
+				}else{
+					break;
+				}
+			}
+			sscanf_retval=sscanf(instruction_str,"%s %*s",s[0]);//parses the instruction, s[0] stores the value in hex or a label
+			//TODO: convert instruction_str to lower case
+			if(sscanf_retval!=0){
+				if(instruction_str[0]==';'||instruction_str[0]=='\n'||instruction_str[0]=='\r'||instruction_str[0]=='\0'){//comment line or empty line, must be ignored
+					continue;
+				}
+				
+				printf("\ni=%d --> %s\n",i,s[0]);
+				
+				//checks if the opcode is a label definition
+				
+				//test for hex constant
+				int sscanf_retval_hex = sscanf(s[0],"x%[0-9a-fA-F]",s[0]);
+				if(sscanf_retval_hex!=0){//is hex constant
+					binary_string=realloc(binary_string,(i+1)*sizeof(char*));
+					binary_string[i]=calloc(33,sizeof(char));
+					binary_string[i][0]='\0';
+					strcat(binary_string[i],hex2bin(s[0]));
+					i++;
+				}else{
+					if(s[0][strlen(s[0])-1]==':'){
+						printf("Found label definition: %s\n",s[0]);
+						continue;//goes to next iteration of loop (because the label was already added to dictionary)
+					}else{
+						printf("Invalid data: %s\n",s[0]);
+						return -1;
+					}
+				}
+			}
+		}
+	}
+	
 	printf("%s parsed!\n",argv[1]);
 
 	//loop for rewriting the unresolved instructions
@@ -522,6 +583,23 @@ int find(node* dict, int dict_size, char* str){
 			return i;
 	}
 	return -1;
+}
+
+// tests if it is a string of N hexadecimal digits
+bool is_hex(char* str,int N){	
+	int L=strlen(str);//string length, does not count the '\0'
+	if (L != N){
+		return false;
+	}
+	for (int i=0;i<L;i++){
+		if((str[i] >= '0' && str[i] <= '9')||
+			 (str[i] >= 'A' && str[i] <= 'F')||
+			 (str[i] >= 'a' && str[i] <= 'f')){
+			 continue;
+			}else{
+				return false;
+			}
+	}
 }
 
 //function to convert hex strings to binary string
