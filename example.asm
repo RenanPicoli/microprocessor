@@ -1,4 +1,4 @@
-.section data
+.section rodata
   BASE 20;
   MAX_HEIGHT 30;
 	THICKNESS xA4;
@@ -21,3 +21,8 @@ FOO:
   mult r0 r1; [hi lo] <= r0*r1
   mflo r2; r2 <= lo (discards MSB)
   ret;
+.section data
+  x461C4000
+  x7FFFFFFF
+  x3F000000
+  x40000000

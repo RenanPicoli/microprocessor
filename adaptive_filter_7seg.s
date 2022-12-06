@@ -1,6 +1,9 @@
 ; Adaptive filter
-; register initialization
+
+.section rodata
+	MEM_INSTR_BASE_ADDR x0100;
 .section code
+; register initialization
 	xor r0 r0 r0; zera r0
 	xor r1 r1 r1; zera r1, vai armazenar (2*step)
 	xor r2 r2 r2; zera r2, vai armazenar a cte 5E-5
@@ -67,8 +70,8 @@
 ;Feintuch’s Algorithm
 ;initialize
 addi r0 r0 x"0008"; stores N=P+Q+1=8 in r0
-addi r3 r3 x"0010"; 16 é a posição 0 do cache
-lw [r3 + 0] r2; r2<- x"461C4000", armazena a cte 1E4, na posição 0 do cache
+addi r3 r3 MEM_INSTR_BASE_ADDR; é a posição 0 da memória de instruções
+lw [r3 + FP_1E4_OFFSET] r2; r2<- x"461C4000", carrega a cte 1E4, armazenada junto do programa
 addi r7 r7 x"0008"; r7 <- 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 	
 xor r3 r3 r3; zera r3
@@ -98,13 +101,12 @@ sw [r3+0] r5; escreve em filter control and status (x72), habilita o filtro
 
 halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
 xor r13 r13 r13; zera r13
-addi r13 r13 x"0132"; r13 <- 0x132 (endereco da instr. 50)
-lw [r13+0] r5; (carrega r5 com o valor da instrucao 50 -> x016B5827) (para teste do 7 segmentos)
-xor r6 r6 r6; zera r6
-addi r6 r6 x"7FFF"; r6 <- 0x00007FFF
-and r5 r6 r5; r5 <- r5 and 0x00007FFF
-sw [r13+0] r5; saves modified instruction to program memory
-lw [r13+0] r5; (carrega r5 com o valor NOVO da instrucao 50 -> x00005827) (para teste do 7 segmentos)
+addi r13 r13 MEM_INSTR_BASE_ADDR; r13 <- 0x100 base address da memória de instruções
+lw [r13+50] r5; (carrega r5 com o valor da instrucao 50 -> x016B5827) (para teste do 7 segmentos)
+lw [r13 + INSTR_MASK_OFFSET] r6; <- 0x0000FFFF
+and r5 r6 r5; r5 <- r5 and 0x0000FFFF
+sw [r13+50] r5; saves modified instruction to program memory
+lw [r13+50] r5; (carrega r5 com o valor NOVO da instrucao 50 -> x00005827) (para teste do 7 segmentos)
 sw [r3+2] r5; escreve r5 no registrador DR do display de 7 segmentos (x74)
 jmp x"51"; volta pro halt (loop infinito)
 	
@@ -126,9 +128,9 @@ xor r3 r3 r3; zera r3
 addi r3 r3 x"0020"; x20 é a posição 0 do inner_product
 lw [r3 + 16] r1; stores squared norm in r1
 xor r3 r3 r3; zera r3
-addi r3 r3 x"0010"; x10 é a posição 0 do cache
+addi r3 r3 MEM_INSTR_BASE_ADDR; posição 0 da memória de instruções
 
-lw [r3+2] r6; r6 <- 0.5
+lw [r3+FP_0_5_OFFSET] r6; r6 <- 0.5
 fdiv r6 r1 r1; r1 <- r6/r1 (0.5/squared norm)
 push r2; 1E4
 push r1; (0.5/squared norm)
@@ -137,14 +139,16 @@ pop r1; r1 <- step=MIN(0.5/squared norm,1E4), this value is removed from program
 
 ;If you want a interrupt handler to produce permanent data modification, write it to ram
 ;changes kept in register file will be lost after interrup return (iret)
-lw [r3 + 3] r6; r6<- x"40000000", armazena a cte 2.0, na posição 3 do cache
+lw [r3 + FP_2_OFFSET] r6; r6<- x"40000000", carrega a cte 2.0, da memória de instrução
 fmul r1 r6 r1; r1 <- (2*step)
-sw [r3 + 4] r1; saves r1 (2*step) to position 4 of cache
+xor r3 r3 r3; zera r3
+addi r3 r3 x"0010"; r3 aponta para a posição 0 da mini_ram
+sw [r3 + 0] r1; saves r1 (2*step) to position 0 of mini_ram
 
 xor r4 r4 r4; zera o r4
 addi r4 r4 x"0071"; r4 aponta para o registrador da resposta desejada (x71)
 lw [r4+0] r9; lê a resposta desejada e armazena em r9 (PRECISA SER antes de filter_CLK descer)
-sw [r3 + 5] r9; saves r9 (desired response) to position 5 of cache
+sw [r3 + 1] r9; saves r9 (desired response) to position 1 of mini_ram
 iret; (IRQ 0 do filtro)
 	
 ;IRQ3_Handler(void): Processes filter output
@@ -154,11 +158,11 @@ addi r3 r3 x"0070"; r3 aponta para o registrador da saída atual do filtro (x70*
 lw [r3+0] r8; lê a resposta do filtro e armazena em r8
 
 xor r4 r4 r4; zera o r4
-addi r4 r4 x"0010"; x10 é a posição 0 do cache	
-lw [r4 + 5] r9; loads r9 with position 5 of cache (desired response)
+addi r4 r4 x"0010"; x10 é a posição 0 da mini_ram	
+lw [r4 + 1] r9; loads r9 with position 1 of mini_ram (desired response)
 fsub r9 r8 r10; Calcula e armazena o erro (d-y) em r10
 	
-lw [r4 + 4] r1; loads r1 with position 4 of cache (2*step) 
+lw [r4 + 0] r1; loads r1 with position 0 of mini_ram (2*step) 
 fmul r1 r10 r1; r1 <- (2*step)*erro
 xor r4 r4 r4; zera o r4
 addi r4 r4 x"0040"; x40, r4 aponta posição 0 do vmac
@@ -328,14 +332,8 @@ lw [r2+0] r0; r0 <- x (float)
 lw [r2+1] r1; r1 <- y (float)
 fsub r0 r1 r3; r3 <- (x-y)
 ;creates mask for bit 31:
-xor r4 r4 r4; zera r4,
-addi r4 r4 x"8000"; r4 <- x8000
-mult r4 r4; [hi lo] <- x0000_0000_4000_0000
-mflo r4; r4 <- x4000_0000
-xor r5 r5 r5; zera r5,
-addi r5 r5 x"0002"; r5 <- 2	
-mult r4 r5; [hi lo] <- x0000_0000_8000_0000
-mflo r4; r4 <- x8000_0000
+addi r5 r5 MEM_INSTR_BASE_ADDR;
+lw [r5+BIT_31_MASK_OFFSET] r4;
 ;if bit 31 of r3 is zero, return  x, else return y
 and r3 r4 r3; r3 <- r3 and r4, zero todos os bits, menos 31
 beq r3 r4 x"0002"; beq r3 r4 (+2); se r3 = x80000000, (x-y)<0
@@ -345,3 +343,16 @@ ret;
 ;case x-y<0
 push r0; return 0
 ret;
+
+.section data
+; all data here must be 32-bit
+FP_1E4_OFFSET:
+  x461C4000; 1E4: a filter constant
+FP_0_5_OFFSET:
+  x3F000000; 0.5
+FP_2_OFFSET:
+  x40000000; 2.0
+INSTR_MASK_OFFSET:
+  x0000FFFF
+BIT_31_MASK_OFFSET:
+  x80000000
