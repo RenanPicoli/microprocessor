@@ -280,7 +280,7 @@ int main(int argc,char *argv[]){
 		}
 	}
 
-	//will iterate twice thorugh file:
+	//will iterate twice through file:
 	//1st pass will be to find all label definitions, then close file
 	//2nd pass will start from end of data section, if any, and process instructions
 	long beginning_of_instructions = ftell(fp);
@@ -308,13 +308,19 @@ int main(int argc,char *argv[]){
 					if(is_opcode(s[0])){//it is a instruction
 						i++;
 					}else{
-						printf("Found label definition: %s\n",s[0]);
-						dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
-						//TODO: convert s0, s1 to lower case
-						strncpy(dictionary[dictionary_size].name,s[0],strlen(s[0])+1);
-						strncpy(dictionary[dictionary_size].binary_string,uint2bin((unsigned int)i,32),32);
-						dictionary_size++;
-						continue;//goes to next iteration of loop (next instruction)
+						//test for hex constant
+						int sscanf_retval_hex = sscanf(s[0],"x%[0-9a-fA-F]",s[1]);
+						if(sscanf_retval_hex!=0){//is hex constant
+							i++;
+						}else{
+							printf("Found label definition: %s\n",s[0]);
+							dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
+							//TODO: convert s0, s1 to lower case
+							strncpy(dictionary[dictionary_size].name,s[0],strlen(s[0])+1);
+							strncpy(dictionary[dictionary_size].binary_string,uint2bin((unsigned int)i,32),32);
+							dictionary_size++;
+							continue;//goes to next iteration of loop (next instruction)
+						}
 					}
 				}
 			}
@@ -482,24 +488,24 @@ int main(int argc,char *argv[]){
 				printf("\ni=%d --> %s\n",i,s[0]);
 				
 				//checks if the opcode is a label definition
-				
-				//test for hex constant
-				int sscanf_retval_hex = sscanf(s[0],"x%[0-9a-fA-F]",s[0]);
-				if(sscanf_retval_hex!=0){//is hex constant
-					binary_string=realloc(binary_string,(i+1)*sizeof(char*));
-					binary_string[i]=calloc(33,sizeof(char));
-					binary_string[i][0]='\0';
-					strcat(binary_string[i],hex2bin(s[0]));
-					i++;
+				if(s[0][strlen(s[0])-1]==':'){
+					printf("Found label definition: %s\n",s[0]);
+					continue;//goes to next iteration of loop (because the label was already added to dictionary)
 				}else{
-					if(s[0][strlen(s[0])-1]==':'){
-						printf("Found label definition: %s\n",s[0]);
-						continue;//goes to next iteration of loop (because the label was already added to dictionary)
+					//test for hex constant
+					int sscanf_retval_hex = sscanf(s[0],"x%[0-9a-fA-F]",s[0]);
+					if(sscanf_retval_hex!=0){//is hex constant
+						binary_string=realloc(binary_string,(i+1)*sizeof(char*));
+						binary_string[i]=calloc(33,sizeof(char));
+						binary_string[i][0]='\0';
+						strcat(binary_string[i],hex2bin(s[0]));
+						i++;
 					}else{
 						printf("Invalid data: %s\n",s[0]);
 						return -1;
 					}
 				}
+				
 			}
 		}
 	}

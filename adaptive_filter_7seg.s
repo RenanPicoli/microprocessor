@@ -347,7 +347,7 @@ ret;
 .section data
 ; all data here must be 32-bit
 FP_1E4_OFFSET:
-  x461C4000; 1E4: a filter constant
+  x461C4000; 1E4 is a filter constant
 FP_0_5_OFFSET:
   x3F000000; 0.5
 FP_2_OFFSET:
