@@ -683,7 +683,7 @@ void print_dict(node* dict,unsigned int L){
 	//unsigned int L=sizeof(dict)/sizeof(node);
 	printf("Dictionary's size: %d\n",L);
 	for(int i=0;i<L;i++){
-		printf("{%s,%s}\n",dict[i].name,dict[i].binary_string);
+		printf("{%s, %s}\n",dict[i].name,dict[i].binary_string);
 	}
 	return;
 }
@@ -760,10 +760,11 @@ void I_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 			}
 
 			pos=find(dictionary,dictionary_size,s[i]);
+			//printf("pos=%d --> %s\n",pos,dictionary[pos].binary_string);
 			if(pos!=-1){
 				if(pos >= base_dict_size){//it is a constant in data section or label
 					//must adjust the size to fit in instruction
-					int lsb_to_use= strlen(dictionary[pos].binary_string)-(32 - strlen(binary_string));//how many bits of constant will be used
+					int lsb_to_use= 32 - strlen(binary_string);//how many bits of constant will be used
 					//printf("\nbinary_string=%s\n",binary_string);
 					//printf("\nlsb_to_use=%d\n",lsb_to_use);
 					strcat(binary_string,(dictionary[pos].binary_string)+(strlen(dictionary[pos].binary_string)-lsb_to_use)*sizeof(char));
