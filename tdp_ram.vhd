@@ -37,7 +37,7 @@ signal RADDR_reg : std_logic_vector(L-1 downto 0);
 begin
 	-- I am following the template at "Recommend HDL coing styles" (qts-qii51007.pdf)
 
-	process(CLK_A)
+	process(CLK_A, CLK_B)
 	begin
 		if(rising_edge(CLK_A)) then -- Port A
 			if(WREN_A = '1') then
@@ -49,10 +49,10 @@ begin
 				Q_A <= ram(to_integer(unsigned(ADDR_A)));
 			end if;
 		end if;
-	end process;
-	
-	process(CLK_B)
-	begin
+--	end process;
+--	
+--	process(CLK_B)
+--	begin
 		if(rising_edge(CLK_B)) then -- Port B
 			if(WREN_B = '1') then
 				ram(to_integer(unsigned(ADDR_B))) <= WDAT_B;

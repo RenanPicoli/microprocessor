@@ -163,7 +163,8 @@ port (CLK: in std_logic;--active edge: rising_edge
 end component;
 
 signal CLK: std_logic;
-signal pc_in: 	std_logic_vector (31 downto 0);
+signal pc_in: 	std_logic_vector (31 downto 0);--next PC value
+signal pc_in_no_irq: std_logic_vector (31 downto 0);-- pc_in if there is no IRQin this cycle
 signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
 signal fp_in: 	std_logic_vector (31 downto 0);
 signal fp_en: 	std_logic;
@@ -256,13 +257,13 @@ begin
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
-		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt are stable @ falling_edge(CLK_IN)
-			if(i_cache_ready='1' and halt='1')then--necessary test i_cache_ready to prevent halt during cache miss (unknown instruction)
-				if(irq='1')then
-					clk_enable <= '1';
-				else
-					clk_enable <= '0';
-				end if;
+		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
+			--necessary to check if i_cache_ready='1' so that current instruction be executed
+			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
+			if(i_cache_ready='1' and halt ='1' and irq='1')then
+				clk_enable <= '1';--irq wakes up processor from halt
+			elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
+				clk_enable <= '0';
 			elsif(i_cache_ready='1' and d_cache_ready='1')then
 				clk_enable <= '1';
 			else--if(i_cache_ready='0' or d_cache_ready='0')then
@@ -294,7 +295,7 @@ begin
 										D => lr_in,
 										Q => lr_out);
 	lr_en <= call or irq or ret or iret;
-	lr_in <= lr_stack_out when (ret='1' or iret='1') else pc_incremented;
+	lr_in <= lr_stack_out when (ret='1' or iret='1') else pc_in_no_irq;
 										
 	RV: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
@@ -450,17 +451,20 @@ begin
 	addressAbsolute <= instruction(25 downto 0);
 	jump_address <= pc_out(31 downto 26) & addressAbsolute;--TODO: é pc_incremented em vez de pc_out CHECAR
 	
-	pc_in <= (others=>'0') when rst='1' else				
-				pc_out when (halt='1' and irq='0') else --keep in current instruction of halt to allow clk_enable update
-				jump_address when (jump='1') else--next pc_out if not reset
-				branch_address when (branch_or_next='1') else
-				pc_out(31 downto 26) & instruction(25 downto 0) when (call='1') else-- call: opcode(31..26) func_addr(25..0)
-				pc_out(31 downto 26) & ISR_addr(25 downto 0) when (irq='1') else-- irq is equivalent to "call ISR_addr"
-				lr_out when (ret='1' or iret='1') else
-				pc_incremented;
-
+	pc_in_no_irq <=(others=>'0') when rst='1' else				
+--						pc_out when (halt='1') else --repeat current instruction (halt) because i_cache won't stop
+						jump_address when (jump='1') else--next pc_out if not reset
+						branch_address when (branch_or_next='1') else
+						pc_out(31 downto 26) & instruction(25 downto 0) when (call='1') else-- call: opcode(31..26) func_addr(25..0)
+						lr_out when (ret='1' or iret='1') else
+						pc_incremented;
+				
+	pc_in <= pc_out(31 downto 26) & ISR_addr(25 downto 0) when (irq='1') else-- irq is equivalent to "call ISR_addr"
+				pc_in_no_irq;
+				
 --	ADDR_rom <= pc_out(7 downto 0);
-	ADDR_rom <= pc_in(7 downto 0);--because now mini_rom and i_cache are synchronous
+	ADDR_rom <= pc_in(7 downto 0) when halt='0' else --because now mini_rom and i_cache are synchronous
+					pc_out(7 downto 0);-- when halt='1', i_cache keeps running and need to repeat halt instruction
 	instruction <= Q_rom when i_cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
