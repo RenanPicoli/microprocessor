@@ -215,7 +215,7 @@ iret; (IRQ do I2S)
 ;CODEC_INIT(void):
 ;Audio codec configuration
 CODEC_INIT:
-xor r3 r3 r3; zera r3
+xor r3 r3 r3; 149: zera r3
 addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
 xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
 addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
@@ -308,13 +308,13 @@ ret;
 ;I2C_WRITE(I2C_pointer,control_reg,data_reg):
 I2C_WRITE:
 ;retrieving arguments from program stack (popping would increment SP)
-ldfp r4; r4 <- FP (frame pointer,first parameter, last passed by caller)
+ldfp r4; 217: r4 <- FP (frame pointer,first parameter, last passed by caller)
 lw [r4+0] r0; r0 <- endereco-base do I2C
 lw [r4+1] r1; r1 <- valor de CR
 lw [r4+2] r2; r2 <- valor de DR
 sw [r0+1] r2; armazena em DR o valor a ser transmitido
 sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
-halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
+halt; 223: waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
 ret;
 	
 ;IRQ1_Handler(void): processes I2C IRQ

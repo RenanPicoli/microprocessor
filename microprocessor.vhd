@@ -295,7 +295,9 @@ begin
 										D => lr_in,
 										Q => lr_out);
 	lr_en <= call or irq or ret or iret;
-	lr_in <= lr_stack_out when (ret='1' or iret='1') else pc_in_no_irq;
+	lr_in <= lr_stack_out when (ret='1' or iret='1') else
+				pc_incremented when call='1'else
+				pc_in_no_irq;--when irq='1', this points to the instruction that was "preempted" by IRQ
 										
 	RV: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
