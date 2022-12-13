@@ -25,7 +25,7 @@ port (CLK_IN: in std_logic;
 		ISR_addr: in std_logic_vector (31 downto 0);--address for interrupt handler, loaded when irq is asserted, it is valid one clock cycle after the IRQ detection
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
-		CLK_rom: out std_logic;--clock for mini_rom (is like moving a PC register duplicate to mini_rom)
+		CLK_rom: out std_logic;--clock for mini_rom (is like moving a PC register duplicate to i_cache)
 		Q_rom:	in std_logic_vector(31 downto 0);
 		i_cache_ready: in std_logic;--indicates i_cache is ready (Q_rom is valid)
 		-----RAM-----------
@@ -163,6 +163,7 @@ port (CLK: in std_logic;--active edge: rising_edge
 end component;
 
 signal CLK: std_logic;
+signal CLK_rom_en: std_logic;--enables clock for i_cache
 signal pc_in: 	std_logic_vector (31 downto 0);--next PC value
 signal pc_in_no_irq: std_logic_vector (31 downto 0);-- pc_in if there is no IRQin this cycle
 signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
@@ -272,8 +273,29 @@ begin
 		end if;
 	end process;
 	
-	CLK <= CLK_IN and clk_enable;
-	CLK_rom <= CLK;
+	CLK <= CLK_IN and clk_enable;	
+	
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,CLK_IN,gating_signal)
+	begin--indicates cache is ready or rst => CLK must toggle
+		if(rst='1')then
+			CLK_rom_en <= '1';
+		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
+			--necessary to check if i_cache_ready='1' so that current instruction be executed
+			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
+			if(i_cache_ready='1' and halt ='1' and irq='1')then
+				CLK_rom_en <= '1';--irq wakes up processor from halt
+			elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
+				CLK_rom_en <= '0';
+			elsif(i_cache_ready='1' and d_cache_ready='1')then
+				CLK_rom_en <= '1';
+			elsif(i_cache_ready='0')then--miss no i_cache, continuar o CLK_rom para buscar a instruction
+				CLK_rom_en <= '1';
+			else--miss apenas no d_cache, esperar o dado para continuar o programa
+				CLK_rom_en <= '0';
+			end if;
+		end if;
+	end process;
+	CLK_rom <= CLK_IN and CLK_rom_en;
 
 	--special purpose registers:
 	--FP (frame pointer)
@@ -465,8 +487,10 @@ begin
 				pc_in_no_irq;
 				
 --	ADDR_rom <= pc_out(7 downto 0);
-	ADDR_rom <= pc_in(7 downto 0) when halt='0' else --because now mini_rom and i_cache are synchronous
-					pc_out(7 downto 0);-- when halt='1', i_cache keeps running and need to repeat halt instruction
+	ADDR_rom <= pc_out(7 downto 0) when halt='1' and irq='0'else-- i_cache keeps running and need to repeat halt instruction
+					pc_in(7 downto 0);-- when halt='0' or irq='1' because now mini_rom and i_cache are synchronous
+					
+					
 	instruction <= Q_rom when i_cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
