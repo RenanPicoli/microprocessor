@@ -108,7 +108,7 @@ and r5 r6 r5; r5 <- r5 and 0x0000FFFF
 sw [r13+50] r5; saves modified instruction to program memory
 lw [r13+50] r5; (carrega r5 com o valor NOVO da instrucao 50 -> x00005827) (para teste do 7 segmentos)
 sw [r3+2] r5; escreve r5 no registrador DR do display de 7 segmentos (x74)
-jmp x"51"; volta pro halt (loop infinito)
+jmp x"51"; 90: volta pro halt (loop infinito)
 	
 ;r5 será um registrador para carregamento temporário de dados
 ;r6 será um índice para a iteração nos loops
@@ -122,7 +122,7 @@ jmp x"51"; volta pro halt (loop infinito)
 IRQ0_Handler:
 ;%calculo do step
 ;carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
-lvec x"02" x"58";
+lvec x"02" x"58"; instrucao 91
 
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0020"; x20 é a posição 0 do inner_product
@@ -149,12 +149,12 @@ xor r4 r4 r4; zera o r4
 addi r4 r4 x"0071"; r4 aponta para o registrador da resposta desejada (x71)
 lw [r4+0] r9; lê a resposta desejada e armazena em r9 (PRECISA SER antes de filter_CLK descer)
 sw [r3 + 1] r9; saves r9 (desired response) to position 1 of mini_ram
-iret; (IRQ 0 do filtro)
+iret; (IRQ 0 do filtro) 112
 	
 ;IRQ3_Handler(void): Processes filter output
 IRQ3_Handler:
 xor r3 r3 r3; zera o r3
-addi r3 r3 x"0070"; r3 aponta para o registrador da saída atual do filtro (x70*4)
+addi r3 r3 x"0070"; r3 aponta para o registrador da saída atual do filtro (x70)
 lw [r3+0] r8; lê a resposta do filtro e armazena em r8
 
 xor r4 r4 r4; zera o r4
