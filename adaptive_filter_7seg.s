@@ -332,6 +332,7 @@ lw [r2+0] r0; r0 <- x (float)
 lw [r2+1] r1; r1 <- y (float)
 fsub r0 r1 r3; r3 <- (x-y)
 ;creates mask for bit 31:
+xor r5 r5 r5; zera r5
 addi r5 r5 MEM_INSTR_BASE_ADDR;
 lw [r5+BIT_31_MASK_OFFSET] r4;
 ;if bit 31 of r3 is zero, return  x, else return y

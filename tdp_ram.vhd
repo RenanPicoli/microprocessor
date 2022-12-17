@@ -49,10 +49,10 @@ begin
 				Q_A <= ram(to_integer(unsigned(ADDR_A)));
 			end if;
 		end if;
---	end process;
---	
---	process(CLK_B)
---	begin
+	end process;
+	
+	process(CLK_B)
+	begin
 		if(rising_edge(CLK_B)) then -- Port B
 			if(WREN_B = '1') then
 				ram(to_integer(unsigned(ADDR_B))) <= WDAT_B;
