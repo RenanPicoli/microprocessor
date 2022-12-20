@@ -90,7 +90,7 @@ lw [r3+2] r5; r5 recebe o valor de I2S:SR
 andi r5 r5 x"0080"; (zera todos os bits, menos o bit 7 - pll locked)
 beq r5 r11 x"FFFD"; beq r5 r11 (-3), se r5 = 0, pll não deu lock, repetir leitura (instrucao 46)
 	
-call CODEC_INIT; (makes I2C transfers to configure codec registers)
+call CODEC_INIT; 74: (makes I2C transfers to configure codec registers)
 	
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
@@ -185,7 +185,7 @@ lvec x"00" x"02";
 ;I2S transmission (left fifo já foi selecionada antes do loop principal)
 ;escreve 2x no DR (upsampling fator 2)
 ;habilita a transmissão
-xor r3 r3 r3; zera r3
+xor r3 r3 r3; 129: zera r3
 addi r3 r3 x"0073"; x73 é a posição do converted_output register
 lw [r3+0] r5; loads r5 with filter response converted to 2's complement
 xor r3 r3 r3; zera r3
@@ -200,7 +200,7 @@ xor r12 r12 r12; zera r12
 addi r12 r12 x"0001"; r12 <- x0001 (máscara do bit 0)
 or r11 r12 r11; r11 <- r11 or x"0001", ativa o bit I2S_EN (inicia transmissão)
 sw [r3+0] r11; armazena r11 em I2S:CR ativa o bit I2S_EN
-halt; waits for I2S interruption (assumes sucess)
+halt;141: waits for I2S interruption (assumes sucess)
 iret; (IRQ 1 do filtro, IRQ3 global)
 																
 ;IRQ2_Handler(void): Processes I2S IRQ (assumes sucess)
@@ -218,15 +218,15 @@ CODEC_INIT:
 xor r3 r3 r3; 149: zera r3
 addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
 xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi r5 r5 "00000_0_01_0011010_0"; configura CR para 2 bytes, slave address 0b"0011010", escrita
-sw [r3+0] r5; escreve em CR, transmissão não habilitada ainda
-xor r2 r2 r2; zera r2, vai conter dados de configuracao do I2C
+addi r5 r5 "00000_0_01_0011010_0"; 152: configura CR para 2 bytes, slave address 0b"0011010", escrita
+sw [r3+0] r5; 153: escreve em CR, transmissão não habilitada ainda
+xor r2 r2 r2; 154: zera r2, vai conter dados de configuracao do I2C
 addi r2 r2 "00000_1_01_0011010_0"; vai configurar CR sempre com os mesmos valores e ativar o I2C_EN (iniciar transmissão)
 
 ;reset
 xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
-push r5; valor de DR
+push r5; 158: valor de DR
 push r2; valor de CR
 push r3; endereço do I2C
 call I2C_WRITE;
