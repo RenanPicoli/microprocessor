@@ -33,7 +33,7 @@ port (CLK_IN: in std_logic;
 		write_data_ram: out std_logic_vector(31 downto 0);
 		rden_ram: out std_logic;--enables read on ram
 		wren_ram: out std_logic;--enables write on ram
-		d_cache_ready: in std_logic;--indicates d_cache is ready (Q_ram is valid), synchronous to falling_edge(CLK_IN)
+		d_cache_ready: in std_logic;--indicates d_cache is ready (Q_ram is valid), synchronous to rising_edge(CLK_IN)
 		wren_lvec: out std_logic;--enables load vector: loads vector of 8 std_logic_vector in parallel
 		lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
 		lvec_dst_mask: out std_logic_vector(6 downto 0);--mask for destination(s) address(es) for lvec
@@ -258,8 +258,8 @@ begin
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
-		elsif(d_cache_ready='0')then
-			clk_enable <= '0';
+--		elsif(d_cache_ready='0')then
+--			clk_enable <= '0';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
 			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -281,8 +281,6 @@ begin
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			CLK_rom_en <= '1';
-		elsif(d_cache_ready='0' and i_cache_ready='1')then--miss apenas no d_cache, esperar o dado para continuar o programa
-			CLK_rom_en <= '0';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
 			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -294,8 +292,8 @@ begin
 				CLK_rom_en <= '1';
 			elsif(i_cache_ready='0')then--miss no i_cache, continuar o CLK_rom para buscar a instruction
 				CLK_rom_en <= '1';
---			else--miss apenas no d_cache, esperar o dado para continuar o programa
---				CLK_rom_en <= '0';
+			else--miss apenas no d_cache, esperar o dado para continuar o programa
+				CLK_rom_en <= '0';
 			end if;
 		end if;
 	end process;

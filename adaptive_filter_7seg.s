@@ -71,7 +71,7 @@
 ;initialize
 addi r0 r0 x"0008"; stores N=P+Q+1=8 in r0
 addi r3 r3 MEM_INSTR_BASE_ADDR; é a posição 0 da memória de instruções
-lw [r3 + FP_1E4_OFFSET] r2; r2<- x"461C4000", carrega a cte 1E4, armazenada junto do programa
+lw [r3 + FP_1E4_OFFSET] r2; 59: r2<- x"461C4000", carrega a cte 1E4, armazenada junto do programa
 addi r7 r7 x"0008"; r7 <- 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 	
 xor r3 r3 r3; zera r3
@@ -135,11 +135,11 @@ fdiv r6 r1 r1; r1 <- r6/r1 (0.5/squared norm)
 push r2; 1E4
 push r1; (0.5/squared norm)
 call MIN; call 220
-pop r1; r1 <- step=MIN(0.5/squared norm,1E4), this value is removed from program stack
+pop r1; r1 <- 102: step=MIN(0.5/squared norm,1E4), this value is removed from program stack
 
 ;If you want a interrupt handler to produce permanent data modification, write it to ram
 ;changes kept in register file will be lost after interrup return (iret)
-lw [r3 + FP_2_OFFSET] r6; r6<- x"40000000", carrega a cte 2.0, da memória de instrução
+lw [r3 + FP_2_OFFSET] r6; 103: r6<- x"40000000", carrega a cte 2.0, da memória de instrução
 fmul r1 r6 r1; r1 <- (2*step)
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0010"; r3 aponta para a posição 0 da mini_ram
@@ -162,7 +162,7 @@ addi r4 r4 x"0010"; x10 é a posição 0 da mini_ram
 lw [r4 + 1] r9; loads r9 with position 1 of mini_ram (desired response)
 fsub r9 r8 r10; Calcula e armazena o erro (d-y) em r10
 	
-lw [r4 + 0] r1; loads r1 with position 0 of mini_ram (2*step) 
+lw [r4 + 0] r1; 120: loads r1 with position 0 of mini_ram (2*step) 
 fmul r1 r10 r1; r1 <- (2*step)*erro
 xor r4 r4 r4; zera o r4
 addi r4 r4 x"0040"; x40, r4 aponta posição 0 do vmac
@@ -171,7 +171,7 @@ sw [r4 + 16] r1; armazena step*erro no lambda
 ;Carrega VMAC:A(5) com as componentes do filtro atual(0)
 lvec x"00" x"20";
 
-vmac; enables accumulation in vector A of VMAC
+vmac; 126: enables accumulation in vector A of VMAC
 	
 ;Lê o acumulador do VMAC(5) e atualiza os coeficientes do filtro(0)
 lvec x"05" x"01";	
