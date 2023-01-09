@@ -70,7 +70,7 @@
 ;Feintuch’s Algorithm
 ;initialize
 addi r0 r0 x"0008"; stores N=P+Q+1=8 in r0
-addi r3 r3 MEM_INSTR_BASE_ADDR; é a posição 0 da memória de instruções
+addi r3 r3 MEM_INSTR_BASE_ADDR; 58: é a posição 0 da memória de instruções
 lw [r3 + FP_1E4_OFFSET] r2; 59: r2<- x"461C4000", carrega a cte 1E4, armazenada junto do programa
 addi r7 r7 x"0008"; r7 <- 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 	
@@ -91,15 +91,7 @@ andi r5 r5 x"0080"; (zera todos os bits, menos o bit 7 - pll locked)
 beq r5 r11 x"FFFD"; beq r5 r11 (-3), se r5 = 0, pll não deu lock, repetir leitura (instrucao 46)
 	
 call CODEC_INIT; 74: (makes I2C transfers to configure codec registers)
-	
-xor r3 r3 r3; zera r3
-addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
-lw [r3+0] r5; armazena em r5 o valor do filter control and status
-xor r5 r5 r5; zera r5
-addi r5 r5 x"0001"; r5 <- x0001 habilitará filtro
-sw [r3+0] r5; escreve em filter control and status (x72), habilita o filtro
 
-halt; waits for filter interruption to be generated when filter_CLK rises (new sample)
 xor r13 r13 r13; zera r13
 addi r13 r13 MEM_INSTR_BASE_ADDR; r13 <- 0x100 base address da memória de instruções
 lw [r13+50] r5; (carrega r5 com o valor da instrucao 50 -> x016B5827) (para teste do 7 segmentos)
@@ -108,7 +100,17 @@ and r5 r6 r5; r5 <- r5 and 0x0000FFFF
 sw [r13+50] r5; saves modified instruction to program memory
 lw [r13+50] r5; (carrega r5 com o valor NOVO da instrucao 50 -> x00005827) (para teste do 7 segmentos)
 sw [r3+2] r5; escreve r5 no registrador DR do display de 7 segmentos (x74)
-jmp x"51"; 90: volta pro halt (loop infinito)
+
+xor r3 r3 r3; zera r3
+addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
+lw [r3+0] r5; armazena em r5 o valor do filter control and status
+xor r5 r5 r5; zera r5
+addi r5 r5 x"0001"; r5 <- x0001 habilitará filtro
+sw [r3+0] r5; escreve em filter control and status (x72), habilita o filtro
+
+halt; 89: waits for filter interruption to be generated when filter_CLK rises (new sample)
+
+jmp x"59"; 90: volta pro halt (loop infinito)
 	
 ;r5 será um registrador para carregamento temporário de dados
 ;r6 será um índice para a iteração nos loops
@@ -200,7 +202,7 @@ xor r12 r12 r12; zera r12
 addi r12 r12 x"0001"; r12 <- x0001 (máscara do bit 0)
 or r11 r12 r11; r11 <- r11 or x"0001", ativa o bit I2S_EN (inicia transmissão)
 sw [r3+0] r11; armazena r11 em I2S:CR ativa o bit I2S_EN
-halt;141: waits for I2S interruption (assumes sucess)
+halt; 141: waits for I2S interruption (assumes sucess)
 iret; (IRQ 1 do filtro, IRQ3 global)
 																
 ;IRQ2_Handler(void): Processes I2S IRQ (assumes sucess)
