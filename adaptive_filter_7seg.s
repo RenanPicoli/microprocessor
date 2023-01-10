@@ -97,12 +97,13 @@ addi r13 r13 MEM_INSTR_BASE_ADDR; r13 <- 0x100 base address da memória de instr
 lw [r13+50] r5; (carrega r5 com o valor da instrucao 50 -> x016B5827) (para teste do 7 segmentos)
 lw [r13 + INSTR_MASK_OFFSET] r6; <- 0x0000FFFF
 and r5 r6 r5; r5 <- r5 and 0x0000FFFF
-sw [r13+50] r5; saves modified instruction to program memory
+sw [r13+50] r5; 80: saves modified instruction to program memory
 lw [r13+50] r5; (carrega r5 com o valor NOVO da instrucao 50 -> x00005827) (para teste do 7 segmentos)
-sw [r3+2] r5; escreve r5 no registrador DR do display de 7 segmentos (x74)
 
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
+sw [r3+2] r5; escreve r5 no registrador DR do display de 7 segmentos (x74)
+
 lw [r3+0] r5; armazena em r5 o valor do filter control and status
 xor r5 r5 r5; zera r5
 addi r5 r5 x"0001"; r5 <- x0001 habilitará filtro

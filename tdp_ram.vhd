@@ -35,7 +35,7 @@ attribute ramstyle of ram : signal is "no_rw_check";
 signal RADDR_reg : std_logic_vector(L-1 downto 0);
 
 begin
-	-- I am following the template at "Recommend HDL coing styles" (qts-qii51007.pdf)
+	-- I am following the template at "Recommend HDL coding styles" (qts-qii51007.pdf)
 
 	process(CLK_A, CLK_B)
 	begin
