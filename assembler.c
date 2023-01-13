@@ -23,6 +23,9 @@
 //tolower, toupper
 #include <ctype.h>
 
+// include bool type
+#include <stdbool.h>
+
 //number of instructions to store
 //256 = 0x100
 #define N_INSTR 256
@@ -33,7 +36,7 @@
 //for the opcode dictionary
 typedef struct
 {
-	char name[11];//up to 10 chars and one null byte
+	char name[100];//up to 10 chars and one null byte
 	char binary_string[33];//string containing up to 6 chars in {'0','1'} and one null byte
 }node;
 
@@ -47,9 +50,11 @@ typedef struct
 //function to convert hex strings to unsigned int
 unsigned int hex2uint(char* str);
 
+// tests if it is a string of N hexadecimal digits
+bool is_hex(char* str,int N);
+
 //function to convert hex strings to binary string
 char* hex2bin(char* str);
-
 
 //function to convert bin strings to unsigned int
 unsigned int bin2uint(char* str);
@@ -60,6 +65,9 @@ char* uint2bin(unsigned int n, unsigned int L);
 
 //function to return index of string in dictionary names, or -1 if it fails
 int find(node* dict, int dict_size, char* str);
+
+//checks if a string is opcode
+bool is_opcode(char* str);
 
 //prints the dictionary
 void print_dict(node* dict,unsigned int L);
@@ -102,6 +110,15 @@ code_line* unresolved_instructions=NULL;//vector of the instructions marked for 
 unsigned int unresolved_instructions_size=0;
 char **binary_string=NULL;
 
+char ** R_type_mnemonics;
+char ** I_type_mnemonics;
+char ** J_type_mnemonics;
+char ** O_type_mnemonics;
+char ** P_type_mnemonics;
+char ** M_type_mnemonics;
+char ** L_type_mnemonics;
+char ** S_type_mnemonics;
+
 int main(int argc,char *argv[]){
 	printf("Started\n");
 	FILE *fp;//file pointer for read
@@ -126,14 +143,14 @@ int main(int argc,char *argv[]){
 	char* comment_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store single line comment read from files
 	unsigned int *ptr=malloc(1*sizeof(unsigned int));//temporary pointer to store instruction generated from a single line of fp
 
-	char ** R_type_mnemonics=calloc(64,sizeof(char*));
-	char ** I_type_mnemonics=calloc(64,sizeof(char*));
-	char ** J_type_mnemonics=calloc(64,sizeof(char*));
-	char ** O_type_mnemonics=calloc(64,sizeof(char*));
-	char ** P_type_mnemonics=calloc(64,sizeof(char*));
-	char ** M_type_mnemonics=calloc(64,sizeof(char*));
-	char ** L_type_mnemonics=calloc(64,sizeof(char*));
-	char ** S_type_mnemonics=calloc(64,sizeof(char*));
+	R_type_mnemonics=calloc(64,sizeof(char*));
+	I_type_mnemonics=calloc(64,sizeof(char*));
+	J_type_mnemonics=calloc(64,sizeof(char*));
+	O_type_mnemonics=calloc(64,sizeof(char*));
+	P_type_mnemonics=calloc(64,sizeof(char*));
+	M_type_mnemonics=calloc(64,sizeof(char*));
+	L_type_mnemonics=calloc(64,sizeof(char*));
+	S_type_mnemonics=calloc(64,sizeof(char*));
 
 	for(int k=0;k<64;k++){
 		R_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
@@ -212,9 +229,10 @@ int main(int argc,char *argv[]){
 	//processes initial comments (OPTIONAL section)
 	while (!feof(fp)){
 		fgets((char*)tmp_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
-		sscanf_retval=sscanf(tmp_str,"; %s",comment_str);//reads a single line comment
-		//TODO: convert instruction_str to lower case
-		if(sscanf_retval==0){//fails to match
+
+		if(tmp_str[0]==';'||tmp_str[0]=='\n'||tmp_str[0]=='\r'||tmp_str[0]=='\0'){//comment line or empty line, must be ignored
+			continue;
+		}else{
 			break;
 		}
 	}
@@ -223,8 +241,8 @@ int main(int argc,char *argv[]){
 	//parses the instruction or data declaration
 	sscanf_retval=sscanf(tmp_str,"%s %s",s[0],s[1]);
 	if(strcmp(s[0],".section")==0){
-		if(strcmp(s[1],"data")==0){
-			printf("Found data section!\n");
+		if(strcmp(s[1],"rodata")==0){
+			printf("Found read-only data section!\n");
 			//loop for processing constant declarations
 			//adds the constants to the dictionary
 			while (!feof(fp)){
@@ -244,7 +262,7 @@ int main(int argc,char *argv[]){
 					printf("%s\ns[0]=%s\ns[1]=%s\n",tmp_str,s[0],s[1]);
 					dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
 					//TODO: convert s0, s1 to lower case
-					strncpy(dictionary[dictionary_size].name,s[0],11);
+					strncpy(dictionary[dictionary_size].name,s[0],strlen(s[0]));
 					//converts s[1] to a binary string
 
 					unsigned int tmp;
@@ -261,11 +279,11 @@ int main(int argc,char *argv[]){
 			}
 		}
 	}
-	print_dict(dictionary,dictionary_size);
-	//return	0;
 
-	//processes instructions ONLY
-	printf("\nProcessing instructions\n");
+	//will iterate twice through file:
+	//1st pass will be to find all label definitions, then close file
+	//2nd pass will start from end of data section, if any, and process instructions
+	long beginning_of_instructions = ftell(fp);
 	while (!feof(fp)){
 		char* fgets_retval=fgets((char*)instruction_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
 		if(fgets_retval!=NULL){
@@ -280,6 +298,76 @@ int main(int argc,char *argv[]){
 			sscanf_retval=sscanf(instruction_str,"%s %*s",s[0]);//parses the instruction, s[0] stores the opcode
 			//TODO: convert instruction_str to lower case
 			if(sscanf_retval!=0){
+				if(instruction_str[0]==';'||instruction_str[0]=='\n'||instruction_str[0]=='\r'||instruction_str[0]=='\0'){//comment line or empty line, must be ignored
+					continue;
+				}
+
+				//checks if the opcode is a label definition
+				sscanf_retval=sscanf(instruction_str,"%[a-zA-Z0-9_]: %*s",s[0]);//parses the instruction, s[0] stores the opcode
+				if(sscanf_retval != 0){
+					if(is_opcode(s[0])){//it is a instruction
+						i++;
+					}else{
+						//test for hex constant
+						int sscanf_retval_hex = sscanf(s[0],"x%[0-9a-fA-F]",s[1]);
+						if(sscanf_retval_hex!=0){//is hex constant
+							i++;
+						}else{
+							printf("Found label definition: %s\n",s[0]);
+							dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
+							//TODO: convert s0, s1 to lower case
+							strncpy(dictionary[dictionary_size].name,s[0],strlen(s[0])+1);
+							strncpy(dictionary[dictionary_size].binary_string,uint2bin((unsigned int)i,32),32);
+							dictionary_size++;
+							continue;//goes to next iteration of loop (next instruction)
+						}
+					}
+				}
+			}
+		}
+	}
+	fclose(fp);//closes code file
+
+	print_dict(dictionary,dictionary_size);
+
+	fp=fopen(argv[1],"r");//instructions will only be read
+	if(fp==NULL){
+		printf("Erro ao ler o arquivo %s na 2ª passada\n",argv[1]);
+		return 2;
+	}
+	fseek(fp,beginning_of_instructions,SEEK_SET);
+
+
+	//processes instructions ONLY
+	printf("\nProcessing instructions\n");
+	i = 0;
+	while (!feof(fp)){
+		char* fgets_retval=fgets((char*)instruction_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
+		if(fgets_retval!=NULL){
+			//removes initial blank spaces
+			while(1){
+				if(instruction_str[0]=='\t'||instruction_str[0]==' '){
+					instruction_str++;
+				}else{
+					break;
+				}
+			}			
+			
+			sscanf_retval=sscanf(instruction_str,"%s %s",s[0],s[1]);//parses the instruction, s[0] stores the opcode
+			//TODO: convert instruction_str to lower case
+			if(sscanf_retval!=0){			
+			
+				// tests for beggining of data section
+				if(strcmp(s[0],".section")==0){
+					if(strcmp(s[1],"data")==0){
+						printf("Found read-write data section!\n");
+						break;//breaks the loop, goes to print message "FILE parsed!"
+					}else{
+						printf("Invalid section: %s\n",s[1]);
+						return -1;
+					}
+				}
+			
 				binary_string=realloc(binary_string,(i+1)*sizeof(char*));
 				binary_string[i]=calloc(33,sizeof(char));
 				binary_string[i][0]='\0';
@@ -345,12 +433,12 @@ int main(int argc,char *argv[]){
 												//checks if it is a label definition
 												sscanf_retval=sscanf(instruction_str,"%[a-zA-Z0-9_]: %*s",s[0]);//parses the instruction, s[0] stores the opcode
 												if(sscanf_retval != 0){
-													printf("Found label definition: %s\n",s[0]);
-													dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
+													printf("Found label definition: %s skipping...\n",s[0]);
+													//dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
 													//TODO: convert s0, s1 to lower case
-													strncpy(dictionary[dictionary_size].name,s[0],11);
-													strncpy(dictionary[dictionary_size].binary_string,uint2bin((unsigned int)i,32),32);
-													dictionary_size++;
+													//strncpy(dictionary[dictionary_size].name,s[0],11);
+													//strncpy(dictionary[dictionary_size].binary_string,uint2bin((unsigned int)i,32),32);
+													//dictionary_size++;
 													continue;//goes to next iteration of loop (next instruction)
 												}else{
 													printf("Invalid instruction: %s\n",s[0]);
@@ -377,6 +465,51 @@ int main(int argc,char *argv[]){
 			i++;
 		}
 	}
+	
+	// processes read-write data section
+	while (!feof(fp)){
+		char* fgets_retval=fgets((char*)instruction_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
+		if(fgets_retval!=NULL){
+			//removes initial blank spaces
+			while(1){
+				if(instruction_str[0]=='\t'||instruction_str[0]==' '){
+					instruction_str++;
+				}else{
+					break;
+				}
+			}
+			sscanf_retval=sscanf(instruction_str,"%s %*s",s[0]);//parses the instruction, s[0] stores the value in hex or a label
+			//TODO: convert instruction_str to lower case
+			if(sscanf_retval!=0){
+				if(instruction_str[0]==';'||instruction_str[0]=='\n'||instruction_str[0]=='\r'||instruction_str[0]=='\0'){//comment line or empty line, must be ignored
+					continue;
+				}
+				
+				printf("\ni=%d --> %s\n",i,s[0]);
+				
+				//checks if the opcode is a label definition
+				if(s[0][strlen(s[0])-1]==':'){
+					printf("Found label definition: %s\n",s[0]);
+					continue;//goes to next iteration of loop (because the label was already added to dictionary)
+				}else{
+					//test for hex constant
+					int sscanf_retval_hex = sscanf(s[0],"x%[0-9a-fA-F]",s[0]);
+					if(sscanf_retval_hex!=0){//is hex constant
+						binary_string=realloc(binary_string,(i+1)*sizeof(char*));
+						binary_string[i]=calloc(33,sizeof(char));
+						binary_string[i][0]='\0';
+						strcat(binary_string[i],hex2bin(s[0]));
+						i++;
+					}else{
+						printf("Invalid data: %s\n",s[0]);
+						return -1;
+					}
+				}
+				
+			}
+		}
+	}
+	
 	printf("%s parsed!\n",argv[1]);
 
 	//loop for rewriting the unresolved instructions
@@ -429,6 +562,26 @@ int main(int argc,char *argv[]){
 	return 0;
 }
 
+bool is_opcode(char* str){
+	if(find_mnemonic_in_vector(str,R_type_mnemonics)!=-1)
+		return true;
+	if(find_mnemonic_in_vector(str,I_type_mnemonics)!=-1)
+		return true;
+	if(find_mnemonic_in_vector(str,J_type_mnemonics)!=-1)
+		return true;
+	if(find_mnemonic_in_vector(str,O_type_mnemonics)!=-1)
+		return true;
+	if(find_mnemonic_in_vector(str,P_type_mnemonics)!=-1)
+		return true;
+	if(find_mnemonic_in_vector(str,M_type_mnemonics)!=-1)
+		return true;
+	if(find_mnemonic_in_vector(str,L_type_mnemonics)!=-1)
+		return true;
+	if(find_mnemonic_in_vector(str,S_type_mnemonics)!=-1)
+		return true;
+	return false;
+}
+
 //function to return index of  string in dictionary names, or -1 if fails
 int find(node* dict, int dict_size, char* str){
 	for(int i=0;i<dict_size;i++){
@@ -438,12 +591,29 @@ int find(node* dict, int dict_size, char* str){
 	return -1;
 }
 
+// tests if it is a string of N hexadecimal digits
+bool is_hex(char* str,int N){	
+	int L=strlen(str);//string length, does not count the '\0'
+	if (L != N){
+		return false;
+	}
+	for (int i=0;i<L;i++){
+		if((str[i] >= '0' && str[i] <= '9')||
+			 (str[i] >= 'A' && str[i] <= 'F')||
+			 (str[i] >= 'a' && str[i] <= 'f')){
+			 continue;
+			}else{
+				return false;
+			}
+	}
+}
+
 //function to convert hex strings to binary string
 char* hex2bin(char* str){
 	int L=strlen(str);//string length, does not count the '\0'
 	char* bin_str=calloc(4*L+1,sizeof(char));
 	unsigned int numeric = hex2uint(str);
-	printf("hex2bin: conversão: %s => %d\n",str,numeric);
+	printf("hex2bin: conversão: %s => %d =>",str,numeric);
 	
 	for(int i=0;i <= 4*L-1;i++){//goes from most significant digit to least significant (left to right)
 		if(numeric & (1<<(4*L-1-i))){
@@ -452,6 +622,7 @@ char* hex2bin(char* str){
 			bin_str[i] = '0';
 		}
 	}
+	printf("%s\n",bin_str);
 	return bin_str;
 }
 
@@ -512,7 +683,7 @@ void print_dict(node* dict,unsigned int L){
 	//unsigned int L=sizeof(dict)/sizeof(node);
 	printf("Dictionary's size: %d\n",L);
 	for(int i=0;i<L;i++){
-		printf("{%s,%s}\n",dict[i].name,dict[i].binary_string);
+		printf("{%s, %s}\n",dict[i].name,dict[i].binary_string);
 	}
 	return;
 }
@@ -589,10 +760,11 @@ void I_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 			}
 
 			pos=find(dictionary,dictionary_size,s[i]);
+			//printf("pos=%d --> %s\n",pos,dictionary[pos].binary_string);
 			if(pos!=-1){
 				if(pos >= base_dict_size){//it is a constant in data section or label
 					//must adjust the size to fit in instruction
-					int lsb_to_use= strlen(dictionary[pos].binary_string)-(32 - strlen(binary_string));//how many bits of constant will be used
+					int lsb_to_use= 32 - strlen(binary_string);//how many bits of constant will be used
 					//printf("\nbinary_string=%s\n",binary_string);
 					//printf("\nlsb_to_use=%d\n",lsb_to_use);
 					strcat(binary_string,(dictionary[pos].binary_string)+(strlen(dictionary[pos].binary_string)-lsb_to_use)*sizeof(char));
@@ -905,6 +1077,7 @@ void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 	}
 	strcat(binary_string,dictionary[pos].binary_string);
 	strcat(binary_string,"0000000000");
+	printf("%s\n",binary_string);
 	for(int i=1;i<sscanf_retval;i++){
 		//remove the termination char
 		if(i==sscanf_retval-1){
@@ -944,7 +1117,9 @@ void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 			//test for hex constant
 			int sscanf_retval_hex = sscanf(s[i],"x\"%[0-9a-fA-F]\"",s[i]);
 			if(sscanf_retval_hex!=0){//is hex constant
-				strcat(binary_string,hex2bin(s[i]));
+				//strcat(binary_string,hex2bin(s[i]));
+				sprintf(binary_string,"%s%s\0",binary_string,hex2bin(s[i]));
+				printf("%s\n",binary_string);
 			}else{
 				int sscanf_retval_bin = sscanf(s[i],"\"%[01]\"",s[i]);
 				if(sscanf_retval_bin!=0){//is bin constant
@@ -955,14 +1130,14 @@ void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 				}
 			}
 		}
-		strcat(binary_string,dictionary[pos].binary_string);
+		//strcat(binary_string,dictionary[pos].binary_string);
 	}
 
 	//there should be unused bits, those should be filled with zeros
-	int tmp_instr_size=strlen(binary_string);
+/*	int tmp_instr_size=strlen(binary_string);
 	for (int k=0;k<32-tmp_instr_size;k++){
 		strcat(binary_string,"0");
-	}
+	}*/
 	return;
 }
 
