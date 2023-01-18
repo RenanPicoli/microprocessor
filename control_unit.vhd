@@ -144,7 +144,7 @@ reg_data_src <= "11" when (ldfp='1' or ldrv='1' or pop='1') else
 --reg_data_src <= (R_type and (not funct(5))) & load_type;
 
 mem_data_src <= '1';--now I don't understand how to implement a instruction that operates on fp numbers and save the result to memory 
-aluSrc 	<= load_type or store_type or addi or subi or andi or ori or xori or nori or slti;--'1': operando 2 da ALU é imediato com extensão de sinal
+aluSrc 	<= addi or subi or andi or ori or xori or nori or slti;--'1': operando 2 da ALU é imediato com extensão de sinal
 regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori or slti or mfhi or mflo or ldfp or ldrv or pop;--addi tambem escreve no register file, como R-type
 
 AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require addition
@@ -156,7 +156,7 @@ AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require ad
 							mfhi='1' or mflo='1')
 			else "XX";
 
-aluControl <= 	"0010" when (AluOp = "00") else--add
+aluControl <= 	--"0010" when (AluOp = "00") else--add
 					"0110" when (AluOp = "01") else--subtract
 					--for I-type
 					"0010" when (AluOp = "11" and addi='1') else--addi

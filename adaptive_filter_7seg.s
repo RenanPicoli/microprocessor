@@ -330,7 +330,7 @@ iret;
 	
 ;function MIN(x,y): retorna o menor entre dois floats: x e y
 MIN:
-ldfp r2; r2 <- FP (frame pointer, points to first parameter, last passed by caller)
+ldfp r2; 230: r2 <- FP (frame pointer, points to first parameter, last passed by caller)
 lw [r2+0] r0; r0 <- x (float)
 lw [r2+1] r1; r1 <- y (float)
 fsub r0 r1 r3; r3 <- (x-y)
