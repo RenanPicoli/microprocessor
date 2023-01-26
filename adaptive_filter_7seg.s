@@ -137,11 +137,11 @@ lw [r3+FP_0_5_OFFSET] r6; r6 <- 0.5
 fdiv r6 r1 r1; r1 <- r6/r1 (0.5/squared norm)
 push r2; 1E4
 push r1; (0.5/squared norm)
-call MIN; call 220
+call MIN; call 229
 pop r1; r1 <- 102: step=MIN(0.5/squared norm,1E4), this value is removed from program stack
 
 ;If you want a interrupt handler to produce permanent data modification, write it to ram
-;changes kept in register file will be lost after interrup return (iret)
+;changes kept in register file will be lost after interrupt return (iret)
 lw [r3 + FP_2_OFFSET] r6; 103: r6<- x"40000000", carrega a cte 2.0, da memória de instrução
 fmul r1 r6 r1; r1 <- (2*step)
 xor r3 r3 r3; zera r3
@@ -203,7 +203,6 @@ xor r12 r12 r12; zera r12
 addi r12 r12 x"0001"; r12 <- x0001 (máscara do bit 0)
 or r11 r12 r11; r11 <- r11 or x"0001", ativa o bit I2S_EN (inicia transmissão)
 sw [r3+0] r11; armazena r11 em I2S:CR ativa o bit I2S_EN
-halt; 141: waits for I2S interruption (assumes sucess)
 iret; (IRQ 1 do filtro, IRQ3 global)
 																
 ;IRQ2_Handler(void): Processes I2S IRQ (assumes sucess)
@@ -218,18 +217,18 @@ iret; (IRQ do I2S)
 ;CODEC_INIT(void):
 ;Audio codec configuration
 CODEC_INIT:
-xor r3 r3 r3; 149: zera r3
+xor r3 r3 r3; 148: zera r3
 addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
 xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi r5 r5 "00000_0_01_0011010_0"; 152: configura CR para 2 bytes, slave address 0b"0011010", escrita
-sw [r3+0] r5; 153: escreve em CR, transmissão não habilitada ainda
-xor r2 r2 r2; 154: zera r2, vai conter dados de configuracao do I2C
+addi r5 r5 "00000_0_01_0011010_0"; 151: configura CR para 2 bytes, slave address 0b"0011010", escrita
+sw [r3+0] r5; 152: escreve em CR, transmissão não habilitada ainda
+xor r2 r2 r2; 153: zera r2, vai conter dados de configuracao do I2C
 addi r2 r2 "00000_1_01_0011010_0"; vai configurar CR sempre com os mesmos valores e ativar o I2C_EN (iniciar transmissão)
 
 ;reset
 xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
-push r5; 158: valor de DR
+push r5; 157: valor de DR
 push r2; valor de CR
 push r3; endereço do I2C
 call I2C_WRITE;
@@ -311,13 +310,13 @@ ret;
 ;I2C_WRITE(I2C_pointer,control_reg,data_reg):
 I2C_WRITE:
 ;retrieving arguments from program stack (popping would increment SP)
-ldfp r4; 217: r4 <- FP (frame pointer,first parameter, last passed by caller)
+ldfp r4; 216: r4 <- FP (frame pointer,first parameter, last passed by caller)
 lw [r4+0] r0; r0 <- endereco-base do I2C
 lw [r4+1] r1; r1 <- valor de CR
 lw [r4+2] r2; r2 <- valor de DR
 sw [r0+1] r2; armazena em DR o valor a ser transmitido
 sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
-halt; 223: waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
+halt; 222: waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
 ret;
 	
 ;IRQ1_Handler(void): processes I2C IRQ
@@ -330,7 +329,7 @@ iret;
 	
 ;function MIN(x,y): retorna o menor entre dois floats: x e y
 MIN:
-ldfp r2; 230: r2 <- FP (frame pointer, points to first parameter, last passed by caller)
+ldfp r2; 229: r2 <- FP (frame pointer, points to first parameter, last passed by caller)
 lw [r2+0] r0; r0 <- x (float)
 lw [r2+1] r1; r1 <- y (float)
 fsub r0 r1 r3; r3 <- (x-y)
