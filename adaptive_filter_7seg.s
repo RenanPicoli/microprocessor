@@ -36,6 +36,7 @@
 	xor r29 r29 r29; zera r29
 	xor r30 r30 r30; zera r30
 	xor r31 r31 r31; zera r31
+
 	;configure global interrupt controller
 	addi r4 r4 x"0080"; (x80), r4 aponta a posição do reg do controlador de interrupção
 	addi r5 r5 IRQ0_Handler;
@@ -48,21 +49,14 @@
 	addi r5 r5 IRQ1_Handler;
 	sw [r4+33] r5; escreve r5 no endereco da ISR IRQ1_Handler (I2C)
 	addi r11 r11 x"0001";
-	sw [r4+67] r11; coloca ISR IRQ1_Handler (I2C) na prioridade 3
-
-	xor r5 r5 r5; zera r5
-	xor r11 r11 r11; zera r11
-	addi r5 r5 IRQ2_Handler;
-	sw [r4+34] r5; escreve r5 no endereco da ISR IRQ2_Handler (I2S)
-	addi r11 r11 x"0002";
-	sw [r4+65] r11; coloca ISR IRQ2_Handler (I2S) na prioridade 1
+	sw [r4+66] r11; coloca ISR IRQ1_Handler (I2C) na prioridade 2
 
 	xor r5 r5 r5; zera r5
 	xor r11 r11 r11; zera r11
 	addi r5 r5 IRQ3_Handler;
 	sw [r4+35] r5; escreve r5 no endereco da ISR IRQ3_Handler (filter_CLK falling_edge)
 	addi r11 r11 x"0003";
-	sw [r4+66] r11; coloca ISR IRQ3_Handler (filter_CLK falling_edge) na prioridade 2
+	sw [r4+65] r11; coloca ISR IRQ3_Handler (filter_CLK falling_edge) na prioridade 1
 
 	xor r5 r5 r5; zera r5
 	xor r11 r11 r11; zera r11
@@ -70,8 +64,8 @@
 ;Feintuch’s Algorithm
 ;initialize
 addi r0 r0 x"0008"; stores N=P+Q+1=8 in r0
-addi r3 r3 MEM_INSTR_BASE_ADDR; 58: é a posição 0 da memória de instruções
-lw [r3 + FP_1E4_OFFSET] r2; 59: r2<- x"461C4000", carrega a cte 1E4, armazenada junto do programa
+addi r3 r3 MEM_INSTR_BASE_ADDR; 52: é a posição 0 da memória de instruções
+lw [r3 + FP_1E4_OFFSET] r2; 53: r2<- x"461C4000", carrega a cte 1E4, armazenada junto do programa
 addi r7 r7 x"0008"; r7 <- 8 (NÚMERO DE COEFICIENTES DO FILTRO)
 	
 xor r3 r3 r3; zera r3
@@ -90,14 +84,14 @@ lw [r3+2] r5; r5 recebe o valor de I2S:SR
 andi r5 r5 x"0080"; (zera todos os bits, menos o bit 7 - pll locked)
 beq r5 r11 x"FFFD"; beq r5 r11 (-3), se r5 = 0, pll não deu lock, repetir leitura (instrucao 46)
 	
-call CODEC_INIT; 74: (makes I2C transfers to configure codec registers)
+call CODEC_INIT; 68: (makes I2C transfers to configure codec registers)
 
 xor r13 r13 r13; zera r13
 addi r13 r13 MEM_INSTR_BASE_ADDR; r13 <- 0x100 base address da memória de instruções
 lw [r13+50] r5; (carrega r5 com o valor da instrucao 50 -> x016B5827) (para teste do 7 segmentos)
 lw [r13 + INSTR_MASK_OFFSET] r6; <- 0x0000FFFF
 and r5 r6 r5; r5 <- r5 and 0x0000FFFF
-sw [r13+50] r5; 80: saves modified instruction to program memory
+sw [r13+50] r5; 74: saves modified instruction to program memory
 lw [r13+50] r5; (carrega r5 com o valor NOVO da instrucao 50 -> x00005827) (para teste do 7 segmentos)
 
 xor r3 r3 r3; zera r3
@@ -109,9 +103,9 @@ xor r5 r5 r5; zera r5
 addi r5 r5 x"0001"; r5 <- x0001 habilitará filtro
 sw [r3+0] r5; escreve em filter control and status (x72), habilita o filtro
 
-halt; 89: waits for filter interruption to be generated when filter_CLK rises (new sample)
+halt; 83: waits for filter interruption to be generated when filter_CLK rises (new sample)
 
-jmp x"59"; 90: volta pro halt (loop infinito)
+jmp x"53"; 84: volta pro halt (loop infinito)
 	
 ;r5 será um registrador para carregamento temporário de dados
 ;r6 será um índice para a iteração nos loops
@@ -125,7 +119,7 @@ jmp x"59"; 90: volta pro halt (loop infinito)
 IRQ0_Handler:
 ;%calculo do step
 ;carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
-lvec x"02" x"58"; instrucao 91
+lvec x"02" x"58"; instrucao 85
 
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0020"; x20 é a posição 0 do inner_product
@@ -137,12 +131,12 @@ lw [r3+FP_0_5_OFFSET] r6; r6 <- 0.5
 fdiv r6 r1 r1; r1 <- r6/r1 (0.5/squared norm)
 push r2; 1E4
 push r1; (0.5/squared norm)
-call MIN; call 229
-pop r1; r1 <- 102: step=MIN(0.5/squared norm,1E4), this value is removed from program stack
+call MIN; call 107
+pop r1; r1 <- 96: step=MIN(0.5/squared norm,1E4), this value is removed from program stack
 
 ;If you want a interrupt handler to produce permanent data modification, write it to ram
 ;changes kept in register file will be lost after interrupt return (iret)
-lw [r3 + FP_2_OFFSET] r6; 103: r6<- x"40000000", carrega a cte 2.0, da memória de instrução
+lw [r3 + FP_2_OFFSET] r6; 97: r6<- x"40000000", carrega a cte 2.0, da memória de instrução
 fmul r1 r6 r1; r1 <- (2*step)
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0010"; r3 aponta para a posição 0 da mini_ram
@@ -152,11 +146,31 @@ xor r4 r4 r4; zera o r4
 addi r4 r4 x"0071"; r4 aponta para o registrador da resposta desejada (x71)
 lw [r4+0] r9; lê a resposta desejada e armazena em r9 (PRECISA SER antes de filter_CLK descer)
 sw [r3 + 1] r9; saves r9 (desired response) to position 1 of mini_ram
-iret; (IRQ 0 do filtro) 112
+iret; (IRQ 0 do filtro) 106
+	
+;function MIN(x,y): retorna o menor entre dois floats: x e y
+MIN:
+ldfp r2; 107: r2 <- FP (frame pointer, points to first parameter, last passed by caller)
+lw [r2+0] r0; r0 <- x (float)
+lw [r2+1] r1; r1 <- y (float)
+fsub r0 r1 r3; r3 <- (x-y)
+;creates mask for bit 31:
+xor r5 r5 r5; zera r5
+addi r5 r5 MEM_INSTR_BASE_ADDR;
+lw [r5+BIT_31_MASK_OFFSET] r4;
+;if bit 31 of r3 is zero, return  x, else return y
+and r3 r4 r3; r3 <- r3 and r4, zero todos os bits, menos 31
+beq r3 r4 x"0002"; beq r3 r4 (+2); se r3 = x80000000, (x-y)<0
+;case x-y>=0
+push r1; return y
+ret;
+;case x-y<0
+push r0; return 0
+ret; 119
 	
 ;IRQ3_Handler(void): Processes filter output
 IRQ3_Handler:
-xor r3 r3 r3; zera o r3
+xor r3 r3 r3; 120: zera o r3
 addi r3 r3 x"0070"; r3 aponta para o registrador da saída atual do filtro (x70)
 lw [r3+0] r8; lê a resposta do filtro e armazena em r8
 
@@ -203,32 +217,23 @@ xor r12 r12 r12; zera r12
 addi r12 r12 x"0001"; r12 <- x0001 (máscara do bit 0)
 or r11 r12 r11; r11 <- r11 or x"0001", ativa o bit I2S_EN (inicia transmissão)
 sw [r3+0] r11; armazena r11 em I2S:CR ativa o bit I2S_EN
-iret; (IRQ 1 do filtro, IRQ3 global)
-																
-;IRQ2_Handler(void): Processes I2S IRQ (assumes sucess)
-IRQ2_Handler:
-xor r3 r3 r3; zera r3
-addi r3 r3 x"0068"; x68 é a posição 0 do I2S (CR register)	
-xor r11 r11 r11; zera r11
-addi r11 r11 x"FFFE"; r11 <- FFFE
-sw [r3+4] r11; escreve zero no bit 0 do reg de IRQ pendentes do I2S
-iret; (IRQ do I2S)
+iret; 141: (IRQ 1 do filtro, IRQ3 global)
 	
 ;CODEC_INIT(void):
 ;Audio codec configuration
 CODEC_INIT:
-xor r3 r3 r3; 148: zera r3
+xor r3 r3 r3; 149: zera r3
 addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
 xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi r5 r5 "00000_0_01_0011010_0"; 151: configura CR para 2 bytes, slave address 0b"0011010", escrita
-sw [r3+0] r5; 152: escreve em CR, transmissão não habilitada ainda
-xor r2 r2 r2; 153: zera r2, vai conter dados de configuracao do I2C
+addi r5 r5 "00000_0_01_0011010_0"; 152: configura CR para 2 bytes, slave address 0b"0011010", escrita
+sw [r3+0] r5; 153: escreve em CR, transmissão não habilitada ainda
+xor r2 r2 r2; 154: zera r2, vai conter dados de configuracao do I2C
 addi r2 r2 "00000_1_01_0011010_0"; vai configurar CR sempre com os mesmos valores e ativar o I2C_EN (iniciar transmissão)
 
 ;reset
 xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
-push r5; 157: valor de DR
+push r5; 158: valor de DR
 push r2; valor de CR
 push r3; endereço do I2C
 call I2C_WRITE;
@@ -310,13 +315,13 @@ ret;
 ;I2C_WRITE(I2C_pointer,control_reg,data_reg):
 I2C_WRITE:
 ;retrieving arguments from program stack (popping would increment SP)
-ldfp r4; 216: r4 <- FP (frame pointer,first parameter, last passed by caller)
+ldfp r4; 217: r4 <- FP (frame pointer,first parameter, last passed by caller)
 lw [r4+0] r0; r0 <- endereco-base do I2C
 lw [r4+1] r1; r1 <- valor de CR
 lw [r4+2] r2; r2 <- valor de DR
 sw [r0+1] r2; armazena em DR o valor a ser transmitido
 sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
-halt; 222: waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
+halt; 223: waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
 ret;
 	
 ;IRQ1_Handler(void): processes I2C IRQ
@@ -326,26 +331,6 @@ addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
 xor r11 r11 r11; zera r11
 sw [r3+4] r11; escreve zero no reg de IRQ pendentes do I2C
 iret;
-	
-;function MIN(x,y): retorna o menor entre dois floats: x e y
-MIN:
-ldfp r2; 229: r2 <- FP (frame pointer, points to first parameter, last passed by caller)
-lw [r2+0] r0; r0 <- x (float)
-lw [r2+1] r1; r1 <- y (float)
-fsub r0 r1 r3; r3 <- (x-y)
-;creates mask for bit 31:
-xor r5 r5 r5; zera r5
-addi r5 r5 MEM_INSTR_BASE_ADDR;
-lw [r5+BIT_31_MASK_OFFSET] r4;
-;if bit 31 of r3 is zero, return  x, else return y
-and r3 r4 r3; r3 <- r3 and r4, zero todos os bits, menos 31
-beq r3 r4 x"0002"; beq r3 r4 (+2); se r3 = x80000000, (x-y)<0
-;case x-y>=0
-push r1; return y
-ret;
-;case x-y<0
-push r0; return 0
-ret;
 
 .section data
 ; all data here must be 32-bit
