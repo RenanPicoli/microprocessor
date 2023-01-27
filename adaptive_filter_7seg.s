@@ -179,7 +179,7 @@ addi r4 r4 x"0010"; x10 é a posição 0 da mini_ram
 lw [r4 + 1] r9; loads r9 with position 1 of mini_ram (desired response)
 fsub r9 r8 r10; Calcula e armazena o erro (d-y) em r10
 	
-lw [r4 + 0] r1; 120: loads r1 with position 0 of mini_ram (2*step) 
+lw [r4 + 0] r1; 127: loads r1 with position 0 of mini_ram (2*step) 
 fmul r1 r10 r1; r1 <- (2*step)*erro
 xor r4 r4 r4; zera o r4
 addi r4 r4 x"0040"; x40, r4 aponta posição 0 do vmac
@@ -188,7 +188,7 @@ sw [r4 + 16] r1; armazena step*erro no lambda
 ;Carrega VMAC:A(5) com as componentes do filtro atual(0)
 lvec x"00" x"20";
 
-vmac; 126: enables accumulation in vector A of VMAC
+vmac; 133: enables accumulation in vector A of VMAC
 	
 ;Lê o acumulador do VMAC(5) e atualiza os coeficientes do filtro(0)
 lvec x"05" x"01";	
@@ -202,7 +202,7 @@ lvec x"00" x"02";
 ;I2S transmission (left fifo já foi selecionada antes do loop principal)
 ;escreve 2x no DR (upsampling fator 2)
 ;habilita a transmissão
-xor r3 r3 r3; 129: zera r3
+xor r3 r3 r3; 136: zera r3
 addi r3 r3 x"0073"; x73 é a posição do converted_output register
 lw [r3+0] r5; loads r5 with filter response converted to 2's complement
 xor r3 r3 r3; zera r3
@@ -217,7 +217,7 @@ xor r12 r12 r12; zera r12
 addi r12 r12 x"0001"; r12 <- x0001 (máscara do bit 0)
 or r11 r12 r11; r11 <- r11 or x"0001", ativa o bit I2S_EN (inicia transmissão)
 sw [r3+0] r11; armazena r11 em I2S:CR ativa o bit I2S_EN
-iret; 141: (IRQ 1 do filtro, IRQ3 global)
+iret; 148: (IRQ 1 do filtro, IRQ3 global)
 	
 ;CODEC_INIT(void):
 ;Audio codec configuration
