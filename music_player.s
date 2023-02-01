@@ -25,7 +25,7 @@ IRQ3_Handler:
 ;habilita a transmissão
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0073"; x73 é a posição do converted_output register
-lw [r3+0] r5; loads r5 with filter response converted to 2's complement
+lw [r3+0] r5; loads r5 with filter response converted to twos complement
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0068"; x68 é a posição 0 do I2S (CR register)
 sw [r3+1] r5; escreve r5 no DR do I2S
@@ -78,6 +78,13 @@ xor r31 r31 r31; zera r31
 
 ;configure global interrupt controller
 addi r4 r4 x"0080"; (x80), r4 aponta a posição do reg do controlador de interrupção
+addi r5 r5 IRQ0_Handler;
+sw [r4+32] r5; escreve r5 no endereco da ISR IRQ0_Handler (filter_CLK rising_edge)
+addi r11 r11 x"0002";
+sw [r4+64] r11; coloca ISR IRQ0_Handler (filter_CLK rising_edge) na prioridade 2
+
+xor r5 r5 r5; zera r5
+xor r11 r11 r11; zera r11
 addi r5 r5 IRQ3_Handler;
 sw [r4+35] r5; escreve r5 no endereco da ISR IRQ3_Handler (filter_CLK falling_edge)
 addi r11 r11 x"0000";
@@ -114,31 +121,30 @@ beq r5 r11 x"FFFD"; beq r5 r11 (-3), se r5 = 0, pll não deu lock, repetir leitu
 	
 call CODEC_INIT; (makes I2C transfers to configure codec registers)
 
-xor r13 r13 r13; zera r13
+xor r13 r13 r13; 75: zera r13
 addi r13 r13 MEM_INSTR_BASE_ADDR; r13 <- 0x100 base address da memória de instruções
-lw [r13+117] r5; (carrega r5 com o valor da instrucao 117 -> x016B5827) (para teste do 7 segmentos)
+lw [r13+27] r5; (carrega r5 com o valor da instrucao 27 -> x016B5827) (para teste do 7 segmentos)
 lw [r13 + INSTR_MASK_OFFSET] r6; <- 0x0000FFFF
 and r5 r6 r5; r5 <- r5 and 0x0000FFFF
-sw [r13+117] r5; 141: saves modified instruction to program memory
-lw [r13+117] r5; (carrega r5 com o valor NOVO da instrucao 117 -> x00005827) (para teste do 7 segmentos)
-
+sw [r13+27] r5; 80: saves modified instruction to program memory
+lw [r13+27] r5; (carrega r5 com o valor NOVO da instrucao 27 -> x00005827) (para teste do 7 segmentos)
 
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
 sw [r3+2] r5; escreve r5 no registrador DR do display de 7 segmentos (x74)
 
-lw [r13+FP_1_OFFSET] r3; r3 <- 1.0
+lw [r13+FP_1_OFFSET] r3; 85: r3 <- 1.0
 xor r4 r4 r4; zera r4
 addi r4 r4 x"0010"; x10 é a posição 0 da mini_ram	
 sw [r4 + 0] r3; stores r3 in position 0 of mini_ram (1.0)
-lw [r13+FP_MINUS1_OFFSET] r3; r3 <- -1.0	
+lw [r13+FP_MINUS1_OFFSET] r3; 89: r3 <- -1.0	
 sw [r4 + 1] r3; stores r3 in position 1 of mini_ram (-1.0)
 	
 ;Escreve os coeficientes do filtro
 xor r3 r3 r3; zera r3 (aponta para o coeficiente(0))
 xor r1 r1 r1; zera r1
 addi r1 r1 MEM_INSTR_BASE_ADDR; é a posição 0 da memória de instruções
-lw [r1+FP_1_OFFSET] r2; r2 <- x"3F800000" (1.0)
+lw [r1+FP_1_OFFSET] r2; 94: r2 <- x"3F800000" (1.0)
 sw [r3+0] r2; b0 <- 1.0
 xor r2 r2 r2; zera r2
 sw [r3+1] r2; b1 <- 0.0
@@ -149,7 +155,8 @@ sw [r3+5] r2; a2 <- 0.0
 sw [r3+6] r2; a3 <- 0.0
 sw [r3+7] r2; a4 <- 0.0
 
-lw [r3+0] r5; armazena em r5 o valor do filter control and status
+xor r3 r3 r3; 104: zera r3
+addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
 xor r5 r5 r5; zera r5
 addi r5 r5 x"0001"; r5 <- x0001 habilitará filtro
 sw [r3+0] r5; escreve em filter control and status (x72), habilita o filtro
@@ -246,19 +253,23 @@ push r2; valor de CR
 push r3; endereço do I2C
 call I2C_WRITE;
 	
-ret;
+ret; 176
 	
 ;I2C_WRITE(I2C_pointer,control_reg,data_reg):
 I2C_WRITE:
 ;retrieving arguments from program stack (popping would increment SP)
-ldfp r4; 219: r4 <- FP (frame pointer,first parameter, last passed by caller)
+ldfp r4; 177: r4 <- FP (frame pointer,first parameter, last passed by caller)
 lw [r4+0] r0; r0 <- endereco-base do I2C
 lw [r4+1] r1; r1 <- valor de CR
 lw [r4+2] r2; r2 <- valor de DR
 sw [r0+1] r2; armazena em DR o valor a ser transmitido
 sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
-halt; 225: waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
+halt; 183: waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
 ret;
+	
+;IRQ0_Handler(void): processes filter IRQ 0
+IRQ0_Handler:
+iret;
 	
 ;IRQ1_Handler(void): processes I2C IRQ
 IRQ1_Handler:
