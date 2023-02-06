@@ -80,15 +80,15 @@ xor r31 r31 r31; zera r31
 addi r4 r4 x"0080"; (x80), r4 aponta a posição do reg do controlador de interrupção
 addi r5 r5 IRQ0_Handler;
 sw [r4+32] r5; escreve r5 no endereco da ISR IRQ0_Handler (filter_CLK rising_edge)
-addi r11 r11 x"0002";
-sw [r4+64] r11; coloca ISR IRQ0_Handler (filter_CLK rising_edge) na prioridade 2
+addi r11 r11 x"0000";
+sw [r4+66] r11; coloca ISR IRQ0_Handler (filter_CLK rising_edge) na prioridade 2
 
 xor r5 r5 r5; zera r5
 xor r11 r11 r11; zera r11
 addi r5 r5 IRQ3_Handler;
 sw [r4+35] r5; escreve r5 no endereco da ISR IRQ3_Handler (filter_CLK falling_edge)
-addi r11 r11 x"0000";
-sw [r4+67] r11; coloca ISR IRQ3_Handler (filter_CLK falling_edge) na prioridade 0
+addi r11 r11 x"0003";
+sw [r4+64] r11; coloca ISR IRQ3_Handler (filter_CLK falling_edge) na prioridade 0
 
 xor r5 r5 r5; zera r5
 xor r11 r11 r11; zera r11
@@ -269,6 +269,7 @@ ret;
 	
 ;IRQ0_Handler(void): processes filter IRQ 0
 IRQ0_Handler:
+nop;
 iret;
 	
 ;IRQ1_Handler(void): processes I2C IRQ
