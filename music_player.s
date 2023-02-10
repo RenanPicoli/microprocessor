@@ -25,10 +25,10 @@ IRQ3_Handler:
 ;habilita a transmissão
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0073"; x73 é a posição do converted_output register
-lw [r3+0] r5; loads r5 with filter response converted to twos complement
+lw [r3+0] r5; 5: loads r5 with filter response converted to twos complement
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0068"; x68 é a posição 0 do I2S (CR register)
-sw [r3+1] r5; escreve r5 no DR do I2S
+sw [r3+1] r5; 8: escreve r5 no DR do I2S
 ;r31 deve estar zerado, faz upsampling de 22050 Hz para 44100 Hz
 sw [r3+1] r5; escreve r5 no DR do I2S (duplica para improvisar upsampling sem perder ganho)
 
@@ -37,7 +37,7 @@ lw [r3+0] r11; armazena em r11 a configuração atual do I2S (CR)
 xor r12 r12 r12; zera r12
 addi r12 r12 x"0001"; r12 <- x0001 (máscara do bit 0)
 or r11 r12 r11; r11 <- r11 or x"0001", ativa o bit I2S_EN (inicia transmissão)
-sw [r3+0] r11; armazena r11 em I2S:CR ativa o bit I2S_EN
+sw [r3+0] r11; 14: armazena r11 em I2S:CR ativa o bit I2S_EN
 iret; (IRQ 3 do filtro)
 
 ; register initialization, configures interrupt controller, codec, etc
@@ -144,7 +144,7 @@ sw [r4 + 1] r3; stores r3 in position 1 of mini_ram (-1.0)
 xor r3 r3 r3; zera r3 (aponta para o coeficiente(0))
 xor r1 r1 r1; zera r1
 addi r1 r1 MEM_INSTR_BASE_ADDR; é a posição 0 da memória de instruções
-lw [r1+FP_1_OFFSET] r2; 94: r2 <- x"3F800000" (1.0)
+lw [r1+FP_1_OFFSET] r2; 100: r2 <- x"3F800000" (1.0)
 sw [r3+0] r2; b0 <- 1.0
 xor r2 r2 r2; zera r2
 sw [r3+1] r2; b1 <- 0.0
@@ -155,10 +155,13 @@ sw [r3+5] r2; a2 <- 0.0
 sw [r3+6] r2; a3 <- 0.0
 sw [r3+7] r2; a4 <- 0.0
 
-xor r3 r3 r3; 104: zera r3
+xor r3 r3 r3; 110: zera r3
 addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
 xor r5 r5 r5; zera r5
 addi r5 r5 x"0001"; r5 <- x0001 habilitará filtro
+;Lê memória de coeficientes do filtro(0) para o filtro(1)
+;enables filter to update its components (when filter_CLK rises)
+lvec x"00" x"02";
 sw [r3+0] r5; escreve em filter control and status (x72), habilita o filtro
 jmp x"01"; goes to the infinite loop (main loop)
 	
