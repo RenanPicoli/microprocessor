@@ -132,8 +132,6 @@ lw [r13+FP_1_OFFSET] r3; 85: r3 <- 1.0
 xor r4 r4 r4; zera r4
 addi r4 r4 x"0010"; x10 é a posição 0 da mini_ram	
 sw [r4 + 0] r3; stores r3 in position 0 of mini_ram (1.0)
-lw [r13+FP_MINUS1_OFFSET] r3; 89: r3 <- -1.0	
-sw [r4 + 1] r3; stores r3 in position 1 of mini_ram (-1.0)
 	
 ;Escreve os coeficientes do filtro
 xor r3 r3 r3; zera r3 (aponta para o coeficiente(0))
