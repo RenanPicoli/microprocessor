@@ -132,9 +132,9 @@ addi r8 r8 x"0008"; r8 <- 8 (constante)
 
 COPY_VECTORS:
 beq r3 r7 x"0009"; if r3=2, goes to fill_zeros
-lw [r13+MATRIX_A_OFFSET] r5; r5 <- a[i]
+lw [r13+MATRIX_A_OFFSET] r9; r9 <- a[i]
 lw [r13+MATRIX_B_OFFSET] r6; r6 <- b[i]
-sw [r4 + 0] r5; stores r5 in position i of inner_product:A
+sw [r4 + 0] r9; stores r9 in position i of inner_product:A
 sw [r5 + 0] r6; stores r6 in position i of inner_product:B
 addi r13 r13 x"0001";
 addi r3 r3 x"0001";
