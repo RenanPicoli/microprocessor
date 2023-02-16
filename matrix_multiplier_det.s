@@ -118,20 +118,43 @@ call CODEC_INIT; (makes I2C transfers to configure codec registers)
 
 xor r13 r13 r13; 75: zera r13
 addi r13 r13 MEM_INSTR_BASE_ADDR; r13 <- 0x100 base address da memória de instruções
-lw [r13+27] r5; (carrega r5 com o valor da instrucao 27 -> x016B5827) (para teste do 7 segmentos)
-lw [r13 + INSTR_MASK_OFFSET] r6; <- 0x0000FFFF
-and r5 r6 r5; r5 <- r5 and 0x0000FFFF
-sw [r13+27] r5; 80: saves modified instruction to program memory
-lw [r13+27] r5; (carrega r5 com o valor NOVO da instrucao 27 -> x00005827) (para teste do 7 segmentos)
-
-xor r3 r3 r3; zera r3
-addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
-sw [r3+2] r5; escreve r5 no registrador DR do display de 7 segmentos (x74)
-
-lw [r13+FP_1_OFFSET] r3; 85: r3 <- 1.0
 xor r4 r4 r4; zera r4
-addi r4 r4 x"0010"; x10 é a posição 0 da mini_ram	
-sw [r4 + 0] r3; stores r3 in position 0 of mini_ram (1.0)
+addi r4 r4 x"0020"; 20 é a posição 0 do inner_product:A
+xor r5 r5 r5; zera r5
+addi r5 r5 x"0028"; x28 é a posição 0 do inner_product:B
+xor r1 r1 r1; zera r1, contador de linhas
+xor r2 r2 r2; zera r2, contador de colunas
+xor r3 r3 r3; zera r3, contador de tamanho do vetor (dimensao comum)
+xor r7 r7 r7; zera r7, tamanho do vetor da dimensao comum
+addi r7 r7 x"0002"; r7 <- 2 (constante)
+xor r8 r8 r8; zera r8, tamanho do vetor da dimensao comum
+addi r8 r8 x"0008"; r8 <- 8 (constante)
+
+COPY_VECTORS:
+beq r3 r7 x"0009"; if r3=2, goes to fill_zeros
+lw [r13+MATRIX_A_OFFSET] r5; r5 <- a[i]
+lw [r13+MATRIX_B_OFFSET] r6; r6 <- b[i]
+sw [r4 + 0] r5; stores r5 in position i of inner_product:A
+sw [r5 + 0] r6; stores r6 in position i of inner_product:B
+addi r13 r13 x"0001";
+addi r3 r3 x"0001";
+addi r4 r4 x"0001";
+addi r5 r5 x"0001";
+jmp COPY_VECTORS; 104
+FILL_ZEROS:
+xor r6 r6 r6; zera r6
+sw [r4 + 0] r6; stores r6 in position i of inner_product:A
+sw [r5 + 0] r6; stores r6 in position i of inner_product:B
+addi r3 r3 x"0001";
+addi r4 r4 x"0001";
+addi r5 r5 x"0001";
+beq r3 r8 x"0001"; if r3!=8, goes to fill_zeros
+jmp FILL_ZEROS;
+lw [r5 + 0] r6; 113: loads r6 with resulting inner_product
+
+xor r9 r9 r9; zera r9
+addi r9 r9 x"0072"; x72 é a posição 0 do filter control and status
+sw [r9+2] r6; escreve r6 no registrador DR do display de 7 segmentos (x74)
 	
 ;Escreve os coeficientes do filtro
 xor r3 r3 r3; zera r3 (aponta para o coeficiente(0))
@@ -275,7 +298,6 @@ addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
 xor r11 r11 r11; zera r11
 sw [r3+4] r11; escreve zero no reg de IRQ pendentes do I2C
 iret;
-
 	
 ;function MIN(x,y): retorna o menor entre dois floats: x e y
 MIN:
@@ -324,7 +346,7 @@ INSTR_MASK_OFFSET:
 BIT_31_MASK_OFFSET:
   x80000000
 FP_1_OFFSET:
-  x3F800000; 1.0
+  x3F800000; +1.0
 ; 2x2 matrix
 MATRIX_A_OFFSET:
   x3F800000; +1.0
