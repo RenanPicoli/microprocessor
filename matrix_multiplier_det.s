@@ -100,8 +100,6 @@ xor r11 r11 r11; zera r11
 	
 xor r3 r3 r3; zera r3
 addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
-lw [r3+0] r5; armazena em r5 o valor do filter control and status
-xor r5 r5 r5; zera r5
 sw [r3+0] r5; escreve em filter control and status, desabilita o filtro
 
 ;I2S configuration
@@ -118,39 +116,35 @@ call CODEC_INIT; (makes I2C transfers to configure codec registers)
 
 xor r13 r13 r13; 75: zera r13
 addi r13 r13 MEM_INSTR_BASE_ADDR; r13 <- 0x100 base address da memória de instruções
+addi r13 r14 x"000"; r14 <- r13
 xor r4 r4 r4; zera r4
 addi r4 r4 x"0020"; 20 é a posição 0 do inner_product:A
-xor r5 r5 r5; zera r5
-addi r5 r5 x"0028"; x28 é a posição 0 do inner_product:B
-xor r1 r1 r1; zera r1, contador de linhas
-xor r2 r2 r2; zera r2, contador de colunas
 xor r3 r3 r3; zera r3, contador de tamanho do vetor (dimensao comum)
-xor r7 r7 r7; zera r7, tamanho do vetor da dimensao comum
 addi r7 r7 x"0002"; r7 <- 2 (constante)
 xor r8 r8 r8; zera r8, tamanho do vetor da dimensao comum
 addi r8 r8 x"0008"; r8 <- 8 (constante)
 
+
 COPY_VECTORS:
 beq r3 r7 x"0009"; if r3=2, goes to fill_zeros
 lw [r13+MATRIX_A_OFFSET] r9; r9 <- a[i]
-lw [r13+MATRIX_B_OFFSET] r6; r6 <- b[i]
+lw [r14+MATRIX_B_OFFSET] r6; r6 <- b[i]
 sw [r4 + 0] r9; stores r9 in position i of inner_product:A
-sw [r5 + 0] r6; stores r6 in position i of inner_product:B
+sw [r4 + 8] r6; stores r6 in position i of inner_product:B
 addi r13 r13 x"0001";
+addi r14 r14 x"0002";
 addi r3 r3 x"0001";
 addi r4 r4 x"0001";
-addi r5 r5 x"0001";
 jmp COPY_VECTORS; 104
 FILL_ZEROS:
 xor r6 r6 r6; zera r6
 sw [r4 + 0] r6; stores r6 in position i of inner_product:A
-sw [r5 + 0] r6; stores r6 in position i of inner_product:B
+sw [r4 + 8] r6; stores r6 in position i of inner_product:B
 addi r3 r3 x"0001";
 addi r4 r4 x"0001";
-addi r5 r5 x"0001";
 beq r3 r8 x"0001"; if r3!=8, goes to fill_zeros
 jmp FILL_ZEROS;
-lw [r5 + 0] r6; 113: loads r6 with resulting inner_product
+lw [r4 + 16] r6; loads r6 with resulting inner_product
 
 xor r9 r9 r9; zera r9
 addi r9 r9 x"0072"; x72 é a posição 0 do filter control and status
@@ -171,31 +165,26 @@ sw [r3+5] r2; a2 <- 0.0
 sw [r3+6] r2; a3 <- 0.0
 sw [r3+7] r2; a4 <- 0.0
 
-xor r3 r3 r3; 110: zera r3
-addi r3 r3 x"0072"; x72 é a posição 0 do filter control and status
 xor r5 r5 r5; zera r5
 addi r5 r5 x"0001"; r5 <- x0001 habilitará filtro
 ;Lê memória de coeficientes do filtro(0) para o filtro(1)
 ;enables filter to update its components (when filter_CLK rises)
 lvec x"00" x"02";
-sw [r3+0] r5; escreve em filter control and status (x72), habilita o filtro
+sw [r9+0] r5; escreve em filter control and status (x72), habilita o filtro
 jmp x"01"; goes to the infinite loop (main loop)
 	
 ;CODEC_INIT(void):
 ;Audio codec configuration
 CODEC_INIT:
-xor r3 r3 r3; 151: zera r3
+xor r3 r3 r3; zera r3
 addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
-xor r5 r5 r5; zera r5, vai conter dados para escrita de registrador
-addi r5 r5 "00000_0_01_0011010_0"; 154: configura CR para 2 bytes, slave address 0b"0011010", escrita
-sw [r3+0] r5; 155: escreve em CR, transmissão não habilitada ainda
-xor r2 r2 r2; 156: zera r2, vai conter dados de configuracao do I2C
+xor r2 r2 r2; zera r2, vai conter dados de configuracao do I2C
 addi r2 r2 "00000_1_01_0011010_0"; vai configurar CR sempre com os mesmos valores e ativar o I2C_EN (iniciar transmissão)
 
 ;reset
 xor r5 r5 r5; zera r5, vai conter dados para envio no barramento
 addi r5 r5 "0001111_0_0000_0000"; configura DR para escrever 0_0000_0000 no reg 0Fh (reset)
-push r5; 158: valor de DR
+push r5; valor de DR
 push r2; valor de CR
 push r3; endereço do I2C
 call I2C_WRITE;
@@ -272,18 +261,18 @@ push r2; valor de CR
 push r3; endereço do I2C
 call I2C_WRITE;
 	
-ret; 176
+ret;
 	
 ;I2C_WRITE(I2C_pointer,control_reg,data_reg):
 I2C_WRITE:
 ;retrieving arguments from program stack (popping would increment SP)
-ldfp r4; 177: r4 <- FP (frame pointer,first parameter, last passed by caller)
+ldfp r4;  r4 <- FP (frame pointer,first parameter, last passed by caller)
 lw [r4+0] r0; r0 <- endereco-base do I2C
 lw [r4+1] r1; r1 <- valor de CR
 lw [r4+2] r2; r2 <- valor de DR
 sw [r0+1] r2; armazena em DR o valor a ser transmitido
 sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
-halt; 183: waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
+halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
 ret;
 	
 ;IRQ0_Handler(void): processes filter IRQ 0
@@ -341,8 +330,6 @@ ret;
 
 .section data
 ; all data here must be 32-bit
-INSTR_MASK_OFFSET:
-  x0000FFFF
 BIT_31_MASK_OFFSET:
   x80000000
 FP_1_OFFSET:
