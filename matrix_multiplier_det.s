@@ -114,37 +114,69 @@ beq r5 r11 x"FFFD"; beq r5 r11 (-3), se r5 = 0, pll não deu lock, repetir leitu
 	
 call CODEC_INIT; (makes I2C transfers to configure codec registers)
 
-xor r13 r13 r13; 75: zera r13
+xor r13 r13 r13; 79: zera r13
 addi r13 r13 MEM_INSTR_BASE_ADDR; r13 <- 0x100 base address da memória de instruções
 addi r13 r14 x"000"; r14 <- r13
+addi r13 r13 MATRIX_A_OFFSET; r13 now points to matrix A
+addi r14 r14 MATRIX_B_OFFSET; r14 now points to matrix B
 xor r4 r4 r4; zera r4
 addi r4 r4 x"0020"; 20 é a posição 0 do inner_product:A
 xor r3 r3 r3; zera r3, contador de tamanho do vetor (dimensao comum)
 addi r7 r7 x"0002"; r7 <- 2 (constante)
 xor r8 r8 r8; zera r8, tamanho do vetor da dimensao comum
 addi r8 r8 x"0008"; r8 <- 8 (constante)
+addi r17 r17 x"0010"; r17 stores base address of mini_ram
+push r17; saves r17 for calling the DET_2X2 function
 
-
+addi r13 r15 x"0000"; r15 <- r13 (points to matrix A)
+addi r14 r16 x"0000"; r16 <- r14 (points to matrix B)
+; r1 is a line counter
+; r2 is a column counter
+BEGIN_LINE:
+BEGIN_COLUMN:
+;computes a single element of resulting matrix 
 COPY_VECTORS:
 beq r3 r7 x"0009"; if r3=2, goes to fill_zeros
-lw [r13+MATRIX_A_OFFSET] r9; r9 <- a[i]
-lw [r14+MATRIX_B_OFFSET] r6; r6 <- b[i]
+lw [r15+0] r9; 95: r9 <- a[i]
+lw [r16+0] r6; 96: r6 <- b[i]
 sw [r4 + 0] r9; stores r9 in position i of inner_product:A
 sw [r4 + 8] r6; stores r6 in position i of inner_product:B
-addi r13 r13 x"0001";
-addi r14 r14 x"0002";
+addi r15 r15 x"0001";
+addi r16 r16 x"0002";
 addi r3 r3 x"0001";
 addi r4 r4 x"0001";
-jmp COPY_VECTORS; 104
+jmp COPY_VECTORS;
 FILL_ZEROS:
-xor r6 r6 r6; zera r6
+xor r6 r6 r6; 104: zera r6
 sw [r4 + 0] r6; stores r6 in position i of inner_product:A
 sw [r4 + 8] r6; stores r6 in position i of inner_product:B
 addi r3 r3 x"0001";
 addi r4 r4 x"0001";
 beq r3 r8 x"0001"; if r3!=8, goes to fill_zeros
 jmp FILL_ZEROS;
-lw [r4 + 16] r6; loads r6 with resulting inner_product
+
+xor r4 r4 r4; zera r4
+addi r4 r4 x"0020"; 112: x20 é a posição 0 do inner_product:A
+lw [r4 + 16] r6; 113: loads r6 with resulting inner_product
+sw [r17 + 0] r6; stores the inner_product in mini_ram
+END_COLUMN:
+xor r3 r3 r3; resets the counter of common dimension
+addi r17 r17 x"0001"; goes to next position of mini_ram (resulting matrix)
+addi r2 r2 x"0001";	increments column counter
+add r14 r2 r16;	r16 <- r14 + r2 (goes to next column of B)
+subi r15 r15 x"0002"; r15 is restored
+beq r2 r7 x"0001"; if r2=2, goes to END_LINE, else goes to BEGIN_COLUMN
+jmp BEGIN_COLUMN;
+END_LINE:
+xor r2 r2 r2; resets column counter
+addi r1 r1 x"0001"; increments line counter
+addi r14 r16 x"0000"; r16 <- r14 (points to matrix B)
+addi r15 r15 x"0002"; (goes to next line of A)
+beq r1 r7 x"0001"; if r1=2, goes to determinant computation, else goes to BEGIN_LINE
+jmp BEGIN_LINE;
+
+call DET_2X2;
+pop r6; 128: saves resulting determinant in r6
 
 xor r9 r9 r9; zera r9
 addi r9 r9 x"0072"; x72 é a posição 0 do filter control and status
@@ -261,7 +293,7 @@ push r2; valor de CR
 push r3; endereço do I2C
 call I2C_WRITE;
 	
-ret;
+ret; 214
 	
 ;I2C_WRITE(I2C_pointer,control_reg,data_reg):
 I2C_WRITE:
@@ -273,7 +305,7 @@ lw [r4+2] r2; r2 <- valor de DR
 sw [r0+1] r2; armazena em DR o valor a ser transmitido
 sw [r0+0] r1; escreve em CR e ativa o I2C_EN (inicia transmissão)
 halt; waits for I2C interruption to be generated when I2C transmission ends (assumes sucess)	
-ret;
+ret; 222
 	
 ;IRQ0_Handler(void): processes filter IRQ 0
 IRQ0_Handler:
@@ -287,51 +319,25 @@ addi r3 r3 x"0060"; x60 é a posição 0 do I2C (CR register)
 xor r11 r11 r11; zera r11
 sw [r3+4] r11; escreve zero no reg de IRQ pendentes do I2C
 iret;
-	
-;function MIN(x,y): retorna o menor entre dois floats: x e y
-MIN:
-ldfp r2; r2 <- FP (frame pointer, points to first parameter, last passed by caller)
-lw [r2+0] r0; r0 <- x (float)
-lw [r2+1] r1; r1 <- y (float)
-fsub r0 r1 r3; r3 <- (x-y)
-;creates mask for bit 31:
-xor r5 r5 r5; zera r5
-addi r5 r5 MEM_INSTR_BASE_ADDR;
-lw [r5+BIT_31_MASK_OFFSET] r4;
-;if bit 31 of r3 is zero, return  x, else return y
-and r3 r4 r3; r3 <- r3 and r4, zero todos os bits, menos 31
-beq r3 r4 x"0002"; beq r3 r4 (+2); se r3 = x80000000, (x-y)<0
-;case x-y>=0
-push r1; return y
-ret;
-;case x-y<0
-push r0; return x
-ret;
 
-;function MAX(x,y): retorna o maior entre dois floats: x e y
-MAX:
-ldfp r2; r2 <- FP (frame pointer, points to first parameter, last passed by caller)
-lw [r2+0] r0; r0 <- x (float)
-lw [r2+1] r1; r1 <- y (float)
-fsub r0 r1 r3; r3 <- (x-y)
-;creates mask for bit 31:
-xor r5 r5 r5; zera r5
-addi r5 r5 MEM_INSTR_BASE_ADDR;
-lw [r5+BIT_31_MASK_OFFSET] r4;
-;if bit 31 of r3 is zero, return  x, else return y
-and r3 r4 r3; r3 <- r3 and r4, zero todos os bits, menos 31
-beq r3 r4 x"0002"; beq r3 r4 (+2); se r3 = x80000000, (x-y)<0
-;case x-y>=0
-push r0; return x
-ret;
-;case x-y<0
-push r1; return y
+;function DET_2X2(A): retorna o determinante da matriz 2x2 (floats) no endereco-base A
+DET_2X2:
+; ldfp r8; 230: r8 <- FP (frame pointer, points to first parameter, last passed by caller)
+; lw [r8+0] r0; r0 <- *r8 (endereco-base de A)
+xor r0 r0 r0;
+addi r0 r0 x"0010"; points to start of mini_ram
+lw [r0+0] r1; r1 <- a11 (float)
+lw [r0+1] r2; r2 <- a12 (float)
+lw [r0+2] r3; r3 <- a21 (float)
+lw [r0+3] r4; r4 <- a22 (float)
+fmul r1 r4 r5; r5 <- (a11*a22)
+fmul r2 r3 r6; r6 <- (a12*a21)
+fsub r5 r6 r7; r7 <- r5 - r6 (a11*a22-a12*a21)
+push r7; returns result
 ret;
 
 .section data
 ; all data here must be 32-bit
-BIT_31_MASK_OFFSET:
-  x80000000
 FP_1_OFFSET:
   x3F800000; +1.0
 ; 2x2 matrix
