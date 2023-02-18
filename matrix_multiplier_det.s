@@ -322,10 +322,10 @@ iret;
 
 ;function DET_2X2(A): retorna o determinante da matriz 2x2 (floats) no endereco-base A
 DET_2X2:
-; ldfp r8; 230: r8 <- FP (frame pointer, points to first parameter, last passed by caller)
-; lw [r8+0] r0; r0 <- *r8 (endereco-base de A)
-xor r0 r0 r0;
-addi r0 r0 x"0010"; points to start of mini_ram
+ldfp r8; 230: r8 <- FP (frame pointer, points to first parameter, last passed by caller)
+lw [r8+0] r0; r0 <- *r8 (endereco-base de A)
+; xor r0 r0 r0;
+; addi r0 r0 x"0010"; points to start of mini_ram
 lw [r0+0] r1; r1 <- a11 (float)
 lw [r0+1] r2; r2 <- a12 (float)
 lw [r0+2] r3; r3 <- a21 (float)
