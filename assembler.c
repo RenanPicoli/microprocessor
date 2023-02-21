@@ -220,7 +220,12 @@ int main(int argc,char *argv[]){
 	}
 	printf("assembly_syntax.txt parsed!\n");
 	int base_dict_size=dictionary_size;//base dictionary size (only language and registers)
-	//print_dict(dictionary,j);
+	//print_dict(dictionary,dictionary_size);
+	printf("R_type_mnemonics[0]=%s\n",R_type_mnemonics[0]);
+	printf("R_type_mnemonics[1]=%s\n",R_type_mnemonics[1]);
+	printf("R_type_mnemonics[2]=%s\n",R_type_mnemonics[2]);
+	printf("R_type_mnemonics[3]=%s\n",R_type_mnemonics[3]);
+	printf("R_type_mnemonics[4]=%s\n",R_type_mnemonics[4]);
 
 	printf("Parsing %s\n",argv[1]);
 	int i=0;
@@ -1281,7 +1286,7 @@ int extract_mnemonics_to_vector(char *list_of_opcodes,const char *string_type, c
 	int m=0;int n=0;int k=0;
 	int retval=0;
 	char *format_string=calloc(64*10,sizeof(char));
-	sprintf(format_string,"%s_mnemonics := {%[a-zA-Z,_]};",string_type);
+	sprintf(format_string,"%s_mnemonics := {%%[a-zA-Z,_]};",string_type);
 	int sscanf_retval=sscanf(list_of_opcodes,format_string,s[0]);
 	if(sscanf_retval==1){
 		//printf("s[0]=%s\n",s[0]);
