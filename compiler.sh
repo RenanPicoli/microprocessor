@@ -10,13 +10,23 @@ then
 	exit 1
 fi
 
+echo "OS=$OSTYPE"
+
 # mips-linux-gnu-gcc output file repeats source file name but changes extension to ".s"
 gcc_out="${1%.*}.s"
 
-echo "gcc for mips will be at file $gcc_out"
+echo "gcc output will be at file $gcc_out"
 
-mips-linux-gnu-gcc -S -o $gcc_out $1
-
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+	mips-linux-gnu-gcc -S -o $gcc_out $1
+elif [[ "$OSTYPE" == "msys" ]]; then
+	echo "Unsupported OS"
+	exit 5
+else
+	echo "Unsupported OS"
+	exit 5
+fi
+	
 gcc_ret=$?
 echo "mips compiler exited with code: $gcc_ret"
 
