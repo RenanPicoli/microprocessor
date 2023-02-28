@@ -26,6 +26,8 @@ def main(argv):
     sys.exit(2)
 
   print("Parsing %s\n" % argv[1]);
+
+  translation_enable = True # this flag is used to prevent translation of user coded assembly (between #APP and #NO_APP)
   
   labels_dict={} # labels started with $ must be translated 
 
@@ -37,6 +39,28 @@ def main(argv):
     # skips empty strings
     if(len(line)==0):
       continue
+
+    if(line=="#APP"):
+      translation_enable = False
+      print("translation DISABLED")
+    elif(line=="#NO_APP"):
+      translation_enable = True
+      print("translation ENABLED")
+      
+    if(translation_enable == False):
+      # discards comments
+      line = (line.split("#"))[0]
+      line=line.strip() # removes spaces at beggining and end of string
+
+      # skips empty strings
+      if(len(line)==0):
+        continue
+      else:
+        #print(txt)
+        print(line + "->" + line)
+        of.write(line+"\n") # repeats user coded assembly
+        continue
+      
 
     # discards comments
     line = (line.split("#"))[0]

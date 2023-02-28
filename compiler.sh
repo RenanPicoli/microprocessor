@@ -58,7 +58,7 @@ fi
 
 echo "Binary file generated:"
 
-xxd -e executable.bin
+xxd -e -u executable.bin
 
 echo ""
 echo "Successful compilation!"
