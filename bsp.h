@@ -1,5 +1,6 @@
 //function prototypes
 void print_7segs(int n);
+void write_w(int addr,int n);
 
 //constants
 #define FILTER_COEFFS_BASE_ADDR				0x00

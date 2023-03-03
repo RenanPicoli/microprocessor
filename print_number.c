@@ -10,7 +10,8 @@ int main(void){
     int x,y;
     x = foo();
 		__asm("sw [r0+116] r2;\n\t"); //saves r2 in disp_7seg_DR mem(116) (inline assembly must follow my syntax)
-		print_7segs(x);
+		//print_7segs(x);
+		write_w(DISPLAY_7SEGS_BASE_ADDR,x);
     while(1){
         //printf("Hello World! x=%d\n",x);
         //y=sum(x,1);
