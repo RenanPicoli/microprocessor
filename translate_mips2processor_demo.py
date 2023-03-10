@@ -261,13 +261,16 @@ def main(argv):
     print(line + "->" + new_instr)
     of.write(new_instr+"\n")
 
+  keys_to_be_deleted=[]
   # keep only labels started with '$' (those which need translation)
   for l in labels_dict.keys():
     if(l.startswith("$")):
       labels_dict[l] = l[1:]
     else:
-      labels_dict.pop(l)
+      keys_to_be_deleted.append(l)
   #print(labels_dict)
+  for k in keys_to_be_deleted:
+      labels_dict.pop(k)
   of.close()
   
   # re-opens intermediary file, in reading mode
