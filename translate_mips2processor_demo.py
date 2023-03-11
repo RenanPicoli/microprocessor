@@ -26,6 +26,8 @@ def main(argv):
     sys.exit(2)
 
   print("Parsing %s\n" % argv[1]);
+  
+  new_instr_vector=[] # stores the lines to be written of (intermediary file)
 
   translation_enable = True # this flag is used to prevent translation of user coded assembly (between #APP and #NO_APP)
   
@@ -58,7 +60,8 @@ def main(argv):
       else:
         #print(txt)
         print(line + "->" + line)
-        of.write(line+"\n") # repeats user coded assembly
+        #of.write(line+"\n") # repeats user coded assembly
+        new_instr_vector.append(line+"\n")
         continue
       
 
@@ -259,8 +262,14 @@ def main(argv):
 
     #print(txt)
     print(line + "->" + new_instr)
-    of.write(new_instr+"\n")
+    #of.write(new_instr+"\n")
+    new_instr_vector.append(new_instr+"\n")
 
+  post_process(new_instr_vector) # removes prologues and epilogues, when specified
+  for i in new_instr_vector:
+    of.write(i)
+  of.close()
+  
   keys_to_be_deleted=[]
   # keep only labels started with '$' (those which need translation)
   for l in labels_dict.keys():
@@ -271,7 +280,7 @@ def main(argv):
   #print(labels_dict)
   for k in keys_to_be_deleted:
       labels_dict.pop(k)
-  of.close()
+
   
   # re-opens intermediary file, in reading mode
   try:
@@ -325,5 +334,36 @@ def main(argv):
   of.close()
   ff.close()
   sys.exit(0)
+  
+# removes prologues and epilogues, when specified
+def post_process(instr_vector):
+    #looks for flag ".remove_prologue"
+    #if you intend a naked function, this should be the 1st instruction in __asm()
+    #identifies the function (look for a label definition)
+    #removes lines between label and the flag
+    line_cnt=0
+    last_label_idx=0
+    lines_to_remove=[]
+    for l in instr_vector:
+        if(l[-2:]==":\n"): # is a label
+            last_label_idx = line_cnt
+            #print("Found label:{} at {}\n".format(l,line_cnt))
+        if(l==".remove_prologue\n"):
+            #print("Found remove_prologue at {}".format(line_cnt))
+            lines_to_remove=lines_to_remove+list(range(last_label_idx+1,line_cnt+1))
+        if(l==".remove_epilogue\n"):
+            #removes 3 lines: .remove_epilogue,ret,nop
+            lines_to_remove=lines_to_remove+list(range(line_cnt,line_cnt+3))
+        line_cnt = line_cnt+1
+    print(lines_to_remove)
+    
+    #deletes lines of indexes in lines_to_remove
+    #lines_to_remove needs to be reversed
+    # supose you need to remove the 1st and 3rd
+    # when you remove the 1st, the 3rd turns into the 2nd
+    lines_to_remove.sort(reverse = True)
+    for i in lines_to_remove:
+        instr_vector.pop(i)
+    #print(instr_vector)
 
 main(sys.argv)
