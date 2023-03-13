@@ -7,6 +7,9 @@ import sys # for C-like command line arguments
 # registers available for argument passing in MIPS
 arg_regs=["$4","$5","$6","$7"]
 used_arg_regs=[]
+  
+funct_start={} # for each function, stores the line_cnt of their label definition
+funct_frame_size={} # for each function, stores the size of their stack
 
 def main(argv):
   if(len(argv)!=2):
@@ -31,8 +34,12 @@ def main(argv):
 
   translation_enable = True # this flag is used to prevent translation of user coded assembly (between #APP and #NO_APP)
   
-  labels_dict={} # labels started with $ must be translated 
+  labels_dict={} # labels started with $ must be translated
+  
+  line_cnt=0
 
+  pre_process(fp)
+  
   for line in fp:
     #line = "xor $0, $0, $0"
     #line = "add $0,$1,$2"
@@ -264,6 +271,7 @@ def main(argv):
     print(line + "->" + new_instr)
     #of.write(new_instr+"\n")
     new_instr_vector.append(new_instr+"\n")
+  line_cnt = line_cnt+1 # end of for line in fp
 
   post_process(new_instr_vector) # removes prologues and epilogues, when specified
   for i in new_instr_vector:
@@ -334,6 +342,23 @@ def main(argv):
   of.close()
   ff.close()
   sys.exit(0)
+  
+# loop through code file
+# uses metadata to fill dictionaries funct_start and funct_frame_size
+def pre_process(fp):
+  pass
+  line_cnt=0
+  nxt_label=""
+  for line in fp:
+    line=line.strip()
+    words = line.split()
+    if(len(words)==3 and words[0]==".type" and words[2]=="@function"):
+      nxt_label=words[1][0:-1]
+      print("Found function definition: {}".format(words[1][0:-1]))
+    elif(line.startswith(nxt_label))
+      funct_start[nxt_label]=line_cnt
+    line_cnt=line_cnt+1
+  fp.seek(0) # rewinds file
   
 # removes prologues and epilogues, when specified
 def post_process(instr_vector):
