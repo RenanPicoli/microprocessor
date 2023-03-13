@@ -355,7 +355,7 @@ def pre_process(fp):
     if(len(words)==3 and words[0]==".type" and words[2]=="@function"):
       nxt_label=words[1][0:-1]
       print("Found function definition: {}".format(words[1][0:-1]))
-    elif(line.startswith(nxt_label))
+    elif(line.startswith(nxt_label)):
       funct_start[nxt_label]=line_cnt
     line_cnt=line_cnt+1
   fp.seek(0) # rewinds file
