@@ -126,7 +126,7 @@ def main(argv):
       elif((opcode=="lw" or opcode=="sw") and arg[2]=="$fp"):
         frmt_str = "\t{} [$30+{}] {};"
         #instructions that uses FP to get vars from stack or write to it mmust be translated (-8)
-        new_instr = frmt_str.format(opcode,int(arg[3])-8,arg[1])
+        new_instr = frmt_str.format(opcode,int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+8)/4),arg[1])
 
       # skips instructions that save FP to stack because this is done automatically by HW
       elif(opcode=="sw" and arg[1]=="$fp" and arg[2]=="$sp"):
@@ -348,17 +348,45 @@ def main(argv):
 def pre_process(fp):
   pass
   line_cnt=0
-  nxt_label=""
+  nxt_label=None
+  found_function=False
   for line in fp:
     line=line.strip()
     words = line.split()
-    if(len(words)==3 and words[0]==".type" and words[2]=="@function"):
+    if(len(words)>=3 and words[0]==".type" and words[2]=="@function"):
       nxt_label=words[1][0:-1]
       print("Found function definition: {}".format(words[1][0:-1]))
-    elif(line.startswith(nxt_label)):
+      found_function=True
+    elif(found_function and line.startswith(nxt_label)):
       funct_start[nxt_label]=line_cnt
+    elif(found_function and len(words)>=2 and words[0]==".frame"):
+      args=words[1].split(",")
+      if(len(args)==3):
+        if(args[0]!="$fp"):
+          print("Unrecognized option {} at directive: {}".format(args[0],line))
+        else:
+          print("Found {}'s frame size: {}".format(nxt_label, int(args[1])))
+          funct_frame_size[nxt_label]=int(args[1])
+      else:
+        print("Syntax error at directive: {}".format(line))
     line_cnt=line_cnt+1
   fp.seek(0) # rewinds file
+  
+def get_curr_funct(line_cnt):
+    inv_dict={}
+    # this dictionary relates a line number with a function
+    for k in funct_start:
+        inv_dict[funct_start[k]]=k
+
+    # keeps keys in descending order
+    keys=list(inv_dict.keys())
+    keys.sort(reverse=True)
+    for s in keys:
+        if(line_cnt < s):
+            continue
+        else:
+            return inv_dict[s]            
+    return "main"
   
 # removes prologues and epilogues, when specified
 def post_process(instr_vector):
