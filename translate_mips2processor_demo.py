@@ -125,8 +125,13 @@ def main(argv):
       # replace all instructions that get/put arguments from/to stack: lw $y, offset($fp) by lw [$30 + (offset - 8)] $y
       elif((opcode=="lw" or opcode=="sw") and arg[2]=="$fp"):
         frmt_str = "\t{} [$30+{}] {};"
-        #instructions that uses FP to get vars from stack or write to it mmust be translated (-8)
-        new_instr = frmt_str.format(opcode,int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+8)/4),arg[1])
+        #instructions that uses FP to get vars from stack or write to it must be translated (-frame_size+8)
+        new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+8)/4)
+        if(new_offset < 0): # if new_offset is negative, frmt_str will use '-'
+          frmt_str = "\t{} [$30-{}] {};"
+          new_instr = frmt_str.format(opcode,-new_offset,arg[1])
+        else:
+          new_instr = frmt_str.format(opcode,new_offset,arg[1])
 
       # skips instructions that save FP to stack because this is done automatically by HW
       elif(opcode=="sw" and arg[1]=="$fp" and arg[2]=="$sp"):
