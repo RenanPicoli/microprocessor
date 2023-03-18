@@ -10,6 +10,7 @@ used_arg_regs=[]
   
 funct_start={} # for each function, stores the line_cnt of their label definition
 funct_frame_size={} # for each function, stores the size of their stack
+leaf_functions=[] # names of functions that do not call other functions
 
 def main(argv):
   if(len(argv)!=2):
@@ -36,11 +37,12 @@ def main(argv):
   
   labels_dict={} # labels started with $ must be translated
   
-  line_cnt=0
+  line_cnt=-1
 
   pre_process(fp)
   
   for line in fp:
+    line_cnt = line_cnt+1 # end of for line in fp
     #line = "xor $0, $0, $0"
     #line = "add $0,$1,$2"
     line=line.strip() # removes spaces at beggining and end of string
@@ -124,14 +126,23 @@ def main(argv):
 
       # replace all instructions that get/put arguments from/to stack: lw $y, offset($fp) by lw [$30 + (offset - 8)] $y
       elif((opcode=="lw" or opcode=="sw") and arg[2]=="$fp"):
-        frmt_str = "\t{} [$30+{}] {};"
-        #instructions that uses FP to get vars from stack or write to it must be translated (-frame_size+8)
-        new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+8)/4)
-        if(new_offset < 0): # if new_offset is negative, frmt_str will use '-'
-          frmt_str = "\t{} [$30-{}] {};"
-          new_instr = frmt_str.format(opcode,-new_offset,arg[1])
+        if(arg[1] in used_arg_regs and opcode=="sw"): # because arg[1] already is in stack
+            continue
         else:
-          new_instr = frmt_str.format(opcode,new_offset,arg[1])
+            frmt_str = "\t{} [$30+{}] {};"
+            #instructions that uses FP to get vars from stack or write to it must be translated
+            if(get_curr_funct(line_cnt) in leaf_functions):
+                new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+0)/4)
+            else:
+              #f=get_curr_funct(line_cnt)
+              #fs=funct_frame_size[f]
+              #print("debug@{}\n{}\nframe:{}\narg3;{}".format(line_cnt,f,fs,int(arg[3])))
+              new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+4)/4)
+            if(new_offset < 0): # if new_offset is negative, frmt_str will use '-'
+              frmt_str = "\t{} [$30-{}] {};"
+              new_instr = frmt_str.format(opcode,-new_offset,arg[1])
+            else:
+              new_instr = frmt_str.format(opcode,new_offset,arg[1])
 
       # skips instructions that save FP to stack because this is done automatically by HW
       elif(opcode=="sw" and arg[1]=="$fp" and arg[2]=="$sp"):
@@ -273,10 +284,9 @@ def main(argv):
       #print (used_arg_regs)
 
     #print(txt)
-    print(line + "->" + new_instr)
+    print(line + "-> " + new_instr)
     #of.write(new_instr+"\n")
     new_instr_vector.append(new_instr+"\n")
-  line_cnt = line_cnt+1 # end of for line in fp
 
   post_process(new_instr_vector) # removes prologues and epilogues, when specified
   for i in new_instr_vector:
@@ -350,8 +360,8 @@ def main(argv):
   
 # loop through code file
 # uses metadata to fill dictionaries funct_start and funct_frame_size
+# also determine the leaf funtions (fill leaf)
 def pre_process(fp):
-  pass
   line_cnt=0
   nxt_label=None
   found_function=False
@@ -364,6 +374,8 @@ def pre_process(fp):
       found_function=True
     elif(found_function and line.startswith(nxt_label)):
       funct_start[nxt_label]=line_cnt
+      # all functions start as leaf but might be removed from this list
+      leaf_functions.append(nxt_label)
     elif(found_function and len(words)>=2 and words[0]==".frame"):
       args=words[1].split(",")
       if(len(args)==3):
@@ -374,6 +386,11 @@ def pre_process(fp):
           funct_frame_size[nxt_label]=int(args[1])
       else:
         print("Syntax error at directive: {}".format(line))
+    # detects function calls (non-leaf functions)
+    elif(found_function and len(words)>=2 and (words[0]=="jal" or words[0]=="jalx")):
+        print("Found function call inside {} called {}".format(nxt_label, words[1]))
+        if nxt_label in leaf_functions: # to avoid removing twice a object
+            leaf_functions.remove(get_curr_funct(line_cnt))
     line_cnt=line_cnt+1
   fp.seek(0) # rewinds file
   
