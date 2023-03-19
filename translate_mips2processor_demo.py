@@ -137,7 +137,7 @@ def main(argv):
               #f=get_curr_funct(line_cnt)
               #fs=funct_frame_size[f]
               #print("debug@{}\n{}\nframe:{}\narg3;{}".format(line_cnt,f,fs,int(arg[3])))
-              new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+4)/4)
+              new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+0)/4)
             if(new_offset < 0): # if new_offset is negative, frmt_str will use '-'
               frmt_str = "\t{} [$30-{}] {};"
               new_instr = frmt_str.format(opcode,-new_offset,arg[1])
