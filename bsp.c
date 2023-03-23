@@ -1,25 +1,38 @@
 #include "bsp.h"
 
 void print_7segs(int n){
-	__asm(".remove_prologue\n\t");
-	__asm("ldfp r2;\n\tlw [r2+0] r1;\n\txor r3 r3 r3;\n\taddi r3 r3 x\"0074\";\n\tsw [r3+0] r1;\n\tret;\n\t");
-	__asm(".remove_epilogue\n\t");
+	__asm(".remove_prologue\n\t\
+	ldfp r2;\n\t\
+	lw [r2+0] r1;\n\t\
+	xor r3 r3 r3;\n\t\
+	addi r3 r3 x\"0074\";\n\t\
+	sw [r3+0] r1;\n\t\
+	ret;\n\t\
+	.remove_epilogue\n\t");
 	//__asm("ldfp r2;\n\tlw [r2+0] r1;\n\txor r3 r3 r3;\n\taddi r3 r3 DISPLAY_7SEGS_BASE_ADDR;\n\tsw [r3+0] r1;\n\tret;\n\t");
 }
 
 //writes integer n to address addr
 //r1 stores the value, r4 stores the address
 void write_w(int addr,int n){
-	__asm(".remove_prologue\n\t");
-	__asm("ldfp r2;\n\tlw [r2+1] r1;\n\tlw [r2+0] r4;\n\txor r3 r3 r3;\n\tadd r3 r4 r3;\n\tsw [r3+0] r1;\n\tret;\n\t");
-	__asm(".remove_epilogue\n\t");
+	__asm(".remove_prologue\n\t\
+	ldfp r2;\n\t\
+	lw [r2+1] r1;\n\t\
+	lw [r2+0] r4;\n\t\
+	sw [r4+0] r1;\n\t\
+	ret;\n\t\
+	.remove_epilogue\n\t");
 }
 
 //reads a single word from address addr
 int read_w(int addr){
-	__asm(".remove_prologue\n\t");
-	__asm("ldfp r30;\n\tlw [r30+0] r4;\n\tlw [r4+0] r2;\n\tpush r2;\n\tret;\n\t");
-	__asm(".remove_epilogue\n\t");
+	__asm(".remove_prologue\n\t\
+	ldfp r30;\n\t\
+	lw [r30+0] r4;\n\t\
+	lw [r4+0] r2;\n\t\
+	push r2;\n\t\
+	ret;\n\t\
+	.remove_epilogue\n\t");
 }
 /*	ldfp r30;
 	lw [r30+0] r4;# r4 is the address argument (addr)
@@ -73,9 +86,9 @@ LOOP:
 	ret;*/
 
 //computes the dot product between two arrays of l elements	
-float dot_product(int A_ptr,int B_ptr,uint l){
+int dot_product(int A_ptr,int B_ptr,int l){
 	write_multiple(A_ptr,INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET,l);
 	write_multiple(B_ptr,INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET,l);
-	float result=read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);//should I cast to float???
+	int result=read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);//I don't need cast to float, and it would move to $f0-$f31 (MIPS)
 	return result;
 }

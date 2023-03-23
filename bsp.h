@@ -5,7 +5,7 @@ int read_w(int addr);
 void write_multiple(int src_addr,int dst_addr,int l);
 void write_vector(int src_addr,int dst_addr);
 
-float dot_product(int A_ptr,int B_ptr,uint l);
+int dot_product(int A_ptr,int B_ptr,int l);
 
 //constants
 
