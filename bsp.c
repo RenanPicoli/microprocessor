@@ -42,9 +42,22 @@ int read_w(int addr){
 
 //copies l consecutive words (starting from address src_addr) to consecutives positions starting at dst_addr
 void write_multiple(int src_addr,int dst_addr,int l){
-	__asm(".remove_prologue\n\t");
-	__asm("ldfp r30;\n\tlw [r30+0] r4;\n\tlw [r30+1] r5;\n\tlw [r30+2] r6;\n\txor r1 r1 r1;\n\tLOOP:\n\tadd r4 r1 r2;\n\tadd r5 r1 r3;\n\tlw [r2+0] r8;\n\tsw [r3+0] r8;\n\taddi r1 r1 x\"0001\";\n\tbeq r1 r6 x\"0001\";\n\tjmp LOOP;\n\tret;\n\t");
-	__asm(".remove_epilogue\n\t");
+	__asm(".remove_prologue\n\t\
+	ldfp r30;\n\t\
+	lw [r30+0] r4;\n\t\
+	lw [r30+1] r5;\n\t\
+	lw [r30+2] r6;\n\t\
+	xor r1 r1 r1;\n\t\
+	LOOP:\n\t\
+	add r4 r1 r2;\n\t\
+	add r5 r1 r3;\n\t\
+	lw [r2+0] r8;\n\t\
+	sw [r3+0] r8;\n\t\
+	addi r1 r1 x\"0001\";\n\t\
+	beq r1 r6 x\"0001\";\n\t\
+	jmp LOOP;\n\t\
+	ret;\n\t\
+	.remove_epilogue\n\t");
 }
 /*	ldfp r30;
 	lw [r30+0] r4;# src_addr
@@ -65,9 +78,23 @@ LOOP:
 //copies 8 consecutive words - aka vector - (starting from address src_addr) to consecutives positions starting at dst_addr
 //intended to use for manually filling a peripheral that operates on vectors
 void write_vector(int src_addr,int dst_addr){
-	__asm(".remove_prologue\n\t");
-	__asm("ldfp r30;\n\tlw [r30+0] r4;\n\tlw [r30+1] r5;\n\txor r6 r6 r6;\n\taddi r6 r6 x\"0008\";\n\txor r1 r1 r1;\n\tLOOP:\n\tadd r4 r1 r2;\n\tadd r5 r1 r3;\n\tlw [r2+0] r8;\n\tsw [r3+0] r8;\n\taddi r1 r1 x\"0001\";\n\tbeq r1 r6 x\"0001\";\n\tjmp LOOP;\n\tret;\n\t");
-	__asm(".remove_epilogue\n\t");
+	__asm(".remove_prologue\n\t\
+	ldfp r30;\n\t\
+	lw [r30+0] r4;\n\t\
+	lw [r30+1] r5;\n\t\
+	xor r6 r6 r6;\n\t\
+	addi r6 r6 x\"0008\";\n\t\
+	xor r1 r1 r1;\n\t\
+	LOOP:\n\t\
+	add r4 r1 r2;\n\t\
+	add r5 r1 r3;\n\t\
+	lw [r2+0] r8;\n\t\
+	sw [r3+0] r8;\n\t\
+	addi r1 r1 x\"0001\";\n\t\
+	beq r1 r6 x\"0001\";\n\t\
+	jmp LOOP;\n\t\
+	ret;\n\t\
+	.remove_epilogue\n\t");
 }
 /*	ldfp r30;
 	lw [r30+0] r4;# src_addr
