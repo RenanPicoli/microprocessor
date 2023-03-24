@@ -129,3 +129,14 @@ void multiply_add(int A_ptr,int B_ptr,int lambda){
 	write_vector(VMAC_BASE_ADDR+VMAC_A_OFFSET,A_ptr);//copies result (VMAC:A) back to A
 	return;
 }
+
+//cmd=true => enables filter
+//cmd=false => disables filter
+void filter_control(bool cmd){
+	if(cmd){
+		write_w(FILTER_CTRL_STATUS_BASE_ADDR+FILTER_CTRL_STATUS_OFFSET,0x1);
+	}else{
+		write_w(FILTER_CTRL_STATUS_BASE_ADDR+FILTER_CTRL_STATUS_OFFSET,0x0);
+	}
+	return;
+}

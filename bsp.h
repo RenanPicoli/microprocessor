@@ -7,6 +7,7 @@ void write_vector(int src_addr,int dst_addr);
 
 int  dot_product(int A_ptr,int B_ptr,int l);
 void multiply_add(int A_ptr,int B_ptr,int lambda);
+void filter_control(bool cmd);
 
 //constants
 
