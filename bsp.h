@@ -1,11 +1,12 @@
 //function prototypes
 void print_7segs(int n);
 void write_w(int addr,int n);
-int read_w(int addr);
+int  read_w(int addr);
 void write_multiple(int src_addr,int dst_addr,int l);
 void write_vector(int src_addr,int dst_addr);
 
-int dot_product(int A_ptr,int B_ptr,int l);
+int  dot_product(int A_ptr,int B_ptr,int l);
+void multiply_add(int A_ptr,int B_ptr,int lambda);
 
 //constants
 
@@ -33,9 +34,9 @@ int dot_product(int A_ptr,int B_ptr,int l);
 #define INNER_PRODUCT_A_OFFSET			0x00
 #define INNER_PRODUCT_B_OFFSET			0x08
 #define INNER_PRODUCT_RESULT_OFFSET		0x10
-#define VMAC_BASE_A_OFFSET				0x00
-#define VMAC_BASE_B_OFFSET				0x08
-#define VMAC_BASE_RESULT_OFFSET			0x10
+#define VMAC_A_OFFSET					0x00
+#define VMAC_B_OFFSET					0x08
+#define VMAC_LAMBDA_OFFSET				0x10
 #define I2C_CR_OFFSET 					0x00
 #define I2C_DR_OFFSET 					0x01
 #define I2C_IRQ_CTRL_OFFSET 			0x04

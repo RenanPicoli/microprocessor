@@ -119,3 +119,13 @@ int dot_product(int A_ptr,int B_ptr,int l){
 	int result=read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);//I don't need cast to float, and it would move to $f0-$f31 (MIPS)
 	return result;
 }
+
+//computes A+lambda*B and stores back at A (A and B are vectors in MEMORY)
+void multiply_add(int A_ptr,int B_ptr,int lambda){
+	write_vector(A_ptr,VMAC_BASE_ADDR+VMAC_A_OFFSET);//copies A to VMAC:A
+	write_vector(B_ptr,VMAC_BASE_ADDR+VMAC_B_OFFSET);//copies B to VMAC:B
+	write_w(lambda,VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET);//copies lambda to VMAC:lambda
+	VMAC();//VMAC:A <= VMAC:A + (VMAC:lambda * VMAC:B)
+	write_vector(VMAC_BASE_ADDR+VMAC_A_OFFSET,A_ptr);//copies result (VMAC:A) back to A
+	return;
+}
