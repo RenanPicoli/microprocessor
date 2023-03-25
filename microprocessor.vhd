@@ -409,9 +409,10 @@ begin
 									stack_out => lr_stack_out--data retrieved from stack
 							);
 						
-	rs <= instruction(25 downto 21);
-	rt <= instruction(20 downto 16);
-	rd <= instruction(15 downto 11);
+	rs 	<= instruction(25 downto 21);
+	rt 	<= instruction(20 downto 16);
+	rd		<= instruction(15 downto 11);
+	shamt	<= instruction(10 downto 6);
 
 	writeLoc <=	rd when regDst="01" else
 					rt when regDst="00" else
