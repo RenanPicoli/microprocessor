@@ -27,6 +27,7 @@ entity ALU is
 
 port(	A:	in std_logic_vector(31 downto 0);
 		B:	in std_logic_vector(31 downto 0);
+		shamt:	in std_logic_vector(4 downto 0);--unsigned
 		Sel:	in std_logic_vector(3 downto 0);
 		CLK: in std_logic;
 		RST: in std_logic;
@@ -54,6 +55,16 @@ component d_flip_flop
 			);
 end component;
 
+component var_shift
+generic	(N: natural; O: natural; S: natural);--N: number of bits in input, O in output; S: number of bits in shift
+port(	input:in std_logic_vector(N-1 downto 0);--input vector that will be shifted
+		shift:in std_logic_vector(S-1 downto 0);--signed integer: number of shifts to left (if positive)
+		overflow: out std_logic;-- '1' if there are ones that were dropped in the output
+		output: out std_logic_vector(O-1 downto 0)--
+);
+end component;
+
+signal shamt_signed: std_logic_vector (5 downto 0);
 signal result: std_logic_vector(31 downto 0);
 signal product: std_logic_vector(63 downto 0);--the desired product
 signal multiplier_out: std_logic_vector(63 downto 0);--multiplier output, might be two's complement of what we want
@@ -90,6 +101,15 @@ begin
 					CLK=>CLK,
 					Q => lo_out
 	 );
+	
+	--int_absolute calculation
+	--shifts extended_mantissa the number of exponent without bias (*2^(EXP-bias))
+	shift: var_shift
+	generic map (N => 32, O=> 32, S => 6)
+	port map (input => A,
+				 shift => shamt,
+				 overflow => shift_overflow,
+				 output => shifted_ext_mantissa);
 	 
 	 lsb <= '1' when (A < B) else '0';
 	 imul_A <= A when (A(31)='0') else ((not A)+1);

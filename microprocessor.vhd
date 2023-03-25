@@ -73,6 +73,7 @@ end component;
 component alu is
 	port(	A:	in std_logic_vector(31 downto 0);
 			B:	in std_logic_vector(31 downto 0);
+			shamt:	in std_logic_vector(4 downto 0);--unsigned
 			Sel:	in std_logic_vector(3 downto 0);
 			CLK: in std_logic;
 			RST: in std_logic;
@@ -438,6 +439,7 @@ begin
 	alu_clk <= CLK;
 	arith_logic_unity: alu port map ( 	A => read_data_1,
 													B => aluOp2,
+													shamt => shamt,
 													sel => aluControl,
 													CLK => alu_clk,
 													RST => rst,
