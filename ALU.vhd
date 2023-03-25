@@ -65,6 +65,8 @@ port(	input:in std_logic_vector(N-1 downto 0);--input vector that will be shifte
 end component;
 
 signal shamt_signed: std_logic_vector (5 downto 0);
+signal shifted_A: std_logic_vector (31 downto 0);
+signal shift_overflow: std_logic;
 signal result: std_logic_vector(31 downto 0);
 signal product: std_logic_vector(63 downto 0);--the desired product
 signal multiplier_out: std_logic_vector(63 downto 0);--multiplier output, might be two's complement of what we want
@@ -107,9 +109,12 @@ begin
 	shift: var_shift
 	generic map (N => 32, O=> 32, S => 6)
 	port map (input => A,
-				 shift => shamt,
+				 shift => shamt_signed,
 				 overflow => shift_overflow,
-				 output => shifted_ext_mantissa);
+				 output => shifted_A);
+	shamt_signed <= '0' & shamt when Sel="1110" else --sll
+						(('1' & not shamt) + 1) when Sel="1111" else --srl
+						(others=>'0');--no shift
 	 
 	 lsb <= '1' when (A < B) else '0';
 	 imul_A <= A when (A(31)='0') else ((not A)+1);
@@ -144,6 +149,7 @@ begin
 		when "0011" =>
 			result <= A xor B;
 			hi_lo_en <= '0';
+			
 	   when "0110" =>						
 			result <= A + (not B) + 1;-- A-B
 			hi_lo_en <= '0';
@@ -153,18 +159,26 @@ begin
 		when "1000" =>--mult
 			hi_lo_en <= '1';
 			result <= product(31 downto 0);
-		when "1011" =>--imul
-			hi_lo_en <= '1';
-			result <= product(31 downto 0);
 		when "1001" =>
 			result <= hi_out;
 			hi_lo_en <= '0';
 		when "1010" =>
 			result <= lo_out;
 			hi_lo_en <= '0';
+		when "1011" =>--imul
+			hi_lo_en <= '1';
+			result <= product(31 downto 0);
 		when "1100" =>
 			result <= A nor B;
 			hi_lo_en <= '0';
+			
+		when "1110" => --sll
+			result <= shifted_A;
+			hi_lo_en <= '0';
+		when "1111" => --srl
+			result <= shifted_A;
+			hi_lo_en <= '0';
+			
 	   when others =>	 
 			result <= (others => 'X');
 			hi_lo_en <= '0';
