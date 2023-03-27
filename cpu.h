@@ -12,7 +12,7 @@
 #define LVEC_DST_MSK(n) LVEC_DST_MSK_ ## n
 
 #define LVEC(src,dst) __asm("lvec " #src " " #dst ";")
-#define one_hot(n) (1<<n)
+//#define one_hot(n) (1<<n)
 #define xxstr(s) xstr(s)
 #define xstr(s) str(s)
 #define str(s) #s
@@ -25,6 +25,7 @@
 
 //function prototypes
 int sum(int x, int y);
+int one_hot(int n);
 void lvec_f(char src,char dst);
 inline void vmac_f();
 
