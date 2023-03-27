@@ -266,6 +266,10 @@ def main(argv):
     elif(opcode=="mflo" or opcode=="mfhi"):
       frmt_str="\t{} {};"
       new_instr=frmt_str.format(opcode,arg[1])
+      
+    elif(opcode=="sll" or  opcode=="srl"):# in MIPS, sll rd rs rt: rd <= rs << rt
+      frmt_str="\t{} {} {} x\"{:02X}\";"
+      new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
 
     elif(opcode=="nop"):
       new_instr="\tnop;"
