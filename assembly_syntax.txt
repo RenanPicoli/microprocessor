@@ -1,6 +1,6 @@
 --intructions categories (according to assembly)
 
-R_type_mnemonics := {add,sub,and,or,xor,nor,slt,fadd,fsub,fdiv,fmul};--opcode and 3 registers (uses all bits)
+R_type_mnemonics := {add,sub,and,or,xor,nor,slt,fadd,fsub,fdiv,fmul,sllv,srlv};--opcode and 3 registers (uses all bits)
 I_type_mnemonics := {beq,addi,subi,andi,ori,xori,nori,slti,sll,srl};-- opcode, 2 registers and 1 IMMEDIATE (uses all bits)
 J_type_mnemonics := {jmp,call,addsp};-- opcode and 1 IMMEDIATE(uses all bits)
 O_type_mnemonics := {halt,vmac,iack,ret,iret,nop};-- opcode ONLY
@@ -30,6 +30,9 @@ sll		:= "010010";--shll in my_types
 srl		:= "010011";--shrl in my_types
 nori	:= "010100";
 slti	:= "010101";
+sllv	:= "010110";--sll with offset in register bits 4:0
+srlv	:= "010111";--srl with offset in register bits 4:0
+
 lw		:= "100011";
 mflo	:= "100101";
 sw		:= "101011";

@@ -82,12 +82,13 @@ package my_types is
 	constant imul:				std_logic_vector(5 downto 0)	:= "001101";
 	constant vmac:				std_logic_vector(5 downto 0)	:= "001111";
 	constant xori:				std_logic_vector(5 downto 0)	:= "010000";
-	constant lui:				std_logic_vector(5 downto 0)	:= "010001";
-	
+	constant lui:				std_logic_vector(5 downto 0)	:= "010001";	
 	constant shll:				std_logic_vector(5 downto 0)	:= "010010";
 	constant shrl:				std_logic_vector(5 downto 0)	:= "010011";	
 	constant nori:				std_logic_vector(5 downto 0)	:= "010100";
-	constant slti:				std_logic_vector(5 downto 0)	:= "010101";
+	constant slti:				std_logic_vector(5 downto 0)	:= "010101";	
+	constant sllv:				std_logic_vector(5 downto 0)	:= "010110";
+	constant srlv:				std_logic_vector(5 downto 0)	:= "010111";
 	
 	constant lw: 				std_logic_vector(5 downto 0)	:= "100011";
 	constant mflo:				std_logic_vector(5 downto 0)	:= "100101";

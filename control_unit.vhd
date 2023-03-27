@@ -70,8 +70,10 @@ signal mult: std_logic;--unsigned multiplication
 signal imul: std_logic;--signed multiplication
 signal mflo: std_logic;--load lower half of product into register
 signal mfhi: std_logic;--load upper half of product into register
-signal shrl: std_logic;--shift right logic
-signal shll: std_logic;--shift left logic
+signal shrl: std_logic;--shift right logic (srl)
+signal shll: std_logic;--shift left logic (sll)
+signal sllv: std_logic;--sll with offset in register bits 4:0
+signal srlv: std_logic;--srl with offset in register bits 4:0
 --
 --signal ldfp: std_logic;
 --signal ldrv: std_logic;
@@ -118,6 +120,8 @@ mflo		<= '1' when opcode="100101" else '0';
 mfhi		<= '1' when opcode="101101" else '0';
 shrl		<= '1' when opcode="010011" else '0';
 shll		<= '1' when opcode="010010" else '0';
+sllv		<= '1' when opcode="010110" else '0';
+srlv		<= '1' when opcode="010111" else '0';
 
 ldfp		<= '1' when opcode="110000" else '0';--loads fp to register
 ldrv		<= '1' when opcode="110001" else '0';--loads rv to register
@@ -158,7 +162,8 @@ AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require ad
 							ori='1' or xori='1' or nori='1' or
 							slti='1' or mult='1' or imul='1' or
 							mfhi='1' or mflo='1' or
-							shrl='1' or shll='1')
+							shrl='1' or shll='1' or
+							sllv='1' or srlv='1')
 			else "XX";
 
 aluControl <= 	--"0010" when (AluOp = "00") else--add
@@ -169,6 +174,9 @@ aluControl <= 	--"0010" when (AluOp = "00") else--add
 					"0000" when (AluOp = "11" and andi='1') else--andi
 					"0001" when (AluOp = "11" and ori ='1') else--ori
 					"0011" when (AluOp = "11" and xori='1') else--xori
+					"0100" when (AluOp = "11" and sllv='1') else--sllv
+					"0101" when (AluOp = "11" and srlv='1') else--srlv
+					
 					"1100" when (AluOp = "11" and nori='1') else--nori
 					"0111" when (AluOp = "11" and slti='1') else--slti
 					"1000" when (AluOp = "11" and mult='1') else--mult (immediate is ignored)
@@ -177,6 +185,8 @@ aluControl <= 	--"0010" when (AluOp = "00") else--add
 					"1010" when (AluOp = "11" and mflo='1') else--mflo
 					"1110" when (AluOp = "11" and shll='1') else--sll
 					"1111" when (AluOp = "11" and shrl='1') else--srl
+					"1110" when (AluOp = "11" and sllv='1') else--sllv
+					"1111" when (AluOp = "11" and srlv='1') else--srlv
 					--for R-type
 					"0010" when (AluOp = "10" and funct = "100000") else--add
 					"0110" when (AluOp = "10" and funct = "100010") else--subtract

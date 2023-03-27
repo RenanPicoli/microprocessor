@@ -149,7 +149,12 @@ begin
 		when "0011" =>
 			result <= A xor B;
 			hi_lo_en <= '0';
-			
+		when "0100" => --sllv
+			result <= shifted_A;
+			hi_lo_en <= '0';
+		when "0101" => --srlv
+			result <= shifted_A;
+			hi_lo_en <= '0';			
 	   when "0110" =>						
 			result <= A + (not B) + 1;-- A-B
 			hi_lo_en <= '0';

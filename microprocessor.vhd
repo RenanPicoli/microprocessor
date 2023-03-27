@@ -223,6 +223,7 @@ signal rs: std_logic_vector (4 downto 0);
 signal rt: std_logic_vector (4 downto 0);
 signal rd: std_logic_vector (4 downto 0);
 signal shamt: std_logic_vector (4 downto 0);
+signal shamt_or_rt: std_logic_vector (4 downto 0);--shamt for ALU comes from shamt field or from rt(4:0)
 signal funct: std_logic_vector (5 downto 0);
 signal addressRelative: std_logic_vector (15 downto 0);--for load,store,branch
 signal addressAbsolute: std_logic_vector (25 downto 0);--for jumps
@@ -437,10 +438,11 @@ begin
 													read_data_2 => read_data_2
 											);
 											
+	shamt_or_rt <= rt(4 downto 0) when (aluControl="0100" or aluControl="0101" )else shamt;
 	alu_clk <= CLK;
 	arith_logic_unity: alu port map ( 	A => read_data_1,
 													B => aluOp2,
-													shamt => shamt,
+													shamt => shamt_or_rt,--shamt for ALU comes from shamt field or from rt(4:0)
 													sel => aluControl,
 													CLK => alu_clk,
 													RST => rst,
