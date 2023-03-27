@@ -132,11 +132,7 @@ void multiply_add(int A_ptr,int B_ptr,int lambda){
 
 //cmd=true => enables filter
 //cmd=false => disables filter
-void filter_control(bool cmd){
-	if(cmd){
-		write_w(FILTER_CTRL_STATUS_BASE_ADDR+FILTER_CTRL_STATUS_OFFSET,0x1);
-	}else{
-		write_w(FILTER_CTRL_STATUS_BASE_ADDR+FILTER_CTRL_STATUS_OFFSET,0x0);
-	}
+void filter_control(int cmd){
+	write_w(FILTER_CTRL_STATUS_BASE_ADDR+FILTER_CTRL_STATUS_OFFSET,cmd);
 	return;
 }
