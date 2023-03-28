@@ -266,10 +266,21 @@ def main(argv):
     elif(opcode=="mflo" or opcode=="mfhi"):
       frmt_str="\t{} {};"
       new_instr=frmt_str.format(opcode,arg[1])
-      
-    elif(opcode=="sll" or  opcode=="srl"):# in MIPS, sll rd rs rt: rd <= rs << rt
-      frmt_str="\t{} {} {} x\"{:02X}\";"
-      new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+    
+    # there are 2 variants of the instructions below in MIPS
+    # sll rd rs rt: rd <= rs << rt (aka sllv)
+    # sll rd rs shift: rd <= rs << shift
+    elif(opcode=="sll" or  opcode=="srl"):
+      if(arg[3][0]!="$"): # arg[3] is a constant
+        frmt_str="\t{} {} {} x\"{:02X}\";"
+        new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+      else: # arg[3] is a register (rt)
+        frmt_str="\t{} {} {} {};" # arg[1] is rd
+        new_instr = frmt_str.format(opcode+"v",arg[2],arg[3],arg[1]) # sll -> sllv, srl -> srlv
+          
+    elif(opcode=="sllv" or  opcode=="srlv"):
+      frmt_str="\t{} {} {} {};"
+      new_instr = frmt_str.format(opcode,arg[2],arg[3],arg[1])
 
     elif(opcode=="nop"):
       new_instr="\tnop;"
