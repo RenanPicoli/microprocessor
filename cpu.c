@@ -5,8 +5,7 @@ int sum(int x, int y) {
 }
 
 int one_hot(int n){
-  //return (1<<n);
-  return (n<<3);
+  return (1<<n);
 }
 /*
 inline void lvec_f(char src,char dst){
