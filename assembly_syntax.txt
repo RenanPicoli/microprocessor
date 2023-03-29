@@ -26,12 +26,9 @@ imul	:= "001101";
 vmac	:= "001111";
 xori	:= "010000";
 lui		:= "010001";
-sll		:= "010010";--shll in my_types
-srl		:= "010011";--shrl in my_types
+
 nori	:= "010100";
 slti	:= "010101";
-sllv	:= "010110";--sll with offset in register bits 4:0
-srlv	:= "010111";--srl with offset in register bits 4:0
 
 lw		:= "100011";
 mflo	:= "100101";
@@ -59,10 +56,10 @@ fadd_funct	:= "000000";
 fsub_funct	:= "000010";
 fmul_funct	:= "000001";
 fdiv_funct	:= "000011";
-sll_funct	:= "000000";
-sllv_funct	:= "000000";
-srl_funct	:= "000000";
-srlv_funct	:= "000000";	 
+sll_funct		:= "010010";--shll in my_types
+srl_funct		:= "010011";--shrl in my_types
+sllv_funct	:= "010110";--sll with offset in register bits 4:0
+srlv_funct	:= "010111";--srl with offset in register bits 4:0
 
 --register codes
 r0	:= "00000";
