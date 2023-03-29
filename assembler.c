@@ -724,14 +724,22 @@ void R_type_parse(char *binary_string,char *instruction_str){
 		}
 		pos=find(dictionary,dictionary_size,s[i]);
 		if(pos==-1){
-			printf("Argument not found: %s\n",s[i]);
-			return;
+			if(i==3 && (strcmp(s[0],"sll")==0 || strcmp(s[0],"srl")==0)){//check if is sll or srl, s[3] should be immediate
+				strcat(binary_string,"00000");//append rd(=X) field
+				strcat(binary_string,hex2bin(s[i]));//append funct field
+			}else{
+				printf("Argument not found: %s\n",s[i]);
+				return;
+			}
 		}
 		strcat(binary_string,dictionary[pos].binary_string);
 	}
-	strcat(binary_string,"00000");
+	if(!(strcmp(s[0],"sll")==0 || strcmp(s[0],"srl")==0)){//append default (zeroed) shamt only if is not sll or srl
+		strcat(binary_string,"00000");//append shamt field
+	}
+	
 	pos=find(dictionary,dictionary_size,strcat(s[0],"_funct"));
-	strcat(binary_string,dictionary[pos].binary_string);
+	strcat(binary_string,dictionary[pos].binary_string);//append funct field
 	return;
 }
 
