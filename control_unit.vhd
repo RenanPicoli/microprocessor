@@ -118,10 +118,10 @@ mult		<= '1' when opcode="000101" else '0';
 imul		<= '1' when opcode="001101" else '0';
 mflo		<= '1' when opcode="100101" else '0';
 mfhi		<= '1' when opcode="101101" else '0';
-shrl		<= '1' when opcode="010011" else '0';
-shll		<= '1' when opcode="010010" else '0';
-sllv		<= '1' when opcode="010110" else '0';
-srlv		<= '1' when opcode="010111" else '0';
+shrl		<= '1' when R_type='1' and funct="010011" else '0';
+shll		<= '1' when R_type='1' and funct="010010" else '0';
+sllv		<= '1' when R_type='1' and funct="010110" else '0';
+srlv		<= '1' when R_type='1' and funct="010111" else '0';
 
 ldfp		<= '1' when opcode="110000" else '0';--loads fp to register
 ldrv		<= '1' when opcode="110001" else '0';--loads rv to register
@@ -161,9 +161,7 @@ AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require ad
 			"11" when (addi='1' or subi='1' or andi='1' or--these I-type ops require access to any arith operation
 							ori='1' or xori='1' or nori='1' or
 							slti='1' or mult='1' or imul='1' or
-							mfhi='1' or mflo='1' or
-							shrl='1' or shll='1' or
-							sllv='1' or srlv='1')
+							mfhi='1' or mflo='1')
 			else "XX";
 
 aluControl <= 	--"0010" when (AluOp = "00") else--add
@@ -183,10 +181,7 @@ aluControl <= 	--"0010" when (AluOp = "00") else--add
 					"1011" when (AluOp = "11" and imul='1') else--imul
 					"1001" when (AluOp = "11" and mfhi='1') else--mfhi
 					"1010" when (AluOp = "11" and mflo='1') else--mflo
-					"1110" when (AluOp = "11" and shll='1') else--sll
-					"1111" when (AluOp = "11" and shrl='1') else--srl
-					"1110" when (AluOp = "11" and sllv='1') else--sllv
-					"1111" when (AluOp = "11" and srlv='1') else--srlv
+
 					--for R-type
 					"0010" when (AluOp = "10" and funct = "100000") else--add
 					"0110" when (AluOp = "10" and funct = "100010") else--subtract
@@ -194,7 +189,11 @@ aluControl <= 	--"0010" when (AluOp = "00") else--add
 					"0001" when (AluOp = "10" and funct = "100101") else--or
 					"0011" when (AluOp = "10" and funct = "100111") else--xor
 					"1100" when (AluOp = "10" and funct = "101000") else--nor
- 					"0111" when (AluOp = "10" and funct = "101010") else--set-on-less-than
+ 					"0111" when (AluOp = "10" and funct = "101010") else--set-on-less-than	
+			"1110" when (AluOp = "10" and shll='1') else--sll
+					"1111" when (AluOp = "10" and shrl='1') else--srl
+					"1110" when (AluOp = "10" and sllv='1') else--sllv
+					"1111" when (AluOp = "10" and srlv='1') else--srlv
 					"XXXX";
 					
 fpuControl	<=	"00" when (R_type = '1' and funct = "000000") else--addition
