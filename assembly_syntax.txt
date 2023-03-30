@@ -56,8 +56,8 @@ fadd_funct	:= "000000";
 fsub_funct	:= "000010";
 fmul_funct	:= "000001";
 fdiv_funct	:= "000011";
-sll_funct		:= "010010";--shll in my_types
-srl_funct		:= "010011";--shrl in my_types
+sll_funct	:= "010010";--shll in my_types
+srl_funct	:= "010011";--shrl in my_types
 sllv_funct	:= "010110";--sll with offset in register bits 4:0
 srlv_funct	:= "010111";--srl with offset in register bits 4:0
 
