@@ -438,7 +438,7 @@ begin
 													read_data_2 => read_data_2
 											);
 											
-	shamt_or_rt <= rt(4 downto 0) when (aluControl="0100" or aluControl="0101" )else shamt;
+	shamt_or_rt <= rt(4 downto 0) when (aluControl="0100" or aluControl="0101" )else shamt;--rt for sllv/srlv, for shrl/shll is shamt
 	alu_clk <= CLK;
 	arith_logic_unity: alu port map ( 	A => read_data_1,
 													B => aluOp2,
