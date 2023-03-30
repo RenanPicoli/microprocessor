@@ -112,8 +112,8 @@ begin
 				 shift => shamt_signed,
 				 overflow => shift_overflow,
 				 output => shifted_A);
-	shamt_signed <= '0' & shamt when Sel="1110" else --sll
-						(('1' & not shamt) + 1) when Sel="1111" else --srl
+	shamt_signed <= '0' & shamt when (Sel="1110" or Sel="0100") else --sll/sllv
+						(('1' & not shamt) + 1) when (Sel="1111" or Sel="0101") else --srl/srlv
 						(others=>'0');--no shift
 	 
 	 lsb <= '1' when (A < B) else '0';
