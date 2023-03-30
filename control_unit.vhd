@@ -135,10 +135,10 @@ nop		<= '1' when opcode="111111" else '0';--no operation (bubble)
 
 iack <= iret;
 
-regDst 	<= "01" when R_type='1' else--usa rd (para escrita) só em instrucao tipo R
-				"10" when (mfhi='1' or mflo='1' or ldfp='1' or ldrv='1' or pop='1') else--apenas mflo, mfhi, ldfp, ldrv, pop escrevem no rs
-				"00";--demais instrucoes escrevem no rt
-memRead 	<= load_type;
+regDst 	<=	"01" when (R_type='1' and (shll='0' and shrl='0')) else--usa rd (para escrita) só em instrucao tipo R, exceto sll e srl (escrevem em rt)
+			"10" when (mfhi='1' or mflo='1' or ldfp='1' or ldrv='1' or pop='1') else--apenas mflo, mfhi, ldfp, ldrv, pop escrevem no rs
+			"00";--demais instrucoes escrevem no rt
+memRead		<= load_type;
 memWrite <= store_type;
 
 --00: saves alu result to register;
@@ -146,14 +146,13 @@ memWrite <= store_type;
 --10: saves fpu result to register
 --11: saves special purpose register or stack output in general purpose register
 reg_data_src <= "11" when (ldfp='1' or ldrv='1' or pop='1') else
-					 "10" when (R_type='1' and funct(5)='0') else
+					 "10" when (R_type='1' and funct(5 downto 4)="00") else --check funct for the fpu operations
 					 "01" when (load_type='1') else
 					 "00";
---reg_data_src <= (R_type and (not funct(5))) & load_type;
 
 mem_data_src <= '1';--now I don't understand how to implement a instruction that operates on fp numbers and save the result to memory 
 aluSrc 	<= addi or subi or andi or ori or xori or nori or slti;--'1': operando 2 da ALU é imediato com extensão de sinal
-regWrite <= R_type or load_type     or addi or subi or andi or ori or xori or nori or slti or mfhi or mflo or ldfp or ldrv or pop;--addi tambem escreve no register file, como R-type
+regWrite <= R_type or load_type or addi or subi or andi or ori or xori or nori or slti or mfhi or mflo or ldfp or ldrv or pop;--addi tambem escreve no register file, como R-type
 
 AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require addition
 			"01" when (branch_type='1') else--branch requires subctration
@@ -164,7 +163,8 @@ AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require ad
 							mfhi='1' or mflo='1')
 			else "XX";
 
-aluControl <= 	--"0010" when (AluOp = "00") else--add
+--ALU is not being used to generate ADDR_ram (parallel logic, to ease timing closure)
+aluControl <= 	--"0010" when (AluOp = "00") else--add, because load/store require addition
 					"0110" when (AluOp = "01") else--subtract
 					--for I-type
 					"0010" when (AluOp = "11" and addi='1') else--addi
@@ -172,8 +172,6 @@ aluControl <= 	--"0010" when (AluOp = "00") else--add
 					"0000" when (AluOp = "11" and andi='1') else--andi
 					"0001" when (AluOp = "11" and ori ='1') else--ori
 					"0011" when (AluOp = "11" and xori='1') else--xori
-					"0100" when (AluOp = "11" and sllv='1') else--sllv
-					"0101" when (AluOp = "11" and srlv='1') else--srlv
 					
 					"1100" when (AluOp = "11" and nori='1') else--nori
 					"0111" when (AluOp = "11" and slti='1') else--slti
@@ -190,10 +188,10 @@ aluControl <= 	--"0010" when (AluOp = "00") else--add
 					"0011" when (AluOp = "10" and funct = "100111") else--xor
 					"1100" when (AluOp = "10" and funct = "101000") else--nor
  					"0111" when (AluOp = "10" and funct = "101010") else--set-on-less-than	
-			"1110" when (AluOp = "10" and shll='1') else--sll
+					"1110" when (AluOp = "10" and shll='1') else--sll
 					"1111" when (AluOp = "10" and shrl='1') else--srl
-					"1110" when (AluOp = "10" and sllv='1') else--sllv
-					"1111" when (AluOp = "10" and srlv='1') else--srlv
+					"0100" when (AluOp = "10" and sllv='1') else--sllv
+					"0101" when (AluOp = "10" and srlv='1') else--srlv
 					"XXXX";
 					
 fpuControl	<=	"00" when (R_type = '1' and funct = "000000") else--addition
