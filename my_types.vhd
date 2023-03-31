@@ -118,10 +118,10 @@ package my_types is
 	constant fdiv_funct:	std_logic_vector(5 downto 0):= "000011";
 
 
-constant sll_funct: std_logic_vector(5 downto 0) := "010010";--shll in my_types 
-constant srl_funct: std_logic_vector(5 downto 0) := "010011";--shrl in my_types 
-constant sllv_funct: std_logic_vector(5 downto 0) := "010110";--sll with offset in register bits 4:0 
-constant srlv_funct: std_logic_vector(5 downto 0) := "010111";--srl with offset in register bits 4:0
+--	constant sll_funct: std_logic_vector(5 downto 0) := "010010";--shll in my_types 
+--	constant srl_funct: std_logic_vector(5 downto 0) := "010011";--shrl in my_types 
+--	constant sllv_funct: std_logic_vector(5 downto 0):= "010110";--sll with offset in register bits 4:0 
+--	constant srlv_funct: std_logic_vector(5 downto 0):= "010111";--srl with offset in register bits 4:0
 
 	--register codes
 	constant r0:	std_logic_vector(4 downto 0)	:= "00000";
