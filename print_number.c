@@ -10,9 +10,8 @@ int main(void){
     int x,y;
     x = foo();
 		//print_7segs(x);
-		write_w(DISPLAY_7SEGS_BASE_ADDR,x);
-		int dst_mask=LVEC_DST_MSK(1);		
-		write_w(DISPLAY_7SEGS_BASE_ADDR,dst_mask);
+		write_w(DISPLAY_7SEGS_BASE_ADDR,x<<2);
+		int dst_mask=LVEC_DST_MSK(1);
 		LVEC(x"05",x"02");
 		//LVEC(x"05",LVEC_DST_MSK_1);
 		//lvec_f(5,dst_mask);
