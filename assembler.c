@@ -554,6 +554,7 @@ int main(int argc,char *argv[]){
 	//close output file
 	fclose(of);
 	printf("Arquivo \"executable\" gerado com sucesso!\n");
+	/*
 	free(dictionary);
 	free(tmp_str);
 	free(beginning_of_allocated_str);
@@ -576,6 +577,7 @@ int main(int argc,char *argv[]){
 		free(unresolved_instructions[j].instruction_str);
 	}
 	free(unresolved_instructions);
+	*/
 
 	return 0;
 }
