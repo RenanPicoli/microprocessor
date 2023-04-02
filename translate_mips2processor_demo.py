@@ -72,7 +72,6 @@ def main(argv):
         #of.write(line+"\n") # repeats user coded assembly
         new_instr_vector.append(line+"\n")
         continue
-      
 
     # discards comments
     line = (line.split("#"))[0]
@@ -120,6 +119,9 @@ def main(argv):
       arg.append(tmp[0]) # arg[3] <- tmp[0]
       frmt_str = "\t{} [{}+{}] {};"
       #print(arg)
+      #checks if immediate is already in hex
+      if(arg[3].startswith("0x")):
+        arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
 
       if(opcode=="lw" and arg[1]=="$fp"):
         continue # instructions that update FP must be skipped because this is handled by HW
@@ -185,8 +187,10 @@ def main(argv):
         frmt_str = "\taddi {} {} x\"0000\";"
         new_instr= frmt_str.format(arg[2],arg[1])
 
-    elif(opcode=="addi" or opcode=="addiu" or opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu"):
-
+    elif(opcode=="addi" or opcode=="addiu" or opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu" or  opcode=="ori"):
+      #checks if immediate is already in hex
+      if(arg[3].startswith("0x")):
+        arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
       if(opcode=="addi" or opcode=="addiu"):
         frmt_str="\taddi {} {} x\"{:04X}\";"
         if(arg[1]=="$sp"):
@@ -196,6 +200,10 @@ def main(argv):
       elif(opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu"):
         frmt_str="\tslti {} {} x\"{:04X}\";"
         new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+      else:
+        frmt_str="\t{} {} {} x\"{:04X}\";"
+        new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+      
 
     # jump instructions
     elif(opcode=="jr" or opcode=="j" or opcode=="jalx" or opcode=="jal" or opcode=="jalr"):
@@ -228,8 +236,16 @@ def main(argv):
         sys.exit(-1)
 
     elif(opcode=="li"):
-      frmt_str="\txor {} {} {};\n\taddi {} {} x\"{:04X}\";" # zeroes register, then adds immediate
-      new_instr = frmt_str.format(arg[1],arg[1],arg[1],arg[1],arg[1],int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]))
+      #checks if immediate is already in hex
+      if(arg[2].startswith("0x")):
+        arg[2]=str(int(arg[2],16))# convert arg[3] to decimal base
+      frmt_str="\tlui {} x\"{:04X}\";\n\tori {} {} x\"{:04X}\";" # zeroes register, then adds immediate
+      #arg2_uns=int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]) # arg[2] converted to unsigned
+      arg2_uns=int(arg[2])
+      if (arg2_uns<0):
+        arg2_uns=2**32+arg2_uns # using 32 because li immediates are 32 bit wide (it's a pseudoinstruction)
+      print("arg2_uns={}\n".format(arg2_uns))
+      new_instr = frmt_str.format(arg[1],arg2_uns/(2**16),arg[1],arg[1],arg2_uns%(2**16))
 
     # branch instructions
     elif(opcode[0]=="b"):
@@ -266,11 +282,21 @@ def main(argv):
     elif(opcode=="mflo" or opcode=="mfhi"):
       frmt_str="\t{} {};"
       new_instr=frmt_str.format(opcode,arg[1])
+
+    elif(opcode=="lui"):
+      #checks if immediate is already in hex
+      if(arg[2].startswith("0x")):
+        arg[2]=str(int(arg[2],16))# convert arg[3] to decimal base
+      frmt_str="\t{} {} x\"{:04X}\";"
+      new_instr=frmt_str.format(opcode,arg[1],int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]))
     
     # there are 2 variants of the instructions below in MIPS
     # sll rd rs rt: rd <= rs << rt (aka sllv)
     # sll rd rs shift: rd <= rs << shift
     elif(opcode=="sll" or  opcode=="srl"):
+      #checks if immediate is already in hex
+      if(arg[3].startswith("0x")):
+        arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
       if(arg[3][0]!="$"): # arg[3] is a constant
         frmt_str="\t{} {} {} x\"{:02X}\";"
         new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
