@@ -111,6 +111,7 @@ component control_unit
 			memWrite: out std_logic;
 			ldfp: out std_logic;
 			ldrv: out std_logic;
+			lui: out std_logic;
 			addsp: out std_logic;
 			push: out std_logic;
 			pop: out  std_logic;
@@ -228,10 +229,11 @@ signal funct: std_logic_vector (5 downto 0);
 signal addressRelative: std_logic_vector (15 downto 0);--for load,store,branch
 signal addressAbsolute: std_logic_vector (25 downto 0);--for jumps
 signal addressRelativeExtended: std_logic_vector (31 downto 0);--addressRelative after sign extension
+signal lui_immediate: std_logic_vector (31 downto 0);--addressRelative after sll 16
 signal full_ADDR_ram: std_logic_vector(31 downto 0);-- read_data_1+addressRelative (might overflow)
 
 signal data_memory_output: std_logic_vector (31 downto 0);
-signal special_registers: std_logic_vector (31 downto 0);
+signal special_values: std_logic_vector (31 downto 0);
 signal instruction: std_logic_vector (31 downto 0);--next instruction to execute
 signal alu_flags: eflags;--flags da ALU
 signal fpu_flags: std_logic_vector(31 downto 0);--flags da FPU
@@ -243,6 +245,7 @@ signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & add
 
 signal ldfp: std_logic;
 signal ldrv: std_logic;
+signal lui: std_logic;
 signal addsp:std_logic;
 signal push: std_logic;
 signal pop:  std_logic;
@@ -472,10 +475,11 @@ begin
 	reg_write_data <= data_memory_output when reg_data_src="01" else--for register write
 							alu_result when reg_data_src="00" else
 							fpu_result when reg_data_src="10" else
-							special_registers;
-	special_registers <= fp_out when ldfp='1' else
-								rv_out when ldrv='1' else
-								program_stack_out;--when pop='1'
+							special_values;
+	special_values <= fp_out when ldfp='1' else
+							rv_out when ldrv='1' else
+							lui_immediate when lui='1' else
+							program_stack_out;--when pop='1'
 						
 	mem_write_data <= read_data_2 when mem_data_src='1' else
 							fpu_result;
@@ -506,6 +510,7 @@ begin
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
 	addressRelativeExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
+	lui_immediate <= instruction(15 downto 0) & (15 downto 0 => '0');
 	
 	aluOp2 <= 	addressRelativeExtended when aluSrc='1' else
 					read_data_2;
@@ -525,6 +530,7 @@ begin
 												memWrite => memWrite,
 												ldfp => ldfp,
 												ldrv => ldrv,
+												lui  => lui,
 												addsp => addsp,
 												push => push,
 												pop => pop,

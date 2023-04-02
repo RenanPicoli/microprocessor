@@ -24,6 +24,7 @@ entity control_unit is
 			
 			ldfp: out std_logic;
 			ldrv: out std_logic;
+			lui: out std_logic;
 			addsp: out std_logic;
 			push: out std_logic;
 			pop: out  std_logic;
@@ -112,6 +113,7 @@ subi		<= '1' when opcode="001001" else '0';
 andi		<= '1' when opcode="000011" else '0';
 ori		<= '1' when opcode="000001" else '0';
 xori		<=	'1' when opcode="010000" else	'0';
+lui		<= '1' when opcode="010001" else '0';--rs <- imm << 16
 nori		<= '1' when opcode="010100" else '0';
 slti 		<= '1' when opcode="010101" else '0';
 mult		<= '1' when opcode="000101" else '0';
@@ -136,7 +138,7 @@ nop		<= '1' when opcode="111111" else '0';--no operation (bubble)
 iack <= iret;
 
 regDst 	<=	"01" when (R_type='1' and (shll='0' and shrl='0')) else--usa rd (para escrita) só em instrucao tipo R, exceto sll e srl (escrevem em rt)
-			"10" when (mfhi='1' or mflo='1' or ldfp='1' or ldrv='1' or pop='1') else--apenas mflo, mfhi, ldfp, ldrv, pop escrevem no rs
+			"10" when (mfhi='1' or mflo='1' or ldfp='1' or ldrv='1' or pop='1' or lui='1') else--apenas mflo, mfhi, ldfp, ldrv, pop e lui escrevem no rs
 			"00";--demais instrucoes escrevem no rt
 memRead		<= load_type;
 memWrite <= store_type;
@@ -144,15 +146,17 @@ memWrite <= store_type;
 --00: saves alu result to register;
 --01: loads memory content to register;
 --10: saves fpu result to register
---11: saves special purpose register or stack output in general purpose register
-reg_data_src <= "11" when (ldfp='1' or ldrv='1' or pop='1') else
+--11: saves special_values or stack output in general purpose register
+reg_data_src <= "11" when (ldfp='1' or ldrv='1' or pop='1' or lui='1') else
 					 "10" when (R_type='1' and funct(5 downto 4)="00") else --check funct for the fpu operations
 					 "01" when (load_type='1') else
 					 "00";
 
 mem_data_src <= '1';--now I don't understand how to implement a instruction that operates on fp numbers and save the result to memory 
 aluSrc 	<= addi or subi or andi or ori or xori or nori or slti;--'1': operando 2 da ALU é imediato com extensão de sinal
-regWrite <= R_type or load_type or addi or subi or andi or ori or xori or nori or slti or mfhi or mflo or ldfp or ldrv or pop;--addi tambem escreve no register file, como R-type
+regWrite <= R_type or load_type or addi or subi or andi or ori or
+				xori or nori or slti or mfhi or mflo or ldfp or ldrv or
+				pop or lui;--addi tambem escreve no register file, como R-type
 
 AluOp <= "00" when (load_type='1' or store_type='1') else--load/store require addition
 			"01" when (branch_type='1') else--branch requires subctration
