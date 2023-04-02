@@ -78,6 +78,9 @@ void R_type_parse(char *binary_string,char *instruction_str);
 //mounts the binary string for a I_type instruction
 void I_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size);
 
+//mounts the binary string for a B_type instruction
+void B_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size);
+
 //mounts the binary string for a J_type instruction
 void J_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size,unsigned int line_number);
 
@@ -112,6 +115,7 @@ char **binary_string=NULL;
 
 char ** R_type_mnemonics;
 char ** I_type_mnemonics;
+char ** B_type_mnemonics;
 char ** J_type_mnemonics;
 char ** O_type_mnemonics;
 char ** P_type_mnemonics;
@@ -145,6 +149,7 @@ int main(int argc,char *argv[]){
 
 	R_type_mnemonics=calloc(64,sizeof(char*));
 	I_type_mnemonics=calloc(64,sizeof(char*));
+	B_type_mnemonics=calloc(64,sizeof(char*));
 	J_type_mnemonics=calloc(64,sizeof(char*));
 	O_type_mnemonics=calloc(64,sizeof(char*));
 	P_type_mnemonics=calloc(64,sizeof(char*));
@@ -155,6 +160,7 @@ int main(int argc,char *argv[]){
 	for(int k=0;k<64;k++){
 		R_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
 		I_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
+		B_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
 		J_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
 		O_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
 		P_type_mnemonics[k]=calloc(6,sizeof(char));//5 chars of mnemonics + '\0'
@@ -199,6 +205,7 @@ int main(int argc,char *argv[]){
 		//printf("tmp_str=%s\n",tmp_str);
 		extract_mnemonics_to_vector(tmp_str,(const char *)"R_type",R_type_mnemonics);
 		extract_mnemonics_to_vector(tmp_str,(const char *)"I_type",I_type_mnemonics);
+		extract_mnemonics_to_vector(tmp_str,(const char *)"B_type",B_type_mnemonics);
 		extract_mnemonics_to_vector(tmp_str,(const char *)"J_type",J_type_mnemonics);
 		extract_mnemonics_to_vector(tmp_str,(const char *)"O_type",O_type_mnemonics);
 		extract_mnemonics_to_vector(tmp_str,(const char *)"P_type",P_type_mnemonics);
@@ -397,57 +404,63 @@ int main(int argc,char *argv[]){
 						printf("Found %s in I_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],I_type_mnemonics));
 						I_type_parse(binary_string[i],instruction_str,base_dict_size);
 					}else{
-						//checks if mnemonic belongs to J_type
-						if(find_mnemonic_in_vector(s[0],J_type_mnemonics)!=-1){
-							printf("Found %s in J_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],J_type_mnemonics));
-							J_type_parse(binary_string[i],instruction_str,base_dict_size,i);
+						//checks if mnemonic belongs to B_type
+						if(find_mnemonic_in_vector(s[0],B_type_mnemonics)!=-1){
+							printf("Found %s in B_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],B_type_mnemonics));
+							B_type_parse(binary_string[i],instruction_str,base_dict_size);
 						}else{
-							//checks if mnemonic belongs to O_type
-							//here we must check if there is punctuation (;) at the end AND
-							//remove the termination char
-							//printf("s[0]=%s ",s[0]);
-							if(s[0][strlen(s[0])-1]==';'){
-								s[0][strlen(s[0])-1]='\0';//removes the punctuation
-								//printf("s[0]=%s ",s[0]);
-							}
-							//printf("s[0]=%s ",s[0]);
-							if(find_mnemonic_in_vector(s[0],O_type_mnemonics)!=-1){
-								printf("Found %s in O_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],O_type_mnemonics));
-								O_type_parse(binary_string[i],instruction_str);
+							//checks if mnemonic belongs to J_type
+							if(find_mnemonic_in_vector(s[0],J_type_mnemonics)!=-1){
+								printf("Found %s in J_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],J_type_mnemonics));
+								J_type_parse(binary_string[i],instruction_str,base_dict_size,i);
 							}else{
-								//checks if mnemonic belongs to P_type
-								if(find_mnemonic_in_vector(s[0],P_type_mnemonics)!=-1){
-									printf("Found %s in P_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],P_type_mnemonics));
-									P_type_parse(binary_string[i],instruction_str);
+								//checks if mnemonic belongs to O_type
+								//here we must check if there is punctuation (;) at the end AND
+								//remove the termination char
+								//printf("s[0]=%s ",s[0]);
+								if(s[0][strlen(s[0])-1]==';'){
+									s[0][strlen(s[0])-1]='\0';//removes the punctuation
+									//printf("s[0]=%s ",s[0]);
+								}
+								//printf("s[0]=%s ",s[0]);
+								if(find_mnemonic_in_vector(s[0],O_type_mnemonics)!=-1){
+									printf("Found %s in O_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],O_type_mnemonics));
+									O_type_parse(binary_string[i],instruction_str);
 								}else{
-									//checks if mnemonic belongs to M_type
-									if(find_mnemonic_in_vector(s[0],M_type_mnemonics)!=-1){
-										printf("Found %s in M_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],M_type_mnemonics));
-										M_type_parse(binary_string[i],instruction_str);
+									//checks if mnemonic belongs to P_type
+									if(find_mnemonic_in_vector(s[0],P_type_mnemonics)!=-1){
+										printf("Found %s in P_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],P_type_mnemonics));
+										P_type_parse(binary_string[i],instruction_str);
 									}else{
-										//checks if mnemonic belongs to L_type
-										if(find_mnemonic_in_vector(s[0],L_type_mnemonics)!=-1){
-											printf("Found %s in L_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],L_type_mnemonics));
-											L_type_parse(binary_string[i],instruction_str,base_dict_size);
+										//checks if mnemonic belongs to M_type
+										if(find_mnemonic_in_vector(s[0],M_type_mnemonics)!=-1){
+											printf("Found %s in M_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],M_type_mnemonics));
+											M_type_parse(binary_string[i],instruction_str);
 										}else{
-											//checks if mnemonic belongs to S_type
-											if(find_mnemonic_in_vector(s[0],S_type_mnemonics)!=-1){
-												printf("Found %s in S_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],S_type_mnemonics));
-												S_type_parse(binary_string[i],instruction_str,base_dict_size);
+											//checks if mnemonic belongs to L_type
+											if(find_mnemonic_in_vector(s[0],L_type_mnemonics)!=-1){
+												printf("Found %s in L_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],L_type_mnemonics));
+												L_type_parse(binary_string[i],instruction_str,base_dict_size);
 											}else{
-												//checks if it is a label definition
-												sscanf_retval=sscanf(instruction_str,"%[a-zA-Z0-9_]: %*s",s[0]);//parses the instruction, s[0] stores the opcode
-												if(sscanf_retval != 0){
-													printf("Found label definition: %s skipping...\n",s[0]);
-													//dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
-													//TODO: convert s0, s1 to lower case
-													//strncpy(dictionary[dictionary_size].name,s[0],11);
-													//strncpy(dictionary[dictionary_size].binary_string,uint2bin((unsigned int)i,32),32);
-													//dictionary_size++;
-													continue;//goes to next iteration of loop (next instruction)
+												//checks if mnemonic belongs to S_type
+												if(find_mnemonic_in_vector(s[0],S_type_mnemonics)!=-1){
+													printf("Found %s in S_type_mnemonics at position %d\n",s[0],find_mnemonic_in_vector(s[0],S_type_mnemonics));
+													S_type_parse(binary_string[i],instruction_str,base_dict_size);
 												}else{
-													printf("Invalid instruction: %s\n",s[0]);
-													return -1;
+													//checks if it is a label definition
+													sscanf_retval=sscanf(instruction_str,"%[a-zA-Z0-9_]: %*s",s[0]);//parses the instruction, s[0] stores the opcode
+													if(sscanf_retval != 0){
+														printf("Found label definition: %s skipping...\n",s[0]);
+														//dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
+														//TODO: convert s0, s1 to lower case
+														//strncpy(dictionary[dictionary_size].name,s[0],11);
+														//strncpy(dictionary[dictionary_size].binary_string,uint2bin((unsigned int)i,32),32);
+														//dictionary_size++;
+														continue;//goes to next iteration of loop (next instruction)
+													}else{
+														printf("Invalid instruction: %s\n",s[0]);
+														return -1;
+													}
 												}
 											}
 										}
@@ -571,6 +584,8 @@ bool is_opcode(char* str){
 	if(find_mnemonic_in_vector(str,R_type_mnemonics)!=-1)
 		return true;
 	if(find_mnemonic_in_vector(str,I_type_mnemonics)!=-1)
+		return true;
+	if(find_mnemonic_in_vector(str,B_type_mnemonics)!=-1)
 		return true;
 	if(find_mnemonic_in_vector(str,J_type_mnemonics)!=-1)
 		return true;
@@ -766,6 +781,100 @@ void I_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 	for(int i=1;i<sscanf_retval;i++){
 		//remove the termination char
 		if(i==sscanf_retval-1){
+			//printf("s[%d]=%s ",i,s[i]);
+
+			if(s[i][strlen(s[i])-1]==';'){
+				s[i][strlen(s[i])-1]='\0';//removes the punctuation
+				//printf("s[%d]=%s ",i,s[i]);
+			}else{
+				printf("Argument %d: expected ; instead of %c in %s\n",i,s[i][strlen(s[i])-1],s[i]);
+				return;
+			}
+
+			pos=find(dictionary,dictionary_size,s[i]);
+			//printf("pos=%d --> %s\n",pos,dictionary[pos].binary_string);
+			if(pos!=-1){
+				if(pos >= base_dict_size){//it is a constant in data section or label
+					//must adjust the size to fit in instruction
+					int lsb_to_use= 32 - strlen(binary_string);//how many bits of constant will be used
+					//printf("\nbinary_string=%s\n",binary_string);
+					//printf("\nlsb_to_use=%d\n",lsb_to_use);
+					strcat(binary_string,(dictionary[pos].binary_string)+(strlen(dictionary[pos].binary_string)-lsb_to_use)*sizeof(char));
+				}else{//base dictionary word
+
+					strcat(binary_string,dictionary[pos].binary_string);
+				}
+			}else{
+				//test for hex constant
+				int sscanf_retval_hex = sscanf(s[i],"x\"%[0-9a-fA-F]\"",s[i]);
+				if(sscanf_retval_hex!=0){//is hex constant
+					strcat(binary_string,hex2bin(s[i]));
+				}else{
+					int sscanf_retval_bin = sscanf(s[i],"\"%[01_]\"",s[i]);// '_' is a separator, should be skipped
+
+					//removes all underscores from s[i]
+					unsigned int len = strlen(s[i]);	   	
+				  	for(int j = 0; j < len; j++){
+						if(s[i][j] == '_'){
+							for(int k = j; k < len; k++){
+								s[i][k] = s[i][k + 1];
+							}
+							len--;
+							j--;	
+						} 
+					}
+
+					if(sscanf_retval_bin!=0){//is bin constant
+						strcat(binary_string,s[i]);
+					}else{
+						printf("\nConstante inválida: %s\n",s[i]);
+						return;
+					}
+
+				}
+
+			}
+
+		}else{
+			pos=find(dictionary,dictionary_size,s[i]);
+			if(pos==-1){
+				printf("Argument not found: %s\n",s[i]);
+				return;
+			}
+			strcat(binary_string,dictionary[pos].binary_string);
+		}
+	}
+	//there should be unused bits, those should be filled with zeros
+	int tmp_instr_size=strlen(binary_string);
+	for (int k=0;k<32-tmp_instr_size;k++){
+		strcat(binary_string,"0");
+	}
+	return;
+}
+
+//mounts the binary string for B_type instruction
+//rt is don't care, I'll fill with zeros
+void B_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size){
+	int sscanf_retval=sscanf(instruction_str,"%s %s %s %s",s[0],s[1],s[2]);//parses the instruction, s[0] stores the opcode, s[1] stores a register, s[2] stores a immediate (decimal or hexadecimal)
+	if(sscanf_retval!=3){
+		printf("Invalid number of arguments:%d\n",sscanf_retval);
+		return;
+	}
+	//TODO: convert instruction_str to lower case
+	binary_string[0]='\0';
+	int pos;
+	pos=find(dictionary,dictionary_size,s[0]);
+	if(pos==-1){
+		printf("Opcode not found: %s\n",s[0]);
+		return;
+	}
+	strcat(binary_string,dictionary[pos].binary_string);
+	for(int i=1;i<sscanf_retval;i++){
+		//fill rt (unused with zeros) and
+		//remove the termination char after immediate
+		if(i==sscanf_retval-1){
+			strcat(binary_string,"00000");//fills rt field
+			
 			//printf("s[%d]=%s ",i,s[i]);
 
 			if(s[i][strlen(s[i])-1]==';'){
