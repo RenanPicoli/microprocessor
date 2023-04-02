@@ -1,13 +1,5 @@
-//function prototypes
-void print_7segs(int n);
-void write_w(int addr,int n);
-int  read_w(int addr);
-void write_multiple(int src_addr,int dst_addr,int l);
-void write_vector(int src_addr,int dst_addr);
-
-int  dot_product(int A_ptr,int B_ptr,int l);
-void multiply_add(int A_ptr,int B_ptr,int lambda);
-void filter_control(int cmd);
+#ifndef BSP_H
+#define BSP_H
 
 //constants
 
@@ -59,3 +51,69 @@ void filter_control(int cmd);
 #define IRQ_CTRL_PRIORITIES_OFFSET		0x40
 #define INSTRUCTION_MEMORY_OFFSET			0x00
 #define PROGRAM_STACK_OFFSET				0x00
+
+//I2C support
+typedef struct{
+    int num_words;
+    int direction;
+    
+}I2C_Init_typedef;
+
+#define I2C_WORDS_1 0<<8
+#define I2C_WORDS_2 1<<8
+#define I2C_WORDS_3 2<<8
+#define I2C_WORDS_4 3<<8
+
+#define I2C_DIRECTION_READ  0
+#define I2C_DIRECTION_WRITE 1
+
+#define I2C_EN 1<<10
+
+//I2S support
+typedef struct{
+    int num_frames;
+    int data_size;
+    int lr_fifo_select;
+}I2S_Init_typedef;
+
+#define I2S_FIFO_SEL_LEFT   0<<7
+#define I2S_FIFO_SEL_RIGHT  1<<7
+
+#define I2S_DATA_SIZE_4BIT  0<<4
+#define I2S_DATA_SIZE_8BIT  1<<4
+#define I2S_DATA_SIZE_12BIT 2<<4
+#define I2S_DATA_SIZE_16BIT 3<<4
+#define I2S_DATA_SIZE_20BIT 4<<4
+#define I2S_DATA_SIZE_24BIT 5<<4
+#define I2S_DATA_SIZE_28BIT 6<<4
+#define I2S_DATA_SIZE_32BIT 7<<4
+
+#define I2S_NUM_FRAMES_INFINITE   0<<1
+#define I2S_NUM_FRAMES_1   1<<1
+#define I2S_NUM_FRAMES_2   2<<1
+#define I2S_NUM_FRAMES_3   3<<1
+#define I2S_NUM_FRAMES_4   4<<1
+#define I2S_NUM_FRAMES_5   5<<1
+#define I2S_NUM_FRAMES_6   6<<1
+#define I2S_NUM_FRAMES_7   7<<1
+
+#define I2S_EN 1<<0
+
+//function prototypes
+void print_7segs(int n);
+void write_w(int addr,int n);
+int  read_w(int addr);
+void write_multiple(int src_addr,int dst_addr,int l);
+void write_vector(int src_addr,int dst_addr);
+
+int  dot_product(int A_ptr,int B_ptr,int l);
+void multiply_add(int A_ptr,int B_ptr,int lambda);
+void filter_control(int cmd);
+
+void I2C_Init(I2C_Init_typedef* i2c_init);
+void I2C_Transmit(int addr,int data);
+
+void I2S_Init(I2S_Init_typedef* i2sinit);
+void I2S_Transmit(int addr,int data);
+
+#endif

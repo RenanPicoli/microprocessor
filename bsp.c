@@ -136,3 +136,36 @@ void filter_control(int cmd){
 	write_w(FILTER_CTRL_STATUS_BASE_ADDR+FILTER_CTRL_STATUS_OFFSET,cmd);
 	return;
 }
+
+//I2C support
+void I2C_Init(I2C_Init_typedef* i2c_init){
+    int cfg=i2c_init->num_words|i2c_init->direction;
+    write_w(I2C_BASE_ADDR+I2C_CR_OFFSET,cfg);
+    return;
+}
+
+void I2C_Transmit(int addr,int data){
+    write_w(I2C_BASE_ADDR+I2C_DR_OFFSET,data);
+    int cfg=read_w(I2C_BASE_ADDR+I2C_CR_OFFSET);
+    cfg=cfg|(addr<<1)|I2C_EN;
+    write_w(I2C_BASE_ADDR+I2C_CR_OFFSET,cfg);//starts transmission
+    HALT();//waits for I2C IRQ
+    return;
+}
+
+//I2S support
+void I2S_Init(I2S_Init_typedef* i2s_init){
+    int cfg=i2s_init->lr_fifo_select|i2s_init->lr_fifo_select|i2s_init->num_frames;
+    write_w(I2S_BASE_ADDR+I2S_CR_OFFSET,cfg);
+    return;
+}
+
+//transmits a single frame, with left/right channels equal to data
+void I2S_Transmit(int addr,int data){
+    write_w(I2S_BASE_ADDR+I2S_DR_OFFSET,data);
+    //TODO: write in each fifo, for now the left fifo and right fifo are the same
+    int cfg=read_w(I2S_BASE_ADDR+I2S_CR_OFFSET);
+    cfg=cfg|I2S_NUM_FRAMES_1|I2S_EN;
+    write_w(I2S_BASE_ADDR+I2S_CR_OFFSET,cfg);//starts transmission, no IRQ generated
+    return;
+}
