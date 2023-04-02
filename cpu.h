@@ -1,4 +1,6 @@
-//int one_hot(int n);
+#ifndef CPU_H
+#define CPU_H
+
 //macros
 
 #define LVEC_DST_MSK_0 1<<0
@@ -33,3 +35,4 @@ inline void vmac_f();
 //    return x+y;
 //}
 
+#endif
