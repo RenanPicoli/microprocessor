@@ -124,9 +124,19 @@ int dot_product(int A_ptr,int B_ptr,int l){
 void multiply_add(int A_ptr,int B_ptr,int lambda){
 	write_vector(A_ptr,VMAC_BASE_ADDR+VMAC_A_OFFSET);//copies A to VMAC:A
 	write_vector(B_ptr,VMAC_BASE_ADDR+VMAC_B_OFFSET);//copies B to VMAC:B
-	write_w(lambda,VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET);//copies lambda to VMAC:lambda
+	write_w(VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET,lambda);//copies lambda to VMAC:lambda
 	VMAC();//VMAC:A <= VMAC:A + (VMAC:lambda * VMAC:B)
 	write_vector(VMAC_BASE_ADDR+VMAC_A_OFFSET,A_ptr);//copies result (VMAC:A) back to A
+	return;
+}
+
+//A is a matrix mxn
+//v is a vector (nx1)
+//dst_addr is the address for storing the resulting vector (mx1)
+void linear_transformation(int A_ptr,int m,int v_ptr,int n,int dst_addr){
+	for(int i=0;i<m;i++){//iterates through A lines
+		write_w(dst_addr+i,dot_product(A_ptr+i*n,v_ptr,n));
+	}
 	return;
 }
 

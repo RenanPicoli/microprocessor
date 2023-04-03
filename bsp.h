@@ -108,6 +108,11 @@ void write_vector(int src_addr,int dst_addr);
 
 int  dot_product(int A_ptr,int B_ptr,int l);
 void multiply_add(int A_ptr,int B_ptr,int lambda);
+
+//A is a matrix mxn
+//v is a vector (nx1)
+//dst_addr is the address for storing the resulting vector (mx1)
+void linear_transformation(int A_ptr,int m,int v_ptr,int n,int dst_addr);
 void filter_control(int cmd);
 
 void I2C_Init(I2C_Init_typedef* i2c_init);
