@@ -1,6 +1,11 @@
 #ifndef CPU_H
 #define CPU_H
 
+enum registers {r0=0, r1, r2, r3, r4, r5, r6, r7, r8, r9,\
+				r10, r11, r12, r13, r14, r15, r16, r17, r18, r19,\
+				r20, r21, r22, r23, r24, r25, r26, r27, r28, r29,\
+				r30, r31};
+
 //macros
 
 #define LVEC_DST_MSK_0 1<<0
@@ -24,6 +29,9 @@
 #define HALT() __asm("halt;\n\t");
 #define IRET() __asm("iret;\n\t");
 #define IACK() __asm("iack;\n\t");
+#define LDFP(dst) __asm("ldfp " #dst ";")
+#define LDRV(dst) __asm("ldrv " #dst ";")
+#define ADDSP(n) __asm("addsp " #n ";")
 
 //function prototypes
 int sum(int x, int y);
