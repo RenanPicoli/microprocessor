@@ -39,6 +39,15 @@ int one_hot(int n);
 void lvec_f(char src,char dst);
 inline void vmac_f();
 
+//floating point support
+//these functions in MIPS gcc are emulators of FPU operations
+//here they'll call the special instructions for FPU operations
+float __addsf3(float x,float y);
+float __subsf3(float x,float y);
+float __mulsf3(float x,float y);
+float __divsf3(float x,float y);
+float __negsf3(float x);
+
 //int add(int x, int y) {
 //    return x+y;
 //}
