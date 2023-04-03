@@ -113,7 +113,7 @@ LOOP:
 	ret;*/
 
 //computes the dot product between two arrays of l elements	
-int dot_product(int A_ptr,int B_ptr,int l){
+int dot_product(int A_ptr,int B_ptr,int l){//TODO: validate l (l<8)
 	write_multiple(A_ptr,INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET,l);
 	write_multiple(B_ptr,INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET,l);
 	int result=read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);//I don't need cast to float, and it would move to $f0-$f31 (MIPS)
@@ -132,10 +132,28 @@ void multiply_add(int A_ptr,int B_ptr,int lambda){
 
 //A is a matrix mxn
 //v is a vector (nx1)
-//dst_addr is the address for storing the resulting vector (mx1)
+//dst_addr is the address for storing the resulting vector (A*v - mx1)
 void linear_transformation(int A_ptr,int m,int v_ptr,int n,int dst_addr){
 	for(int i=0;i<m;i++){//iterates through A lines
-		write_w(dst_addr+i,dot_product(A_ptr+i*n,v_ptr,n));
+		write_w(dst_addr+i,dot_product(A_ptr+i*n,v_ptr,n));//TODO: validate n (n<8)
+	}	
+	return;
+}
+
+//A is a matrix mxn
+//B is a matrix (nxp)
+//dst_addr is the address for storing the resulting matrix (mxp)
+void matrix_product(int A_ptr,int B_ptr,int m,int n,int p,int dst_addr){
+	for(int i=0;i<m;i++){//iterates through A lines
+		for(int j=0;j<p;j++){//iterates through B columns
+			write_multiple(A_ptr,INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET,n);//TODO: validate n (n<8)
+			for(int k=0;k<n;k++){//iterates inside a single column of B
+				int tmp=read_w(B_ptr+j+k*p);//B(k,j)
+				write_w(VMAC_BASE_ADDR+VMAC_B_OFFSET+k,tmp);//TODO: validate k (k<8)
+			}
+			tmp=read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);//this inner product is a result element
+			write_w(dst_addr+i*p+j,tmp);//writes a single element of the resulting matrix
+		}
 	}
 	return;
 }
