@@ -151,7 +151,7 @@ void matrix_product(int A_ptr,int B_ptr,int m,int n,int p,int dst_addr){
 				int tmp=read_w(B_ptr+j+k*p);//B(k,j)
 				write_w(VMAC_BASE_ADDR+VMAC_B_OFFSET+k,tmp);//TODO: validate k (k<8)
 			}
-			tmp=read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);//this inner product is a result element
+			int tmp=read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);//this inner product is a result element
 			write_w(dst_addr+i*p+j,tmp);//writes a single element of the resulting matrix
 		}
 	}
