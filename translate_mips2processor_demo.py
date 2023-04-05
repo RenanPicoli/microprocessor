@@ -11,6 +11,10 @@ used_arg_regs=[]
 funct_start={} # for each function, stores the line_cnt of their label definition
 funct_frame_size={} # for each function, stores the size of their stack
 leaf_functions=[] # names of functions that do not call other functions
+inv_dict={} # given a line number of a label, returns the function name
+new_instr_vector=[] # stores the lines to be written of (intermediary file)
+# this dictionary relates a line number with a function for new_instr_vector
+intermediary_inv_dict={}
 
 def main(argv):
   if(len(argv)!=2):
@@ -30,8 +34,6 @@ def main(argv):
     sys.exit(2)
 
   print("Parsing %s\n" % argv[1]);
-  
-  new_instr_vector=[] # stores the lines to be written of (intermediary file)
 
   translation_enable = True # this flag is used to prevent translation of user coded assembly (between #APP and #NO_APP)
   
@@ -197,7 +199,10 @@ def main(argv):
           continue
         else:
           new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
-      elif(opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu"):
+      elif(opcode=="slt" and not arg[3].isnumeric()):
+        frmt_str="\tsub {} {} {};\n\tsrl {} 31;"
+        new_instr = frmt_str.format(arg[2],arg[3],arg[1],arg[1])
+      elif(opcode=="slti" or opcode=="sltiu" or (opcode=="slt" and arg[3].isnumeric()) or opcode=="sltu"):
         frmt_str="\tslti {} {} x\"{:04X}\";"
         new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
       else:
@@ -244,8 +249,9 @@ def main(argv):
       arg2_uns=int(arg[2])
       if (arg2_uns<0):
         arg2_uns=2**32+arg2_uns # using 32 because li immediates are 32 bit wide (it's a pseudoinstruction)
-      print("arg2_uns={}\n".format(arg2_uns))
-      new_instr = frmt_str.format(arg[1],arg2_uns/(2**16),arg[1],arg[1],arg2_uns%(2**16))
+      print("arg2_uns={}\narg[1]={}".format(arg2_uns,arg[1]))
+      # note the doublw slash (//), this is integere division
+      new_instr = frmt_str.format(arg[1],arg2_uns//(2**16),arg[1],arg[1],arg2_uns%(2**16))
 
     # branch instructions
     elif(opcode[0]=="b"):
@@ -313,8 +319,9 @@ def main(argv):
 
     else:
       #raise ValueError("Unknown instruction: {}".format(opcode))
-        print("Instruction not (yet) supported: {}\n".format(opcode))
-        sys.exit(-1)
+      #print("Instruction not (yet) supported: {}\n".format(opcode))
+      #sys.exit(-1)
+      new_instr = line # repeats the instruction, will cause error at assembler, if not cut
       
     if(opcode!="ext" and opcode!="div" and opcode!="divu" and opcode!="madd" and opcode!="maddu" and opcode!="msub" and opcode!="msubu" and opcode!="mult" and opcode!="multu"and opcode!="call"):
       if(len(arg)>=2 and arg[1] in arg_regs and arg[1] not in used_arg_regs):
@@ -327,11 +334,14 @@ def main(argv):
     #print(txt)
     print(line + "-> " + new_instr)
     #of.write(new_instr+"\n")
-    new_instr_vector.append(new_instr+"\n")
+    new_instr_vector.extend((new_instr).split("\n"))
 
   post_process(new_instr_vector) # removes prologues and epilogues, when specified
   for i in new_instr_vector:
-    of.write(i)
+    if(i[-1]=="\n"):
+      of.write(i)
+    else:
+      of.write(i+"\n")
   of.close()
   
   keys_to_be_deleted=[]
@@ -436,7 +446,6 @@ def pre_process(fp):
   fp.seek(0) # rewinds file
   
 def get_curr_funct(line_cnt):
-    inv_dict={}
     # this dictionary relates a line number with a function
     for k in funct_start:
         inv_dict[funct_start[k]]=k
@@ -457,19 +466,40 @@ def post_process(instr_vector):
     #if you intend a naked function, this should be the 1st instruction in __asm()
     #identifies the function (look for a label definition)
     #removes lines between label and the flag
-    line_cnt=0
     last_label_idx=0
+    next_label_idx=0
     lines_to_remove=[]
+    for f in funct_start:
+        line_cnt=0
+        for l in instr_vector:
+            if(l==f+":"): # is a label
+                intermediary_inv_dict[line_cnt]=f
+            line_cnt = line_cnt+1
+        
+    line_cnt=0
     for l in instr_vector:
-        if(l[-2:]==":\n"): # is a label
-            last_label_idx = line_cnt
-            #print("Found label:{} at {}\n".format(l,line_cnt))
+        if(l[-1:]==":"): # is a label
+            if l[0:-1] in intermediary_inv_dict.values():
+                last_label_idx = line_cnt
+                #print("Found label:{} at {}\n".format(l,line_cnt))
         if(l==".remove_prologue\n"):
             #print("Found remove_prologue at {}".format(line_cnt))
-            lines_to_remove=lines_to_remove+list(range(last_label_idx+1,line_cnt+1))
+            lines_to_remove.extend(range(last_label_idx+1,line_cnt+1))
+            #print("last_label_idx={}, line_cnt={}, \n".format(last_label_idx,line_cnt))
+            #print(list(range(last_label_idx+1,line_cnt+1)))
         if(l==".remove_epilogue\n"):
-            #removes 3 lines: .remove_epilogue,ret,nop
-            lines_to_remove=lines_to_remove+list(range(line_cnt,line_cnt+3))
+            # tries to find next label
+            # removes lines from this flag until the next label
+            for n in sorted(intermediary_inv_dict.keys()):
+              if(line_cnt > n):
+                continue
+              else:
+                next_label_idx=n
+                #print("line_cnt={}, next_label_idx={}\n".format(line_cnt,next_label_idx))
+                break
+            lines_to_remove.extend(range(line_cnt,next_label_idx))
+            #print(list(range(line_cnt,next_label_idx)))
+            #break
         line_cnt = line_cnt+1
     print(lines_to_remove)
     
@@ -479,6 +509,7 @@ def post_process(instr_vector):
     # when you remove the 1st, the 3rd turns into the 2nd
     lines_to_remove.sort(reverse = True)
     for i in lines_to_remove:
+        #pass
         instr_vector.pop(i)
     #print(instr_vector)
 
