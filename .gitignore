@@ -1,6 +1,13 @@
 *.bak
 *.pdf
 *.csv
+*.exe
+*.s
+*.asm
+*.i
+*.sof
+executable*.bin*
+*.bin
 db/
 incremental_db/
 simulation/
