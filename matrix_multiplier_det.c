@@ -3,9 +3,42 @@
 
 void register_init();
 
+//configures the global interrupt controller
+void GIC_config();
+
+//condifgures the audio codec
+void codec_init();
+
+// handler of IRQ0 (filter_CLK rising_edge)
+void IRQ0_Handler();
+
+// handler of IRQ1 (I2C)
+void IRQ1_Handler();
+
+// handler of IRQ0 (filter_CLK falling_edge)
+void IRQ3_Handler();
+
 //main loop
 int main(void){
     register_init();
+	GIC_config();
+	
+	filter_control(0);//disables filter
+	
+	I2S_Init_typedef i2s;
+	i2s.num_frames = I2S_NUM_FRAMES_2;
+    i2s.data_size = I2S_DATA_SIZE_16BIT;
+    i2s.lr_fifo_select = I2S_FIFO_SEL_LEFT;
+	
+	I2S_Init(&i2s);
+	int i2s_status;
+	do{
+		i2s_status=read_w(I2S_BASE_ADDR+I2S_SR_OFFSET);
+	
+	}while(i2s_status & 0x80 == 0);
+	
+	codec_init();
+	
     while(1){
         HALT();
     }
@@ -47,7 +80,42 @@ __asm(".remove_prologue\n\t\
     xor r29 r29 r29; zera r29\n\t\
     xor r30 r30 r30; zera r30\n\t\
     xor r31 r31 r31; zera r31\n\t\
+	ret;\n\t\
     .remove_epilogue\n\t");
+}
+
+//configures the global interrupt controller
+void GIC_config(){
+	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+0,(int) &IRQ0_Handler);//loads the position 0 of vector with address of IRQ0_Handler
+	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+2,0);//put IRQ0_Handler in priority 2
+	
+	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+3,(int) &IRQ3_Handler);//loads the position 3 of vector with address of IRQ3_Handler
+	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+0,3);//put IRQ3_Handler in priority 0
+	
+	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+1,(int) &IRQ1_Handler);//loads the position 1 of vector with address of IRQ1_Handler
+	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+1,1);//put IRQ1_Handler in priority 1
+	
+	return;
+}
+
+//condifgures the audio codec
+void codec_init(){
+	return;
+}
+
+// handler of IRQ0 (filter_CLK rising_edge)
+void IRQ0_Handler(){
+	return;
+}
+
+// handler of IRQ1 (I2C)
+void IRQ1_Handler(){
+	return;
+}
+
+// handler of IRQ0 (filter_CLK falling_edge)
+void IRQ3_Handler(){
+	return;
 }
 
 #include "bsp.c"
