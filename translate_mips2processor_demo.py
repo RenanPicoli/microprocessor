@@ -16,6 +16,13 @@ new_instr_vector=[] # stores the lines to be written of (intermediary file)
 # this dictionary relates a line number with a function for new_instr_vector
 intermediary_inv_dict={}
 
+aliases={
+"$gp":"$28",
+"$sp":"$29",
+"$fp":"$30",
+"$ra":"$31"
+}
+
 def main(argv):
   if(len(argv)!=2):
     print("Uso: %s FILE\n" % argv[0]);
@@ -233,8 +240,11 @@ def main(argv):
         frmt_str="\tcall {};"
         new_instr = new_instr + frmt_str.format(arg[1])
       elif(opcode=="j"):
-        frmt_str="\tjmp {};"
-        new_instr = frmt_str.format(arg[1])
+        if(arg[1] != "$31" and arg[1] != "$ra"):
+          frmt_str="\tjmp {};"
+          new_instr = frmt_str.format(arg[1])
+        else:
+          new_instr="\tret;"
       else:
         #raise ValueError("Instruction not (yet) supported: %s\n" % line);
         print("Instruction not (yet) supported: {}\n".format(line))
@@ -397,10 +407,13 @@ def main(argv):
       #of_lines[i] = of_lines[i]+"\tpop $2;\n"
     elif(of_lines[i].startswith("\tret")):
       of_lines[i] = "\tpush $2;\n"+of_lines[i]
-      
 
   for i in range(len(of_lines)): # iterates over lines of intermediary file
-    of_lines[i] = re.sub("\${1}(?=\d)", "r", of_lines[i])# register renaming
+    for alias, actual in aliases.items():
+      of_lines[i] = of_lines[i].replace(alias,actual)# replaces register aliases
+
+  for i in range(len(of_lines)): # iterates over lines of intermediary file
+    of_lines[i] = re.sub("\${1}(?=\d)", "r", of_lines[i])# register renaming ($x -> $rx)
       
   # final file write
   for i in range(len(of_lines)): # iterates over lines of intermediary file
