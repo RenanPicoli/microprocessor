@@ -18,7 +18,7 @@ gcc_out="${1%.*}.s"
 echo "gcc output will be at file $gcc_out"
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-	mips-linux-gnu-gcc -S -o $gcc_out $1
+	mips-linux-gnu-gcc -S -o $gcc_out $1 -mno-explicit-relocs
 elif [[ "$OSTYPE" == "msys" ]]; then
 	echo "Unsupported OS"
 	exit 5
