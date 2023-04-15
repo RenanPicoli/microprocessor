@@ -1,11 +1,10 @@
 /*
 	Generates binary files from assembly code (extension .s) for SRAM programming
-	Generates a single file with 512Kx16bit data refering to data_in (input_vectors.txt) and 512Kx16 bit refering to desired values (desired_vectors.txt)
 	Values are 32 bit wide, but LSB are stored in address 2n, and MSB are stored in addr 2n+1
 	Example: data_in = 0x368F75BF
 	addr[0]= 0x75BF
 	addr[1]= 0x368F
-	This file will fill completely DE2-115 SRAM as I move the assembly to that memory
+	This file will be downloaded to DE2-115 SRAM
 	It will be downloaded using DE2 Control Panel
 */
 //for printf, fopen, fgets, fwrite, etc.
@@ -228,11 +227,11 @@ int main(int argc,char *argv[]){
 	printf("assembly_syntax.txt parsed!\n");
 	int base_dict_size=dictionary_size;//base dictionary size (only language and registers)
 	//print_dict(dictionary,dictionary_size);
-	printf("R_type_mnemonics[0]=%s\n",R_type_mnemonics[0]);
+	/*printf("R_type_mnemonics[0]=%s\n",R_type_mnemonics[0]);
 	printf("R_type_mnemonics[1]=%s\n",R_type_mnemonics[1]);
 	printf("R_type_mnemonics[2]=%s\n",R_type_mnemonics[2]);
 	printf("R_type_mnemonics[3]=%s\n",R_type_mnemonics[3]);
-	printf("R_type_mnemonics[4]=%s\n",R_type_mnemonics[4]);
+	printf("R_type_mnemonics[4]=%s\n",R_type_mnemonics[4]);*/
 
 	printf("Parsing %s\n",argv[1]);
 	int i=0;
@@ -326,7 +325,13 @@ int main(int argc,char *argv[]){
 							i++;
 						}else{
 							printf("Found label definition: %s\n",s[0]);
-							dictionary = realloc(dictionary,(dictionary_size+1)*sizeof(node));
+							node* tmp_ptr = (node*) realloc(dictionary,(dictionary_size+1)*sizeof(node));
+							if(tmp_ptr == NULL){
+							    printf("Erro de realloc!\n");
+							    return 7;
+							}else{
+							    dictionary = tmp_ptr;
+							}
 							//TODO: convert s0, s1 to lower case
 							strncpy(dictionary[dictionary_size].name,s[0],strlen(s[0])+1);
 							strncpy(dictionary[dictionary_size].binary_string,uint2bin((unsigned int)i,32),32);
@@ -779,6 +784,10 @@ void I_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 		printf("Opcode not found: %s\n",s[0]);
 		return;
 	}
+	
+	int hi_modifier_found = 0; //1 if %hi was found in immediate
+	int lo_modifier_found = 0; //1 if %lo was found in immediate
+	
 	strcat(binary_string,dictionary[pos].binary_string);
 	for(int i=1;i<sscanf_retval;i++){
 		//remove the termination char
@@ -792,8 +801,25 @@ void I_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 				printf("Argument %d: expected ; instead of %c in %s\n",i,s[i][strlen(s[i])-1],s[i]);
 				return;
 			}
-
+			
+			//tests if %hi / %lo modifiers are present
+            if(strncmp(s[i],"%hi(",4)==0 && s[i][strlen(s[i])-1]==')'){//checks if s[i] is %hi(LABEL)
+                printf("Found %%hi modifier!\n");
+                hi_modifier_found = 1;
+                s[i][strlen(s[i])-1]='\0';//removes the closing parentesis
+                strncpy(s[i],s[i]+4,strlen(s[i])-3);//s[i] now is only the label
+                printf("Parsed label: %s\n",s[i]);
+            }else{
+                if(strncmp(s[i],"%lo(",4)==0 && s[i][strlen(s[i])-1]==')'){//checks if s[i] is %lo(LABEL)
+                    printf("Found %%lo modifier!\n");
+                    lo_modifier_found = 1;
+                    s[i][strlen(s[i])-1]='\0';//removes the closing parentesis
+                    strncpy(s[i],s[i]+4,strlen(s[i])-3);//s[i] now is only the label
+                    printf("Parsed label: %s\n",s[i]);
+                }
+			}
 			pos=find(dictionary,dictionary_size,s[i]);
+			
 			//printf("pos=%d --> %s\n",pos,dictionary[pos].binary_string);
 			if(pos!=-1){
 				if(pos >= base_dict_size){//it is a constant in data section or label
@@ -857,7 +883,7 @@ void I_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 //mounts the binary string for B_type instruction
 //rt is don't care, I'll fill with zeros
 void B_type_parse(char *binary_string,char *instruction_str,unsigned int base_dict_size){
-	int sscanf_retval=sscanf(instruction_str,"%s %s %s %s",s[0],s[1],s[2]);//parses the instruction, s[0] stores the opcode, s[1] stores a register, s[2] stores a immediate (decimal or hexadecimal)
+	int sscanf_retval=sscanf(instruction_str,"%s %s %s",s[0],s[1],s[2]);//parses the instruction, s[0] stores the opcode, s[1] stores a register, s[2] stores a immediate (decimal or hexadecimal)
 	if(sscanf_retval!=3){
 		printf("Invalid number of arguments:%d\n",sscanf_retval);
 		return;
@@ -870,6 +896,10 @@ void B_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 		printf("Opcode not found: %s\n",s[0]);
 		return;
 	}
+	
+	int hi_modifier_found = 0; //1 if %hi was found in immediate
+	int lo_modifier_found = 0; //1 if %lo was found in immediate
+	
 	strcat(binary_string,dictionary[pos].binary_string);
 	for(int i=1;i<sscanf_retval;i++){
 		//fill rt (unused with zeros) and
@@ -886,8 +916,25 @@ void B_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 				printf("Argument %d: expected ; instead of %c in %s\n",i,s[i][strlen(s[i])-1],s[i]);
 				return;
 			}
-
+			
+			//tests if %hi / %lo modifiers are present
+            if(strncmp(s[i],"%hi(",4)==0 && s[i][strlen(s[i])-1]==')'){//checks if s[i] is %hi(LABEL)
+                printf("Found %%hi modifier!\n");
+                hi_modifier_found = 1;
+                s[i][strlen(s[i])-1]='\0';//removes the closing parentesis
+                strncpy(s[i],s[i]+4,strlen(s[i])-3);//s[i] now is only the label
+                printf("Parsed label: %s\n",s[i]);
+            }else{
+                if(strncmp(s[i],"%lo(",4)==0 && s[i][strlen(s[i])-1]==')'){//checks if s[i] is %lo(LABEL)
+                    printf("Found %%lo modifier!\n");
+                    lo_modifier_found = 1;
+                    s[i][strlen(s[i])-1]='\0';//removes the closing parentesis
+                    strncpy(s[i],s[i]+4,strlen(s[i])-3);//s[i] now is only the label
+                    printf("Parsed label: %s\n",s[i]);
+                }
+			}
 			pos=find(dictionary,dictionary_size,s[i]);
+			
 			//printf("pos=%d --> %s\n",pos,dictionary[pos].binary_string);
 			if(pos!=-1){
 				if(pos >= base_dict_size){//it is a constant in data section or label
@@ -1245,8 +1292,8 @@ void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 			//test for hex constant
 			int sscanf_retval_hex = sscanf(s[i],"x\"%[0-9a-fA-F]\"",s[i]);
 			if(sscanf_retval_hex!=0){//is hex constant
-				//strcat(binary_string,hex2bin(s[i]));
-				sprintf(binary_string,"%s%s\0",binary_string,hex2bin(s[i]));
+				strcat(binary_string,hex2bin(s[i]));
+				//sprintf(binary_string,"%s%s\0",binary_string,hex2bin(s[i]));
 				printf("%s\n",binary_string);
 			}else{
 				int sscanf_retval_bin = sscanf(s[i],"\"%[01]\"",s[i]);
