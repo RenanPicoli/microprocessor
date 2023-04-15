@@ -207,8 +207,8 @@ def main(argv):
         else:
           new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
       elif(opcode=="slt" and not arg[3].isnumeric()):
-        frmt_str="\tsub {} {} {};\n\tsrl {} 31;"
-        new_instr = frmt_str.format(arg[2],arg[3],arg[1],arg[1])
+        frmt_str="\tsub {} {} {};\n\tsrl {} {} x\"1F\";" # 0x1F is 31
+        new_instr = frmt_str.format(arg[2],arg[3],arg[1],arg[1],arg[1])
       elif(opcode=="slti" or opcode=="sltiu" or (opcode=="slt" and arg[3].isnumeric()) or opcode=="sltu"):
         frmt_str="\tslti {} {} x\"{:04X}\";"
         new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
