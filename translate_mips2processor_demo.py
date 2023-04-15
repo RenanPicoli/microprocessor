@@ -516,6 +516,7 @@ def post_process(instr_vector):
         
     line_cnt=0
     for l in instr_vector:
+        found_next_label=False
         if(l[-1:]==":"): # is a label
             if l[0:-1] in intermediary_inv_dict.values():
                 last_label_idx = line_cnt
@@ -533,11 +534,17 @@ def post_process(instr_vector):
                 continue
               else:
                 next_label_idx=n
+                found_next_label=True
                 #print("line_cnt={}, next_label_idx={}\n".format(line_cnt,next_label_idx))
                 break
-            lines_to_remove.extend(range(line_cnt,next_label_idx))
-            #print(list(range(line_cnt,next_label_idx)))
+            if not found_next_label:
+              lines_to_remove.extend(range(line_cnt,len(instr_vector)))
+              #print(range(line_cnt,len(instr_vector)))
+            else:
+              lines_to_remove.extend(range(line_cnt,next_label_idx))
+              #print(list(range(line_cnt,next_label_idx)))
             #break
+        #print(line_cnt)
         line_cnt = line_cnt+1
     print(lines_to_remove)
     
