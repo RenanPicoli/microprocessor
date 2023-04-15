@@ -197,24 +197,39 @@ def main(argv):
         new_instr= frmt_str.format(arg[2],arg[1])
 
     elif(opcode=="addi" or opcode=="addiu" or opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu" or  opcode=="ori"):
+      hi_lo_used=False
       #checks if immediate is already in hex
       if(arg[3].startswith("0x")):
         arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
+      if(arg[3].startswith("%hi(") or arg[3].startswith("%lo(")):
+          hi_lo_used=True
       if(opcode=="addi" or opcode=="addiu"):
         frmt_str="\taddi {} {} x\"{:04X}\";"
         if(arg[1]=="$sp"):
           continue
         else:
-          new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+          if not hi_lo_used:
+            new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+          else:
+            frmt_str="\taddi {} {} {};"
+            new_instr = frmt_str.format(arg[2],arg[1],arg[3])
       elif(opcode=="slt" and not arg[3].isnumeric()):
         frmt_str="\tsub {} {} {};\n\tsrl {} {} x\"1F\";" # 0x1F is 31
         new_instr = frmt_str.format(arg[2],arg[3],arg[1],arg[1],arg[1])
       elif(opcode=="slti" or opcode=="sltiu" or (opcode=="slt" and arg[3].isnumeric()) or opcode=="sltu"):
         frmt_str="\tslti {} {} x\"{:04X}\";"
-        new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+        if not hi_lo_used:
+          new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+        else:
+          frmt_str="\tslti {} {} {};"
+          new_instr = frmt_str.format(arg[2],arg[1],arg[3])
       else:
         frmt_str="\t{} {} {} x\"{:04X}\";"
-        new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+        if not hi_lo_used:
+          new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+        else:
+          frmt_str="\{} {} {} {};"
+          new_instr = frmt_str.format(opcode,arg[2],arg[1],arg[3])
       
 
     # jump instructions
@@ -302,14 +317,24 @@ def main(argv):
     elif(opcode=="lui"):
       #checks if immediate is already in hex
       if(arg[2].startswith("0x")):
-        arg[2]=str(int(arg[2],16))# convert arg[3] to decimal base
-      frmt_str="\t{} {} x\"{:04X}\";"
-      new_instr=frmt_str.format(opcode,arg[1],int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]))
+        arg[2]=str(int(arg[2],16))# convert arg[2] to decimal base
+      if(arg[2].startswith("%hi(") or arg[2].startswith("%lo(")):
+          frmt_str="\t{} {} {};"
+          new_instr=frmt_str.format(opcode,arg[1],arg[2])
+      else:
+          frmt_str="\t{} {} x\"{:04X}\";"
+          new_instr=frmt_str.format(opcode,arg[1],int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]))
+
+    elif(opcode=="la"):
+      #immediate is always a label
+      frmt_str="\tlui {} %hi({});\n\tori {} {} %lo({});"
+      new_instr=frmt_str.format(arg[1],arg[2],arg[1],arg[1],arg[2])
+    
     
     # there are 2 variants of the instructions below in MIPS
     # sll rd rs rt: rd <= rs << rt (aka sllv)
     # sll rd rs shift: rd <= rs << shift
-    elif(opcode=="sll" or  opcode=="srl"):
+    elif(opcode=="sll" or opcode=="srl"):
       #checks if immediate is already in hex
       if(arg[3].startswith("0x")):
         arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
