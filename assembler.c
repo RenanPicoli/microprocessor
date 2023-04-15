@@ -141,6 +141,7 @@ int main(int argc,char *argv[]){
 	
 	char* tmp_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store lines read from files
 	char* instruction_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store instructions read from files
+	char* tmp_instruction_str=NULL;
 	const char* beginning_of_allocated_str = instruction_str;
 	char* data_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store data (constants) read from files
 	char* comment_str=calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store single line comment read from files
@@ -296,8 +297,11 @@ int main(int argc,char *argv[]){
 	//2nd pass will start from end of data section, if any, and process instructions
 	long beginning_of_instructions = ftell(fp);
 	while (!feof(fp)){
-		char* fgets_retval=fgets((char*)instruction_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
+	    free(tmp_instruction_str);//this is meant to avoid this pointer drift towards other variables in heap
+	    tmp_instruction_str=(char*) calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store instructions read from files
+		char* fgets_retval=fgets(tmp_instruction_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
 		if(fgets_retval!=NULL){
+		    instruction_str=tmp_instruction_str;
 			//removes initial blank spaces
 			while(1){
 				if(instruction_str[0]=='\t'||instruction_str[0]==' '){
@@ -359,8 +363,11 @@ int main(int argc,char *argv[]){
 	printf("\nProcessing instructions\n");
 	i = 0;
 	while (!feof(fp)){
-		char* fgets_retval=fgets((char*)instruction_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
+	    free(tmp_instruction_str);//this is meant to avoid this pointer drift towards other variables in heap
+	    tmp_instruction_str=(char*) calloc(MAX_STR_LENGTH,sizeof(char));//temporary string to store instructions read from files
+		char* fgets_retval=fgets(tmp_instruction_str,MAX_STR_LENGTH,fp);//reads a single line of fp, terminated with '\n', expects at most 199 chars
 		if(fgets_retval!=NULL){
+		    instruction_str=tmp_instruction_str;
 			//removes initial blank spaces
 			while(1){
 				if(instruction_str[0]=='\t'||instruction_str[0]==' '){
