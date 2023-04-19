@@ -1,5 +1,6 @@
 #include "bsp.h"
 #include "cpu.h"
+#include "wm8731.h"
 
 void register_init();
 
@@ -100,6 +101,17 @@ void GIC_config(){
 
 //condifgures the audio codec
 void codec_init(){
+	I2C_Init_typedef i2c;
+	i2c.num_words = I2C_WORDS_2;
+    i2C.direction = I2C_DIRECTION_WRITE;	
+	I2C_Init(&i2c);
+	
+	// reset
+	I2C_Transmit(WM8731_ADDR,RESET_REG|RESET_EN);
+	//power down
+	I2C_Transmit(WM8731_ADDR,PDN_CTRL_REG|LINEINPD|MICPD|ADCPD|OUTPD|OSCPD|CLKOUTPD);
+	//analogue audio path
+	I2C_Transmit(WM8731_ADDR,ANALOG_AUD_PATH_REG|MUTEMIC|DACSEL);
 	return;
 }
 
