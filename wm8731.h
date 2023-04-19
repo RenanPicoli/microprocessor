@@ -7,6 +7,7 @@
 
 #define RESET_REG (0b0001111 << 8)
 #define ANALOG_AUD_PATH_REG (0b0000100 << 8)
+#define DIGITAL_AUD_PATH_REG (0b0000101 << 8)
 #define PDN_CTRL_REG(0b0000110 << 8)
 
 // register contents
@@ -22,6 +23,15 @@
 #define SIDEATT_9dB  1<<6
 #define SIDEATT_12dB 2<<6
 #define SIDEATT_15dB 3<<6
+
+//digital audio path contents
+#define ADCHPD 1<<0
+#define DEEMP_DIS     0<<1
+#define DEEMP_32kHZ   1<<1
+#define DEEMP_44_1kHZ 2<<1
+#define DEEMP_48kHZ   3<<1
+#define DACMU 	 1<<3
+#define HPOR 	 1<<4
 
 //power down values
 #define LINEINPD 1<<0
