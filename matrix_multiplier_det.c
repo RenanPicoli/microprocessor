@@ -19,6 +19,8 @@ void IRQ1_Handler();
 // handler of IRQ0 (filter_CLK falling_edge)
 void IRQ3_Handler();
 
+float min(float x, float y);
+
 //main loop
 int main(void){
     register_init();
@@ -135,6 +137,20 @@ void codec_init(){
 
 // handler of IRQ0 (filter_CLK rising_edge)
 void IRQ0_Handler(){
+	//cálculo do step
+	
+	//carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
+	LVEC(2,LVEC_DST_MSK_3|LVEC_DST_MSK_4|LVEC_DST_MSK_6);
+	float squared_norm = (float) read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);
+	float step=min(0.5/squared_norm,1e4f);//f for float
+	word step_w;
+	step_w.f = 2.0f*step;
+	write_w(CACHE_BASE_ADDR+0,step_w.i);
+	
+	word desired_w;
+	desired_w.i=read_w(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET);
+	write_w(CACHE_BASE_ADDR+1,desired_w.i);//saves desired response to position 1 of mini_ram
+	
 	IRET();
 }
 
@@ -147,6 +163,16 @@ void IRQ1_Handler(){
 // handler of IRQ0 (filter_CLK falling_edge)
 void IRQ3_Handler(){
 	IRET();
+}
+
+float min(float x, float y){
+	float d=x-y;
+	d &= 0x80000000;
+	if(d==0x80000000){//(x-y)<0
+		return x;
+	}else{//(x-y)>=0
+		return y;
+	}
 }
 
 #include "bsp.c"
