@@ -135,17 +135,18 @@ void codec_init(){
 
 // handler of IRQ0 (filter_CLK rising_edge)
 void IRQ0_Handler(){
-	return;
+	IRET();
 }
 
 // handler of IRQ1 (I2C)
 void IRQ1_Handler(){
-	return;
+	write_w(I2C_BASE_ADDR+I2C_IRQ_CTRL_OFFSET+IRQ_CTRL_IRQ_PEND_OFFSET,0);
+	IRET();
 }
 
 // handler of IRQ0 (filter_CLK falling_edge)
 void IRQ3_Handler(){
-	return;
+	IRET();
 }
 
 #include "bsp.c"
