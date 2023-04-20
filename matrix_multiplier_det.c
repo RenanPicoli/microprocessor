@@ -114,6 +114,18 @@ void codec_init(){
 	I2C_Transmit(WM8731_ADDR,ANALOG_AUD_PATH_REG|MUTEMIC|DACSEL);
 	//digital audio path
 	I2C_Transmit(WM8731_ADDR,DIGITAL_AUD_PATH_REG|DEEMP_DIS);
+	//digital audio interface format
+	I2C_Transmit(WM8731_ADDR,DIGITAL_AUD_ITFC_FRMT_REG|FORMAT_I2S|IWL_16bits|LRP);
+	//sampling control
+	I2C_Transmit(WM8731_ADDR,SAMPLING_CTRL_REG|USB_MODE|BOSR|SR_8);
+	//left headphone out
+	I2C_Transmit(WM8731_ADDR,LEFT_HEADPHONE_OUT_REG|LHPVOL_MINUS_40dB);
+	//right headphone out
+	I2C_Transmit(WM8731_ADDR,RIGHT_HEADPHONE_OUT_REG|RHPVOL_MINUS_40dB);
+	//active control
+	I2C_Transmit(WM8731_ADDR,ACTIVE_CTRL_REG|ACTIVE);
+	//power down (activates the output)
+	I2C_Transmit(WM8731_ADDR,PDN_CTRL_REG|LINEINPD|MICPD|ADCPD|OSCPD|CLKOUTPD);
 	return;
 }
 
