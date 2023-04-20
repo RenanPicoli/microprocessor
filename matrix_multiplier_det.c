@@ -162,6 +162,20 @@ void IRQ1_Handler(){
 
 // handler of IRQ0 (filter_CLK falling_edge)
 void IRQ3_Handler(){
+	word filter_out_w;
+	filter_out_w.i=read_w(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET);
+
+	word desired_w;
+	desired_w.i=read_w(CACHE_BASE_ADDR+1);
+	
+	word error_w;
+	error_w.f=desired_w.f-filter_out_w.f;
+	
+	word double_step_w;//2*step
+	double_step_w.i=read_w(CACHE_BASE_ADDR+0);
+	
+	
+	
 	IRET();
 }
 
