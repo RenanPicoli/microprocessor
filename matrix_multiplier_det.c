@@ -40,12 +40,16 @@ int main(void){
 	
 	codec_init();
 	
+	//intentionally ommited the instruction memory write
+	//and 7-seg write
+	
+	filter_control(1);//enables filter	
+	
     while(1){
         HALT();
     }
     return 0;
 }
-
 
 void register_init(){
 __asm(".remove_prologue\n\t\
