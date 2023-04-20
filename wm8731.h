@@ -5,6 +5,8 @@
 
 #define WM8731_ADDR 0b0011010
 
+#define LEFT_LINE_IN_REG (0b0000000 << 9)
+#define RIGHT_LINE_IN_REG (0b0000001 << 9)
 #define LEFT_HEADPHONE_OUT_REG (0b0000010 << 9)
 #define RIGHT_HEADPHONE_OUT_REG (0b0000011 << 9)
 #define ANALOG_AUD_PATH_REG (0b0000100 << 9)
@@ -16,6 +18,16 @@
 #define RESET_REG (0b0001111 << 9)
 
 // register contents
+
+//left line in
+#define LINVOL_0dB (0b10111 << 0)
+#define LINMUTE 1<<7
+#define LRINBOTH 1<<8
+
+//right line in
+#define RINVOL_0dB (0b10111 << 0)
+#define RINMUTE 1<<7
+#define RLINBOTH 1<<8
 
 //left headphone out
 #define LHPVOL_0dB (0b1111001 << 0)
