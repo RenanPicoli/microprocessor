@@ -109,7 +109,7 @@ void GIC_config(){
 void codec_init(){
 	I2C_Init_typedef i2c;
 	i2c.num_words = I2C_WORDS_2;
-    i2C.direction = I2C_DIRECTION_WRITE;	
+    i2c.direction = I2C_DIRECTION_WRITE;
 	I2C_Init(&i2c);
 	
 	// reset
@@ -140,7 +140,8 @@ void IRQ0_Handler(){
 	//cálculo do step
 	
 	//carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
-	LVEC(2,LVEC_DST_MSK_3|LVEC_DST_MSK_4|LVEC_DST_MSK_6);
+	//LVEC(2,LVEC_DST_MSK_3|LVEC_DST_MSK_4|LVEC_DST_MSK_6);
+	LVEC(x"02",x"58");
 	float squared_norm = (float) read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);
 	float step=min(0.5/squared_norm,1e4f);//f for float
 	word step_w;
@@ -180,9 +181,10 @@ void IRQ3_Handler(){
 }
 
 float min(float x, float y){
-	float d=x-y;
-	d &= 0x80000000;
-	if(d==0x80000000){//(x-y)<0
+	word d_w;
+	d_w.f=x-y;
+	d_w.i &= 0x80000000;
+	if(d_w.i==0x80000000){//(x-y)<0
 		return x;
 	}else{//(x-y)>=0
 		return y;
