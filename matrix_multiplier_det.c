@@ -142,8 +142,9 @@ void IRQ0_Handler(){
 	//carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
 	//LVEC(2,LVEC_DST_MSK_3|LVEC_DST_MSK_4|LVEC_DST_MSK_6);
 	LVEC(x"02",x"58");
-	float squared_norm = (float) read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);
-	float step=min(0.5/squared_norm,1e4f);//f for float
+	word squared_norm_w;
+	squared_norm_w.i = read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);
+	float step=min(0.5/squared_norm_w.f,1e4f);//f for float
 	word step_w;
 	step_w.f = 2.0f*step;
 	write_w(CACHE_BASE_ADDR+0,step_w.i);
@@ -175,7 +176,31 @@ void IRQ3_Handler(){
 	word double_step_w;//2*step
 	double_step_w.i=read_w(CACHE_BASE_ADDR+0);
 	
+	word lambda_w;
+	lambda_w.f=double_step_w.f*error_w.f;//2*step*error
+	write_w(VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET,lambda_w.i);
 	
+	//Carrega VMAC:A(5) com as componentes do filtro atual(0)
+	LVEC(x"00",x"20");
+	VMAC();
+	//Lê o acumulador do VMAC(5) e atualiza os coeficientes do filtro(0)
+	LVEC(x"05",x"01");
+	//Lê memória de coeficientes do filtro(0) para o filtro(1)
+	//enables filter to update its components (when filter_CLK rises)
+	LVEC(x"00",x"02");
+	
+	//TODO: se filtro já convergiu, sair do loop
+
+	//I2S transmission (left fifo já foi selecionada antes do loop principal)
+	//escreve 2x no DR (upsampling fator 2, 22050 Hz -> 44100 Hz)
+	//habilita a transmissão
+	int converted_output=read_w(CONVERTED_OUTPUT_BASE_ADDR+CONVERTED_OUTPUT_OFFSET);
+	write_w(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
+	write_w(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
+	
+	int i2s_cfg=read_w(I2S_BASE_ADDR+I2S_CR_OFFSET);
+	i2s_cfg |= I2S_EN;
+	write_w(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
 	
 	IRET();
 }
