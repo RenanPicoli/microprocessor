@@ -89,287 +89,316 @@ def main(argv):
     # skips empty strings
     if(len(line)==0):
       continue
-
-    words = line.split()
-
-    # ignores directives started with dot '.', used only by compiler
-    if(words[0][0]=="."):
-      continue
-
-    opcode=words[0]
-    new_instr=""
-    arg=[opcode]
-    if(len(words)==2):
-      arg.extend(words[1].split(","))
-
-    for i in range(len(arg)):
-      arg[i]=arg[i].strip()
-    frmt_str=""
-
-    # check for label definition
-    if(opcode[-1]==":" and len(words)==1):
-      labels_dict.update({opcode[0:-1]:""})
-      if(opcode[0:-1]=="main"): # index -1 (last element) is NOT included
-        # concatenate strings
-        new_instr=words[0]+"\n\txor $0 $0 $0;" # includes instruction to reset $0 since this is reserved for zero in MIPS assembly
-      else:
-        new_instr=words[0]
-
-    # processes instructions
-    elif(opcode=="sw" or opcode=="lw"):
-      # arg2 will be parsed in the form offset($x)      
-      tmp = arg[2].split("(")
-      if(len(tmp)!=2 or (not tmp[1].endswith(")"))):
-        #raise ValueError("Syntax error: {}".format(line))
-        print("Syntax error: {}".format(line))
-        sys.exit(-1)
-      tmp[1]=tmp[1][:-1] # remove ')' from tmp[1] 
-      arg[2]=tmp[1]
-      arg.append(tmp[0]) # arg[3] <- tmp[0]
-      frmt_str = "\t{} [{}+{}] {};"
-      #print(arg)
-      #checks if immediate is already in hex
-      if(arg[3].startswith("0x")):
-        arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
-
-      if(opcode=="lw" and arg[1]=="$fp"):
-        continue # instructions that update FP must be skipped because this is handled by HW
-
-      # replace all instructions that get/put arguments from/to stack: lw $y, offset($fp) by lw [$30 + (offset - 8)] $y
-      elif((opcode=="lw" or opcode=="sw") and arg[2]=="$fp"):
-        if(arg[1] in used_arg_regs and opcode=="sw"): # because arg[1] already is in stack
-            continue
-        else:
-            frmt_str = "\t{} [$30+{}] {};"
-            #instructions that uses FP to get vars from stack or write to it must be translated
-            if(get_curr_funct(line_cnt) in leaf_functions):
-                new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+0)/4)
-            else:
-              #f=get_curr_funct(line_cnt)
-              #fs=funct_frame_size[f]
-              #print("debug@{}\n{}\nframe:{}\narg3;{}".format(line_cnt,f,fs,int(arg[3])))
-              new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+0)/4)
-            if(new_offset < 0): # if new_offset is negative, frmt_str will use '-'
-              frmt_str = "\t{} [$30-{}] {};"
-              new_instr = frmt_str.format(opcode,-new_offset,arg[1])
-            else:
-              new_instr = frmt_str.format(opcode,new_offset,arg[1])
-
-      # skips instructions that save FP to stack because this is done automatically by HW
-      elif(opcode=="sw" and arg[1]=="$fp" and arg[2]=="$sp"):
-        continue
-
-      # replaces instructions that save GPR to stack by push
-      # TODO: check offset to see if it is decreasing between registers being saved
-      elif(opcode=="sw" and arg[1]!="$fp" and arg[2]=="$sp"):
-        frmt_str = "\tpush {};"
-        new_instr = frmt_str.format(arg[1])
-
-      # replaces instructions that load register with stack contents by pop
-      # TODO: check offset to see if it is decreasing between registers being loaded
-      elif(opcode=="lw" and arg[2]=="$sp"):
-        frmt_str = "\tpop {};"
-        new_instr = frmt_str.format(arg[1])
-      
-      else:
-        new_instr = frmt_str.format(opcode,arg[2],arg[3],arg[1])
-
-    elif(opcode=="move"):
-
-      if(arg[1]=="$sp"):
-        continue # instructions that update SP must be skipped because this is handled by HW
-
-      elif(arg[1]=="$fp"):
-        if(arg[2]=="$sp"):
-          # Since the input assembly is generated according to MIPS calling convention and that convention uses $30 as the FP
-          # we can be sure that $30 will not be used for other purposes, then:
-          # do ldfp $30 ($30 <- FP)
-          # replace all instructions lw $y, offset($fp) por lw [$30 + (offset - 8)] $y
-          new_instr="\tldfp $30;"
-
-        else:# FP can be updated only with SP contents
-          #raise ValueError("Instruction not (yet) supported: %s\n" % line);
-          print("Instruction not (yet) supported: {}\n".format(line))
-          sys.exit(-1)
-
-      else:
-        frmt_str = "\taddi {} {} x\"0000\";"
-        new_instr= frmt_str.format(arg[2],arg[1])
-
-    elif(opcode=="addi" or opcode=="addiu" or opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu" or  opcode=="ori"):
-      hi_lo_used=False
-      #checks if immediate is already in hex
-      if(arg[3].startswith("0x")):
-        arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
-      if(arg[3].startswith("%hi(") or arg[3].startswith("%lo(")):
-          hi_lo_used=True
-      if(opcode=="addi" or opcode=="addiu"):
-        frmt_str="\taddi {} {} x\"{:04X}\";"
-        if(arg[1]=="$sp"):
-          continue
-        else:
-          if not hi_lo_used:
-            new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
-          else:
-            frmt_str="\taddi {} {} {};"
-            new_instr = frmt_str.format(arg[2],arg[1],arg[3])
-      elif(opcode=="slt" and not arg[3].isnumeric()):
-        frmt_str="\tsub {} {} {};\n\tsrl {} {} x\"1F\";" # 0x1F is 31
-        new_instr = frmt_str.format(arg[2],arg[3],arg[1],arg[1],arg[1])
-      elif(opcode=="slti" or opcode=="sltiu" or (opcode=="slt" and arg[3].isnumeric()) or opcode=="sltu"):
-        frmt_str="\tslti {} {} x\"{:04X}\";"
-        if not hi_lo_used:
-          new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
-        else:
-          frmt_str="\tslti {} {} {};"
-          new_instr = frmt_str.format(arg[2],arg[1],arg[3])
-      else:
-        frmt_str="\t{} {} {} x\"{:04X}\";"
-        if not hi_lo_used:
-          new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
-        else:
-          frmt_str="\{} {} {} {};"
-          new_instr = frmt_str.format(opcode,arg[2],arg[1],arg[3])
-      
-
-    # jump instructions
-    elif(opcode=="jr" or opcode=="j" or opcode=="jalx" or opcode=="jal" or opcode=="jalr"):
-
-      if(opcode=="jr"):
-        if(arg[1]!="$31"):
-          #raise ValueError("Instruction not (yet) supported: %s\n" % line)
-          print("Instruction not (yet) supported: {}\n".format(line))
-          sys.exit(-1)
-        new_instr="\tret;"
-      elif(opcode=="jalr"):
-        #raise ValueError("Instruction not (yet) supported: %s\n" % line)
-        print("Instruction not (yet) supported: {}\n".format(line))
-        sys.exit(-1)
-      elif(opcode=="jalx" or opcode=="jal"):
-        # before function call, will push used register arguments
-        used_arg_regs.sort(reverse = True)
+    try:
+        words = line.split()
         new_instr=""
-        print(used_arg_regs)
-        for r in used_arg_regs:
-          new_instr = new_instr+"\tpush {};\n".format(r)
-        frmt_str="\tcall {};"
-        new_instr = new_instr + frmt_str.format(arg[1])
-      elif(opcode=="j"):
-        if(arg[1] != "$31" and arg[1] != "$ra"):
-          frmt_str="\tjmp {};"
-          new_instr = frmt_str.format(arg[1])
-        else:
-          new_instr="\tret;"
-      else:
-        #raise ValueError("Instruction not (yet) supported: %s\n" % line);
-        print("Instruction not (yet) supported: {}\n".format(line))
-        sys.exit(-1)
-
-    elif(opcode=="li"):
-      #checks if immediate is already in hex
-      if(arg[2].startswith("0x")):
-        arg[2]=str(int(arg[2],16))# convert arg[3] to decimal base
-      frmt_str="\tlui {} x\"{:04X}\";\n\tori {} {} x\"{:04X}\";" # zeroes register, then adds immediate
-      #arg2_uns=int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]) # arg[2] converted to unsigned
-      arg2_uns=int(arg[2])
-      if (arg2_uns<0):
-        arg2_uns=2**32+arg2_uns # using 32 because li immediates are 32 bit wide (it's a pseudoinstruction)
-      print("arg2_uns={}\narg[1]={}".format(arg2_uns,arg[1]))
-      # note the doublw slash (//), this is integere division
-      new_instr = frmt_str.format(arg[1],arg2_uns//(2**16),arg[1],arg[1],arg2_uns%(2**16))
-
-    # branch instructions
-    elif(opcode[0]=="b"):
-      if(opcode=="b"):
-        frmt_str="\tjmp {};"
-        new_instr = frmt_str.format(arg[1])
-      elif(opcode=="bne"):
-        frmt_str="\tbeq {} {} x\"0001\";\n\tjmp {};"
-        new_instr = frmt_str.format(arg[1], arg[2], arg[3])
-      elif(opcode=="beq"):
-        frmt_str="\tbeq {} {} x\"0001\";\n\tbeq $0 $0 x\"0001\";\n\tjmp {};"
-        new_instr = frmt_str.format(arg[1], arg[2], arg[3])
-
-    # R-type and similars: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
-    elif (opcode=="add" or opcode=="addu" or opcode=="and" or opcode=="xor" or opcode=="sub" or opcode=="subu" or opcode=="or" or opcode=="nor"):
-      if(opcode=="addu"):
-        frmt_str="\tadd {} {} {};"
-        new_instr = frmt_str.format(arg[2],arg[3],arg[1])
-      elif(opcode=="subu"):
-        frmt_str="\tsub {} {} {};"
-        new_instr = frmt_str.format(arg[2],arg[3],arg[1])
-      else:
-        frmt_str="{} {} {} {};"
-        new_instr = frmt_str.format(opcode,arg[2],arg[3],arg[1])
-
-    elif(opcode=="mul"):
-      frmt_str="\timul {} {};\n\tmflo {};"
-      new_instr=frmt_str.format(arg[2],arg[3],arg[1])
-
-    elif(opcode=="mult" or opcode=="multu"):
-      frmt_str="\tmult {} {};"
-      new_instr=frmt_str.format(arg[1],arg[2])
-
-    elif(opcode=="mflo" or opcode=="mfhi"):
-      frmt_str="\t{} {};"
-      new_instr=frmt_str.format(opcode,arg[1])
-
-    elif(opcode=="lui"):
-      #checks if immediate is already in hex
-      if(arg[2].startswith("0x")):
-        arg[2]=str(int(arg[2],16))# convert arg[2] to decimal base
-      if(arg[2].startswith("%hi(") or arg[2].startswith("%lo(")):
-          frmt_str="\t{} {} {};"
-          new_instr=frmt_str.format(opcode,arg[1],arg[2])
-      else:
-          frmt_str="\t{} {} x\"{:04X}\";"
-          new_instr=frmt_str.format(opcode,arg[1],int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]))
-
-    elif(opcode=="la"):
-      #immediate is always a label
-      frmt_str="\tlui {} %hi({});\n\tori {} {} %lo({});"
-      new_instr=frmt_str.format(arg[1],arg[2],arg[1],arg[1],arg[2])
+        if(line[0]=="$" and line.endswith("= .")):
+            continue
+              
+        # ignores other directives started with dot '.', used only by compiler
+        if(words[0][0]=="."):
+            if(words[0].startswith(".word")):#TODO: add support for .byte,.half,.double
+                if(words[1].isdecimal()):
+                    new_instr="x{:04X};".format(int(words[1])) # stores the constant in hex
+                    print(line + "-> " + new_instr)
+                    #of.write(new_instr+"\n")
+                    new_instr_vector.extend((new_instr).split("\n"))
+                    continue
+            elif(words[0].startswith(".rdata")):
+                new_instr=words[0]
+                print(line + "-> " + new_instr)
+                #of.write(new_instr+"\n")
+                new_instr_vector.extend((new_instr).split("\n"))
+                continue
+            else:
+                continue
     
+        opcode=words[0]
+        arg=[opcode]
+        if(len(words)==2):
+          arg.extend(words[1].split(","))
     
-    # there are 2 variants of the instructions below in MIPS
-    # sll rd rs rt: rd <= rs << rt (aka sllv)
-    # sll rd rs shift: rd <= rs << shift
-    elif(opcode=="sll" or opcode=="srl"):
-      #checks if immediate is already in hex
-      if(arg[3].startswith("0x")):
-        arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
-      if(arg[3][0]!="$"): # arg[3] is a constant
-        frmt_str="\t{} {} {} x\"{:02X}\";"
-        new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
-      else: # arg[3] is a register (rt)
-        frmt_str="\t{} {} {} {};" # arg[1] is rd
-        new_instr = frmt_str.format(opcode+"v",arg[2],arg[3],arg[1]) # sll -> sllv, srl -> srlv
+        for i in range(len(arg)):
+          arg[i]=arg[i].strip()
+        frmt_str=""
+    
+        # check for label definition
+        if(opcode[-1]==":" and len(words)==1):
+          labels_dict.update({opcode[0:-1]:""})
+          if(opcode[0:-1]=="main"): # index -1 (last element) is NOT included
+            # concatenate strings
+            new_instr=words[0]+"\n\txor $0 $0 $0;" # includes instruction to reset $0 since this is reserved for zero in MIPS assembly
+          else:
+            new_instr=words[0]
+    
+        # processes instructions
+        elif(opcode=="sw" or opcode=="lw"):
+          # arg2 will be parsed in the form offset($x)      
+          tmp = arg[2].split("(")
+          #print("tmp=")
+          #print(tmp)
+          if((len(tmp)!=2 and len(tmp)!=3) or (not tmp[1].endswith(")"))):
+            #raise ValueError("Syntax error: {}".format(line))
+            print("Syntax error: {}".format(line))
+            sys.exit(-1)
+          tmp[-1]=tmp[-1][:-1] # remove ')' from tmp[1] 
+          arg[2]=tmp[-1]# arg[2] <- register
+          arg.append(tmp[-2]) # arg[3] <- offset or label
+          frmt_str = "\t{} [{}+{}] {};"
+          #print(arg)
           
-    elif(opcode=="sllv" or  opcode=="srlv"):
-      frmt_str="\t{} {} {} {};"
-      new_instr = frmt_str.format(opcode,arg[2],arg[3],arg[1])
-
-    elif(opcode=="nop"):
-      new_instr="\tnop;"
-
-    else:
-      #raise ValueError("Unknown instruction: {}".format(opcode))
-      #print("Instruction not (yet) supported: {}\n".format(opcode))
-      #sys.exit(-1)
-      new_instr = line # repeats the instruction, will cause error at assembler, if not cut
-      
-    if(opcode!="ext" and opcode!="div" and opcode!="divu" and opcode!="madd" and opcode!="maddu" and opcode!="msub" and opcode!="msubu" and opcode!="mult" and opcode!="multu"and opcode!="call"):
-      if(len(arg)>=2 and arg[1] in arg_regs and arg[1] not in used_arg_regs):
-        used_arg_regs.append(arg[1])
-    elif(opcode=="call"):
-      ## já fiz o push dos registradores usados, posso limpar a lista
-      used_arg_regs.clear();
-      #print (used_arg_regs)
-
-    #print(txt)
-    print(line + "-> " + new_instr)
-    #of.write(new_instr+"\n")
-    new_instr_vector.extend((new_instr).split("\n"))
+          #this is a special case: lw/sw $y, %lo/hi($LABEL)($x)
+          if(len(tmp)==3):
+            new_instr = frmt_str.format(opcode,arg[2],tmp[0]+"("+arg[3],arg[1])
+            print(line + "-> " + new_instr)
+            #of.write(new_instr+"\n")
+            new_instr_vector.extend((new_instr).split("\n"))
+            continue
+          #checks if immediate is already in hex
+          if(arg[3].startswith("0x")):
+            arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
+    
+          if(opcode=="lw" and arg[1]=="$fp"):
+            continue # instructions that update FP must be skipped because this is handled by HW
+    
+          # replace all instructions that get/put arguments from/to stack: lw $y, offset($fp) by lw [$30 + (offset - 8)] $y
+          elif((opcode=="lw" or opcode=="sw") and arg[2]=="$fp"):
+            if(arg[1] in used_arg_regs and opcode=="sw"): # because arg[1] already is in stack
+                continue
+            else:
+                frmt_str = "\t{} [$30+{}] {};"
+                #instructions that uses FP to get vars from stack or write to it must be translated
+                if(get_curr_funct(line_cnt) in leaf_functions):
+                    new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+0)/4)
+                else:
+                  #f=get_curr_funct(line_cnt)
+                  #fs=funct_frame_size[f]
+                  #print("debug@{}\n{}\nframe:{}\narg3;{}".format(line_cnt,f,fs,int(arg[3])))
+                  new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+0)/4)
+                if(new_offset < 0): # if new_offset is negative, frmt_str will use '-'
+                  frmt_str = "\t{} [$30-{}] {};"
+                  new_instr = frmt_str.format(opcode,-new_offset,arg[1])
+                else:
+                  new_instr = frmt_str.format(opcode,new_offset,arg[1])
+    
+          # skips instructions that save FP to stack because this is done automatically by HW
+          elif(opcode=="sw" and arg[1]=="$fp" and arg[2]=="$sp"):
+            continue
+    
+          # replaces instructions that save GPR to stack by push
+          # TODO: check offset to see if it is decreasing between registers being saved
+          elif(opcode=="sw" and arg[1]!="$fp" and arg[2]=="$sp"):
+            frmt_str = "\tpush {};"
+            new_instr = frmt_str.format(arg[1])
+    
+          # replaces instructions that load register with stack contents by pop
+          # TODO: check offset to see if it is decreasing between registers being loaded
+          elif(opcode=="lw" and arg[2]=="$sp"):
+            frmt_str = "\tpop {};"
+            new_instr = frmt_str.format(arg[1])
+          
+          else:
+            new_instr = frmt_str.format(opcode,arg[2],arg[3],arg[1])
+    
+        elif(opcode=="move"):
+    
+          if(arg[1]=="$sp"):
+            continue # instructions that update SP must be skipped because this is handled by HW
+    
+          elif(arg[1]=="$fp"):
+            if(arg[2]=="$sp"):
+              # Since the input assembly is generated according to MIPS calling convention and that convention uses $30 as the FP
+              # we can be sure that $30 will not be used for other purposes, then:
+              # do ldfp $30 ($30 <- FP)
+              # replace all instructions lw $y, offset($fp) por lw [$30 + (offset - 8)] $y
+              new_instr="\tldfp $30;"
+    
+            else:# FP can be updated only with SP contents
+              #raise ValueError("Instruction not (yet) supported: %s\n" % line);
+              print("Instruction not (yet) supported: {}\n".format(line))
+              sys.exit(-1)
+    
+          else:
+            frmt_str = "\taddi {} {} x\"0000\";"
+            new_instr= frmt_str.format(arg[2],arg[1])
+    
+        elif(opcode=="addi" or opcode=="addiu" or opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu" or  opcode=="ori"):
+          hi_lo_used=False
+          #checks if immediate is already in hex
+          if(arg[3].startswith("0x")):
+            arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
+          if(arg[3].startswith("%hi(") or arg[3].startswith("%lo(")):
+              hi_lo_used=True
+          if(opcode=="addi" or opcode=="addiu"):
+            frmt_str="\taddi {} {} x\"{:04X}\";"
+            if(arg[1]=="$sp"):
+              continue
+            else:
+              if not hi_lo_used:
+                new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+              else:
+                frmt_str="\taddi {} {} {};"
+                new_instr = frmt_str.format(arg[2],arg[1],arg[3])
+          elif(opcode=="slt" and not arg[3].isnumeric()):
+            frmt_str="\tsub {} {} {};\n\tsrl {} {} x\"1F\";" # 0x1F is 31
+            new_instr = frmt_str.format(arg[2],arg[3],arg[1],arg[1],arg[1])
+          elif(opcode=="slti" or opcode=="sltiu" or (opcode=="slt" and arg[3].isnumeric()) or opcode=="sltu"):
+            frmt_str="\tslti {} {} x\"{:04X}\";"
+            if not hi_lo_used:
+              new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+            else:
+              frmt_str="\tslti {} {} {};"
+              new_instr = frmt_str.format(arg[2],arg[1],arg[3])
+          else:
+            frmt_str="\t{} {} {} x\"{:04X}\";"
+            if not hi_lo_used:
+              new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+            else:
+              frmt_str="\{} {} {} {};"
+              new_instr = frmt_str.format(opcode,arg[2],arg[1],arg[3])
+          
+    
+        # jump instructions
+        elif(opcode=="jr" or opcode=="j" or opcode=="jalx" or opcode=="jal" or opcode=="jalr"):
+    
+          if(opcode=="jr"):
+            if(arg[1]!="$31"):
+              #raise ValueError("Instruction not (yet) supported: %s\n" % line)
+              print("Instruction not (yet) supported: {}\n".format(line))
+              sys.exit(-1)
+            new_instr="\tret;"
+          elif(opcode=="jalr"):
+            #raise ValueError("Instruction not (yet) supported: %s\n" % line)
+            print("Instruction not (yet) supported: {}\n".format(line))
+            sys.exit(-1)
+          elif(opcode=="jalx" or opcode=="jal"):
+            # before function call, will push used register arguments
+            used_arg_regs.sort(reverse = True)
+            new_instr=""
+            print(used_arg_regs)
+            for r in used_arg_regs:
+              new_instr = new_instr+"\tpush {};\n".format(r)
+            frmt_str="\tcall {};"
+            new_instr = new_instr + frmt_str.format(arg[1])
+          elif(opcode=="j"):
+            if(arg[1] != "$31" and arg[1] != "$ra"):
+              frmt_str="\tjmp {};"
+              new_instr = frmt_str.format(arg[1])
+            else:
+              new_instr="\tret;"
+          else:
+            #raise ValueError("Instruction not (yet) supported: %s\n" % line);
+            print("Instruction not (yet) supported: {}\n".format(line))
+            sys.exit(-1)
+    
+        elif(opcode=="li"):
+          #checks if immediate is already in hex
+          if(arg[2].startswith("0x")):
+            arg[2]=str(int(arg[2],16))# convert arg[3] to decimal base
+          frmt_str="\tlui {} x\"{:04X}\";\n\tori {} {} x\"{:04X}\";" # zeroes register, then adds immediate
+          #arg2_uns=int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]) # arg[2] converted to unsigned
+          arg2_uns=int(arg[2])
+          if (arg2_uns<0):
+            arg2_uns=2**32+arg2_uns # using 32 because li immediates are 32 bit wide (it's a pseudoinstruction)
+          print("arg2_uns={}\narg[1]={}".format(arg2_uns,arg[1]))
+          # note the double slash (//), this is integer division
+          new_instr = frmt_str.format(arg[1],arg2_uns//(2**16),arg[1],arg[1],arg2_uns%(2**16))
+    
+        # branch instructions
+        elif(opcode[0]=="b"):
+          if(opcode=="b"):
+            frmt_str="\tjmp {};"
+            new_instr = frmt_str.format(arg[1])
+          elif(opcode=="bne"):
+            frmt_str="\tbeq {} {} x\"0001\";\n\tjmp {};"
+            new_instr = frmt_str.format(arg[1], arg[2], arg[3])
+          elif(opcode=="beq"):
+            frmt_str="\tbeq {} {} x\"0001\";\n\tbeq $0 $0 x\"0001\";\n\tjmp {};"
+            new_instr = frmt_str.format(arg[1], arg[2], arg[3])
+    
+        # R-type and similars: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
+        elif (opcode=="add" or opcode=="addu" or opcode=="and" or opcode=="xor" or opcode=="sub" or opcode=="subu" or opcode=="or" or opcode=="nor"):
+          if(opcode=="addu"):
+            frmt_str="\tadd {} {} {};"
+            new_instr = frmt_str.format(arg[2],arg[3],arg[1])
+          elif(opcode=="subu"):
+            frmt_str="\tsub {} {} {};"
+            new_instr = frmt_str.format(arg[2],arg[3],arg[1])
+          else:
+            frmt_str="{} {} {} {};"
+            new_instr = frmt_str.format(opcode,arg[2],arg[3],arg[1])
+    
+        elif(opcode=="mul"):
+          frmt_str="\timul {} {};\n\tmflo {};"
+          new_instr=frmt_str.format(arg[2],arg[3],arg[1])
+    
+        elif(opcode=="mult" or opcode=="multu"):
+          frmt_str="\tmult {} {};"
+          new_instr=frmt_str.format(arg[1],arg[2])
+    
+        elif(opcode=="mflo" or opcode=="mfhi"):
+          frmt_str="\t{} {};"
+          new_instr=frmt_str.format(opcode,arg[1])
+    
+        elif(opcode=="lui"):
+          #checks if immediate is already in hex
+          if(arg[2].startswith("0x")):
+            arg[2]=str(int(arg[2],16))# convert arg[2] to decimal base
+          if(arg[2].startswith("%hi(") or arg[2].startswith("%lo(")):
+              frmt_str="\t{} {} {};"
+              new_instr=frmt_str.format(opcode,arg[1],arg[2])
+          else:
+              frmt_str="\t{} {} x\"{:04X}\";"
+              new_instr=frmt_str.format(opcode,arg[1],int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]))
+    
+        elif(opcode=="la"):
+          #immediate is always a label
+          frmt_str="\tlui {} %hi({});\n\tori {} {} %lo({});"
+          new_instr=frmt_str.format(arg[1],arg[2],arg[1],arg[1],arg[2])
+        
+        
+        # there are 2 variants of the instructions below in MIPS
+        # sll rd rs rt: rd <= rs << rt (aka sllv)
+        # sll rd rs shift: rd <= rs << shift
+        elif(opcode=="sll" or opcode=="srl"):
+          #checks if immediate is already in hex
+          if(arg[3].startswith("0x")):
+            arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
+          if(arg[3][0]!="$"): # arg[3] is a constant
+            frmt_str="\t{} {} {} x\"{:02X}\";"
+            new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+          else: # arg[3] is a register (rt)
+            frmt_str="\t{} {} {} {};" # arg[1] is rd
+            new_instr = frmt_str.format(opcode+"v",arg[2],arg[3],arg[1]) # sll -> sllv, srl -> srlv
+              
+        elif(opcode=="sllv" or  opcode=="srlv"):
+          frmt_str="\t{} {} {} {};"
+          new_instr = frmt_str.format(opcode,arg[2],arg[3],arg[1])
+    
+        elif(opcode=="nop"):
+          new_instr="\tnop;"
+    
+        else:
+          #raise ValueError("Unknown instruction: {}".format(opcode))
+          #print("Instruction not (yet) supported: {}\n".format(opcode))
+          #sys.exit(-1)
+          new_instr = line # repeats the instruction, will cause error at assembler, if not cut
+          
+        if(opcode!="ext" and opcode!="div" and opcode!="divu" and opcode!="madd" and opcode!="maddu" and opcode!="msub" and opcode!="msubu" and opcode!="mult" and opcode!="multu"and opcode!="call"):
+          if(len(arg)>=2 and arg[1] in arg_regs and arg[1] not in used_arg_regs):
+            used_arg_regs.append(arg[1])
+        elif(opcode=="call"):
+          ## já fiz o push dos registradores usados, posso limpar a lista
+          used_arg_regs.clear();
+          #print (used_arg_regs)
+    
+        #print(txt)
+        print(line + "-> " + new_instr)
+        #of.write(new_instr+"\n")
+        new_instr_vector.extend((new_instr).split("\n"))
+    except:
+      print("An exception occurred at instruction {}: {}\n".format(line_cnt,line))
+      return
 
   post_process(new_instr_vector) # removes prologues and epilogues, when specified
   for i in new_instr_vector:
@@ -416,12 +445,6 @@ def main(argv):
   for line in of: # iterates over lines of intermediary file
     of_lines.append(line)
 
-  for label in l: # iterates over labels_dict keys
-    #print(label)
-    for i in range(len(of_lines)): # iterates over lines of intermediary file
-      # searches for label l
-      of_lines[i] = of_lines[i].replace(label,labels_dict[label])
-
   for i in range(len(of_lines)): # iterates over lines of intermediary file
     # adds instruction to load $2 with return value
     # in MIPS convention, the return value is placed at $2 (also use $3 for 64 bit value)
@@ -432,13 +455,57 @@ def main(argv):
       #of_lines[i] = of_lines[i]+"\tpop $2;\n"
     elif(of_lines[i].startswith("\tret")):
       of_lines[i] = "\tpush $2;\n"+of_lines[i]
+      
+  # split each element in of_lines and flatten the list
+  result = [item.split('\n') for item in of_lines]
 
+  result_flat = []
+
+  for mline in result:
+    for item in mline:
+      if item != "":
+        result_flat.append(item+"\n")
+  of_lines=result_flat
+      
+  #TODO: remove this after adding support to %hi/%lo in lw/sw offset in assembler.c    
+  #finds instructions of form lw [$x+%lo(LABEL)] $y and
+  # replaces LABEL by numeric immediate
+  pattern = r"^\s*(lw|sw) \[\$[a-zA-Z0-9]+[+-](%lo|%hi)\(\$?[a-zA-Z0-9_]+\)\] \$[a-zA-Z0-9]+;$"
+
+  for i in range(len(of_lines)): # iterates over lines of intermediary file
+    if(re.match(pattern,of_lines[i]) is not None):
+        #print("regex matched!\n")
+        offset=-1
+        result = re.search('\((.*?)\)', of_lines[i])
+        label=result.group(1)
+        for j in range(len(of_lines)):
+          if(of_lines[j][-2:]!=":\n" and of_lines[j][0]!="$"):
+            offset=offset+1
+          elif(of_lines[j]==label+":\n"):
+            offset=offset+1
+            break
+        of_lines[i] = re.sub(r'%lo\(\$[a-zA-Z0-9_]+\)', str(offset%(2**16)), of_lines[i])
+        of_lines[i] = re.sub(r'%hi\(\$[a-zA-Z0-9_]+\)', str(offset//(2**16)), of_lines[i])
+
+  for label in l: # iterates over labels_dict keys
+    #print(label)
+    for i in range(len(of_lines)): # iterates over lines of intermediary file
+      # searches for label l, removes the initial '$'
+      of_lines[i] = of_lines[i].replace(label,labels_dict[label])
+      
+  # replaces register aliases
   for i in range(len(of_lines)): # iterates over lines of intermediary file
     for alias, actual in aliases.items():
-      of_lines[i] = of_lines[i].replace(alias,actual)# replaces register aliases
-
+      of_lines[i] = of_lines[i].replace(alias,actual)
+      
+  # register renaming ($x -> $rx)
   for i in range(len(of_lines)): # iterates over lines of intermediary file
-    of_lines[i] = re.sub("\${1}(?=\d)", "r", of_lines[i])# register renaming ($x -> $rx)
+    of_lines[i] = re.sub("\${1}(?=\d)", "r", of_lines[i])
+    
+  # replaces register aliases
+  for i in range(len(of_lines)): # iterates over lines of intermediary file
+    if(of_lines[i].strip().startswith(".rdata")):
+      of_lines[i] = ".section data\n"
       
   # final file write
   for i in range(len(of_lines)): # iterates over lines of intermediary file
@@ -538,7 +605,9 @@ def post_process(instr_vector):
                 #print("line_cnt={}, next_label_idx={}\n".format(line_cnt,next_label_idx))
                 break
             if not found_next_label:
-              lines_to_remove.extend(range(line_cnt,len(instr_vector)))
+              end=next((idx for idx, x in enumerate(instr_vector) if (x.strip()==".rdata" and idx > line_cnt)),len(instr_vector))
+              print("end={}\n".format(end))
+              lines_to_remove.extend(range(line_cnt,end))
               #print(range(line_cnt,len(instr_vector)))
             else:
               lines_to_remove.extend(range(line_cnt,next_label_idx))
