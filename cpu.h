@@ -24,20 +24,20 @@ typedef union {
 
 #define LVEC_DST_MSK(n) LVEC_DST_MSK_ ## n
 
-#define LVEC(src,dst) __asm("lvec " #src " " #dst ";")
+#define LVEC(src,dst) __asm("\tlvec " #src " " #dst ";\n\t")
 //#define one_hot(n) (1<<n)
 #define xxstr(s) xstr(s)
 #define xstr(s) str(s)
 #define str(s) #s
 //#define hex_str(n,length))
 
-#define VMAC() __asm("vmac;\n\t");
-#define HALT() __asm("halt;\n\t");
-#define IRET() __asm("iret;\n\t");
-#define IACK() __asm("iack;\n\t");
-#define LDFP(dst) __asm("ldfp " #dst ";")
-#define LDRV(dst) __asm("ldrv " #dst ";")
-#define ADDSP(n) __asm("addsp " #n ";")
+#define VMAC() __asm("\tvmac;\n\t");
+#define HALT() __asm("\thalt;\n\t");
+#define IRET() __asm("\tiret;\n\t");
+#define IACK() __asm("\tiack;\n\t");
+#define LDFP(dst) __asm("\tldfp " #dst ";\n\t")
+#define ADDSP(n) __asm("\taddsp " #n ";\n\t")
+#define LDRV(dst) __asm("\tldrv " #dst ";\n\t")
 
 //function prototypes
 int sum(int x, int y);
