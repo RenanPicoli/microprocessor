@@ -1,9 +1,5 @@
 #include "cpu.h"
 
-int sum(int x, int y) {
-    return x+y;
-}
-
 int one_hot(int n){
   return (1<<n);
 }

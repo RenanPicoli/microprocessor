@@ -40,7 +40,6 @@ typedef union {
 #define LDRV(dst) __asm("\tldrv " #dst ";\n\t")
 
 //function prototypes
-int sum(int x, int y);
 int one_hot(int n);
 void lvec_f(char src,char dst);
 inline void vmac_f();
