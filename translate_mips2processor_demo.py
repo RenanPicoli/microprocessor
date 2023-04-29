@@ -137,7 +137,14 @@ def main(argv):
           tmp = arg[2].split("(")
           #print("tmp=")
           #print(tmp)
-          if((len(tmp)!=2 and len(tmp)!=3) or (not tmp[1].endswith(")"))):
+          if(len(tmp)==1):# lw $x,$LABEL ($x <= mem[LABEL])
+            frmt_str = "\tlui {} %hi({});\n\tlw [{}+%lo({})] {};"
+            new_instr = frmt_str.format(arg[1],arg[2],arg[1],arg[2],arg[1])
+            print(line + "-> " + new_instr)
+            #of.write(new_instr+"\n")
+            new_instr_vector.extend((new_instr).split("\n"))
+            continue
+          if((len(tmp)!=1 and len(tmp)!=2 and len(tmp)!=3) or (not tmp[1].endswith(")"))):
             #raise ValueError("Syntax error: {}".format(line))
             print("Syntax error: {}".format(line))
             sys.exit(-1)
