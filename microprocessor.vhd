@@ -20,11 +20,10 @@ port (CLK_IN: in std_logic;
 		rst: in std_logic;
 		irq: in std_logic;--interrupt request
 		iack: out std_logic;--interrupt acknowledgement
-		instruction_addr: out std_logic_vector (31 downto 0);--AKA read address
 		return_value: out std_logic_vector (31 downto 0);-- output of RV register
 		ISR_addr: in std_logic_vector (31 downto 0);--address for interrupt handler, loaded when irq is asserted, it is valid one clock cycle after the IRQ detection
 		-----ROM----------
-		ADDR_rom: out std_logic_vector(7 downto 0);--addr é endereço de byte, mas os Lsb são 00
+		ADDR_rom: out std_logic_vector(31 downto 0);--addr é endereço de word
 		CLK_rom: out std_logic;--clock for mini_rom (is like moving a PC register duplicate to i_cache)
 		Q_rom:	in std_logic_vector(31 downto 0);
 		i_cache_ready: in std_logic;--indicates i_cache is ready (Q_rom is valid), synchronous to rising_edge(CLK_IN)
@@ -344,9 +343,6 @@ begin
 										ENA => i_cache_ready,
 										D => pc_in,
 										Q => pc_out);
-										
-	--instruction_addr <= pc_out;
-	instruction_addr <= pc_in;--because now mini_rom is synchronous
 	
 	--mapped on word addresses 0x200-0x2ff (bit 9='1'=> stack,bit 9='0'=>external ram)
 	program_stack: mm_stack
@@ -502,8 +498,8 @@ begin
 				pc_in_no_irq;
 				
 --	ADDR_rom <= pc_out(7 downto 0);
-	ADDR_rom <= pc_out(7 downto 0) when halt='1' and irq='0'else-- i_cache keeps running and need to repeat halt instruction
-					pc_in(7 downto 0);-- when halt='0' or irq='1' because now mini_rom and i_cache are synchronous
+	ADDR_rom <= pc_out when halt='1' and irq='0'else-- i_cache keeps running and need to repeat halt instruction
+					pc_in;-- when halt='0' or irq='1' because now mini_rom and i_cache are synchronous
 					
 					
 	instruction <= Q_rom when i_cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
