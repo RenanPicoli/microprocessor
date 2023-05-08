@@ -496,6 +496,7 @@ def main(argv):
         result = re.search('\((.*?)\)', of_lines[i])
         label=result.group(1)
         for j in range(len(of_lines)):
+          # ignores labels, functions and directives started by dot
           if(of_lines[j][-2:]!=":\n" and of_lines[j][0]!="$" and of_lines[j][0]!="."):
             offset=offset+1
           elif(of_lines[j]==label+":\n"):
