@@ -23,6 +23,9 @@ aliases={
 "$ra":"$31"
 }
 
+#TODO: remove this improvised solution
+INSTRUCTION_MEMORY_BASE_ADDR=0x400
+
 def main(argv):
   if(len(argv)!=2):
     print("Uso: %s FILE\n" % argv[0]);
@@ -460,6 +463,13 @@ def main(argv):
     if(of_lines[i].startswith("\tcall")):
       of_lines[i] = of_lines[i]+"\tldrv $2;\n"
       #of_lines[i] = of_lines[i]+"\tpop $2;\n"
+      push_cnt=0
+      for j in reversed(range(i)):
+        if(of_lines[j].startswith("\tpush")):
+          push_cnt=push_cnt+1
+        else:
+          break
+      of_lines[i] = of_lines[i]+"\taddsp  x\"{:04X}\";\n".format(push_cnt)
     elif(of_lines[i].startswith("\tret")):
       of_lines[i] = "\tpush $2;\n"+of_lines[i]
       
@@ -491,8 +501,9 @@ def main(argv):
           elif(of_lines[j]==label+":\n"):
             offset=offset+1
             break
-        of_lines[i] = re.sub(r'%lo\(\$[a-zA-Z0-9_]+\)', str(offset%(2**16)), of_lines[i])
-        of_lines[i] = re.sub(r'%hi\(\$[a-zA-Z0-9_]+\)', str(offset//(2**16)), of_lines[i])
+		#TODO: remove this improvised solution
+        of_lines[i] = re.sub(r'%lo\(\$[a-zA-Z0-9_]+\)', str((offset+INSTRUCTION_MEMORY_BASE_ADDR)%(2**16)), of_lines[i])
+        of_lines[i] = re.sub(r'%hi\(\$[a-zA-Z0-9_]+\)', str((offset+INSTRUCTION_MEMORY_BASE_ADDR)//(2**16)), of_lines[i])
 
   for label in l: # iterates over labels_dict keys
     #print(label)
@@ -505,7 +516,7 @@ def main(argv):
     for alias, actual in aliases.items():
       of_lines[i] = of_lines[i].replace(alias,actual)
       
-  # register renaming ($x -> $rx)
+  # register renaming ($x -> rx)
   for i in range(len(of_lines)): # iterates over lines of intermediary file
     of_lines[i] = re.sub("\${1}(?=\d)", "r", of_lines[i])
     
