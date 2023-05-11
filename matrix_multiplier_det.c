@@ -23,6 +23,18 @@ float min(float x, float y);
 
 //main loop
 int main(void){
+	//TESTE de NOVAS INSTRUÇÕES E MACROS
+    FADD(r1,r2,r3)
+    const int a=1<<6|1<<4|1<<3;
+    int b=0;
+    int c=1;
+    //LVEC_M(1,a);
+    LVEC_M(1,1<<6|1<<4|1<<3);
+    LVEC_M(I2C_BASE_ADDR,I2S_BASE_ADDR);
+    WRITE(I2S_BASE_ADDR,a);
+    READ(I2C_BASE_ADDR,b);
+    READ(I2S_BASE_ADDR,c);
+	
     register_init();
 	GIC_config();
 	
