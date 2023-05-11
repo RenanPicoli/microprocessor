@@ -24,7 +24,10 @@ float min(float x, float y);
 //main loop
 int main(void){
 	//TESTE de NOVAS INSTRUÇÕES E MACROS
-    FADD(r1,r2,r3)
+    float aa=1.0;
+    float bb=0.5;
+    float cc;
+    FADD(aa,bb,cc);
     const int a=1<<6|1<<4|1<<3;
     int b=0;
     int c=1;
