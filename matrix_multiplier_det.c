@@ -108,14 +108,14 @@ __asm(".remove_prologue\n\t\
 
 //configures the global interrupt controller
 void GIC_config(){
-	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+0,(int) &IRQ0_Handler);//loads the position 0 of vector with address of IRQ0_Handler
-	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+0,0);//put IRQ0_Handler in priority 0
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+0,(int) &IRQ0_Handler);//loads the position 0 of vector with address of IRQ0_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+0,0);//put IRQ0_Handler in priority 0
 	
-	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+3,(int) &IRQ3_Handler);//loads the position 3 of vector with address of IRQ3_Handler
-	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+1,3);//put IRQ3_Handler in priority 1
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+3,(int) &IRQ3_Handler);//loads the position 3 of vector with address of IRQ3_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+1,3);//put IRQ3_Handler in priority 1
 	
-	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+1,(int) &IRQ1_Handler);//loads the position 1 of vector with address of IRQ1_Handler
-	write_w(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+2,1);//put IRQ1_Handler in priority 2
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+1,(int) &IRQ1_Handler);//loads the position 1 of vector with address of IRQ1_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+2,1);//put IRQ1_Handler in priority 2
 	
 	return;
 }
@@ -162,18 +162,18 @@ void IRQ0_Handler(){
 	float step=min(0.5/squared_norm_w.f,1e4f);//f for float
 	word step_w;
 	step_w.f = 2.0f*step;
-	write_w(CACHE_BASE_ADDR+0,step_w.i);
+	WRITE(CACHE_BASE_ADDR+0,step_w.i);
 	
 	word desired_w;
 	desired_w.i=read_w(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET);
-	write_w(CACHE_BASE_ADDR+1,desired_w.i);//saves desired response to position 1 of mini_ram
+	WRITE(CACHE_BASE_ADDR+1,desired_w.i);//saves desired response to position 1 of mini_ram
 	
 	IRET();
 }
 
 // handler of IRQ1 (I2C)
 void IRQ1_Handler(){
-	write_w(I2C_BASE_ADDR+I2C_IRQ_CTRL_OFFSET+IRQ_CTRL_IRQ_PEND_OFFSET,0);
+	WRITE(I2C_BASE_ADDR+I2C_IRQ_CTRL_OFFSET+IRQ_CTRL_IRQ_PEND_OFFSET,0);
 	IRET();
 }
 
@@ -193,7 +193,7 @@ void IRQ3_Handler(){
 	
 	word lambda_w;
 	lambda_w.f=double_step_w.f*error_w.f;//2*step*error
-	write_w(VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET,lambda_w.i);
+	WRITE(VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET,lambda_w.i);
 	
 	//Carrega VMAC:A(5) com as componentes do filtro atual(0)
 	LVEC(x"00",x"20");
@@ -210,12 +210,12 @@ void IRQ3_Handler(){
 	//escreve 2x no DR (upsampling fator 2, 22050 Hz -> 44100 Hz)
 	//habilita a transmissão
 	int converted_output=read_w(CONVERTED_OUTPUT_BASE_ADDR+CONVERTED_OUTPUT_OFFSET);
-	write_w(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
-	write_w(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
+	WRITE(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
+	WRITE(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
 	
 	int i2s_cfg=read_w(I2S_BASE_ADDR+I2S_CR_OFFSET);
 	i2s_cfg |= I2S_EN;
-	write_w(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
+	WRITE(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
 	
 	IRET();
 }
