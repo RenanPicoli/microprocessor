@@ -24,6 +24,7 @@ float min(float x, float y);
 //main loop
 int main(void){
 	//TESTE de NOVAS INSTRUÇÕES E MACROS
+	/*
     float aa=1.0;
     float bb=0.5;
     float cc;
@@ -37,7 +38,7 @@ int main(void){
     WRITE(I2S_BASE_ADDR,a);
     READ(I2C_BASE_ADDR,b);
     READ(I2S_BASE_ADDR,c);
-	
+	*/
     register_init();
 	GIC_config();
 	
@@ -158,14 +159,14 @@ void IRQ0_Handler(){
 	//LVEC(2,LVEC_DST_MSK_3|LVEC_DST_MSK_4|LVEC_DST_MSK_6);
 	LVEC(x"02",x"58");
 	word squared_norm_w;
-	squared_norm_w.i = read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);
+	READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_w.i);
 	float step=min(0.5/squared_norm_w.f,1e4f);//f for float
 	word step_w;
-	step_w.f = 2.0f*step;
+	FMUL(2.0f,step,step_w.f);//step_w.f = 2.0f*step;
 	WRITE(CACHE_BASE_ADDR+0,step_w.i);
 	
 	word desired_w;
-	desired_w.i=read_w(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET);
+	READ(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET,desired_w.i);
 	WRITE(CACHE_BASE_ADDR+1,desired_w.i);//saves desired response to position 1 of mini_ram
 	
 	IRET();
@@ -180,19 +181,19 @@ void IRQ1_Handler(){
 // handler of IRQ0 (filter_CLK falling_edge)
 void IRQ3_Handler(){
 	word filter_out_w;
-	filter_out_w.i=read_w(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET);
+	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
 	word desired_w;
-	desired_w.i=read_w(CACHE_BASE_ADDR+1);
+	READ(CACHE_BASE_ADDR+1,desired_w.i);
 	
 	word error_w;
-	error_w.f=desired_w.f-filter_out_w.f;
+	FSUB(desired_w.f,filter_out_w.f,error_w.f);//error_w.f=desired_w.f-filter_out_w.f;
 	
 	word double_step_w;//2*step
-	double_step_w.i=read_w(CACHE_BASE_ADDR+0);
+	READ(CACHE_BASE_ADDR+0,double_step_w.i);
 	
 	word lambda_w;
-	lambda_w.f=double_step_w.f*error_w.f;//2*step*error
+	FMUL(double_step_w.f,error_w.f,lambda_w.f);//lambda_w.f=double_step_w.f*error_w.f; (2*step*error)
 	WRITE(VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET,lambda_w.i);
 	
 	//Carrega VMAC:A(5) com as componentes do filtro atual(0)
@@ -209,11 +210,13 @@ void IRQ3_Handler(){
 	//I2S transmission (left fifo já foi selecionada antes do loop principal)
 	//escreve 2x no DR (upsampling fator 2, 22050 Hz -> 44100 Hz)
 	//habilita a transmissão
-	int converted_output=read_w(CONVERTED_OUTPUT_BASE_ADDR+CONVERTED_OUTPUT_OFFSET);
+	int converted_output;
+	READ(CONVERTED_OUTPUT_BASE_ADDR+CONVERTED_OUTPUT_OFFSET,converted_output);
 	WRITE(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
 	WRITE(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
 	
-	int i2s_cfg=read_w(I2S_BASE_ADDR+I2S_CR_OFFSET);
+	int i2s_cfg;
+	READ(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
 	i2s_cfg |= I2S_EN;
 	WRITE(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
 	
