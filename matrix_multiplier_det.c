@@ -153,6 +153,7 @@ void codec_init(){
 
 // handler of IRQ0 (filter_CLK rising_edge)
 void IRQ0_Handler(){
+    __asm(".remove_prologue\n\t");
 	//cálculo do step
 	
 	//carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
@@ -170,16 +171,20 @@ void IRQ0_Handler(){
 	WRITE(CACHE_BASE_ADDR+1,desired_w.i);//saves desired response to position 1 of mini_ram
 	
 	IRET();
+    __asm(".remove_epilogue\n\t");
 }
 
 // handler of IRQ1 (I2C)
 void IRQ1_Handler(){
+    __asm(".remove_prologue\n\t");
 	WRITE(I2C_BASE_ADDR+I2C_IRQ_CTRL_OFFSET+IRQ_CTRL_IRQ_PEND_OFFSET,0);
 	IRET();
+    __asm(".remove_epilogue\n\t");
 }
 
 // handler of IRQ0 (filter_CLK falling_edge)
 void IRQ3_Handler(){
+    __asm(".remove_prologue\n\t");
 	word filter_out_w;
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
@@ -221,6 +226,7 @@ void IRQ3_Handler(){
 	WRITE(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
 	
 	IRET();
+    __asm(".remove_epilogue\n\t");
 }
 
 float min(float x, float y){
