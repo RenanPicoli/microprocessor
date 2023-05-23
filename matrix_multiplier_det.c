@@ -161,7 +161,10 @@ void IRQ0_Handler(){
 	LVEC(x"02",x"58");
 	word squared_norm_w;
 	READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_w.i);
-	float step=min(0.5/squared_norm_w.f,1e4f);//f for float
+	word half_inv_sqr_norm_w;
+	FDIV(0.5f,squared_norm_w.f,half_inv_sqr_norm_w.f);
+	float step=min(half_inv_sqr_norm_w.f,1e4f);//f for float
+	//float step=min(0.5/squared_norm_w.f,1e4f);//f for float
 	word step_w;
 	FMUL(2.0f,step,step_w.f);//step_w.f = 2.0f*step;
 	WRITE(CACHE_BASE_ADDR+0,step_w.i);
