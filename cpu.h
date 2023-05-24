@@ -31,10 +31,10 @@ typedef union {
 #define str(s) #s
 //#define hex_str(n,length))
 
-#define FADD(x,y,z) __asm("\tfadd %0 %1 %2;\n\t":"=r"(z):"r"(x),"r"(y));
-#define FSUB(x,y,z) __asm("\tfsub %0 %1 %2;\n\t":"=r"(z):"r"(x),"r"(y));
-#define FMUL(x,y,z) __asm("\tfmul %0 %1 %2;\n\t":"=r"(z):"r"(x),"r"(y));
-#define FDIV(x,y,z) __asm("\tfdiv %0 %1 %2;\n\t":"=r"(z):"r"(x),"r"(y));
+#define FADD(x,y,z) __asm("\tNO_APP\n\tfadd %0,%1,%2;\n\tAPP\n\t":"=r"(z):"r"(x),"r"(y));
+#define FSUB(x,y,z) __asm("\tNO_APP\n\tfsub %0,%1,%2;\n\tAPP\n\t":"=r"(z):"r"(x),"r"(y));
+#define FMUL(x,y,z) __asm("\tNO_APP\n\tfmul %0,%1,%2;\n\tAPP\n\t":"=r"(z):"r"(x),"r"(y));
+#define FDIV(x,y,z) __asm("\tNO_APP\n\tfdiv %0,%1,%2;\n\tAPP\n\t":"=r"(z):"r"(x),"r"(y));
 #define LVEC_M(x,y) __asm("\tlvec x\"%0\" x\"%1\";\n\t" : : "i" (x),"i" (y));
 #define READ(addr,dst) __asm("\tlw [r0 + %1] %0;\n\t" : "=r" (dst) : "i" (addr));
 #define WRITE(addr,value) __asm("\tsw [r0 + %0] %1;\n\t" : : "i" (addr),"r" (value));
