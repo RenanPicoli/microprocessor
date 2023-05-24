@@ -63,12 +63,14 @@ def main(argv):
     if(len(line)==0):
       continue
 
-    if(line=="#APP"):
+    if(line=="#APP" or line=="APP"):
       translation_enable = False
       print("translation DISABLED")
-    elif(line=="#NO_APP"):
+      continue
+    elif(line=="#NO_APP" or line=="NO_APP"):
       translation_enable = True
       print("translation ENABLED")
+      continue
       
     if(translation_enable == False):
       # discards comments
@@ -327,7 +329,7 @@ def main(argv):
             new_instr = frmt_str.format(arg[1], arg[2], arg[3])
     
         # R-type and similars: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
-        elif (opcode=="add" or opcode=="addu" or opcode=="and" or opcode=="xor" or opcode=="sub" or opcode=="subu" or opcode=="or" or opcode=="nor"):
+        elif (opcode=="add" or opcode=="addu" or opcode=="and" or opcode=="xor" or opcode=="sub" or opcode=="subu" or opcode=="or" or opcode=="nor" or opcode=="fadd" or opcode=="fsub" or opcode=="fmul" or opcode=="fdiv"):
           if(opcode=="addu"):
             frmt_str="\tadd {} {} {};"
             new_instr = frmt_str.format(arg[2],arg[3],arg[1])
