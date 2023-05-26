@@ -471,7 +471,7 @@ def main(argv):
           push_cnt=push_cnt+1
         else:
           break
-      of_lines[i] = of_lines[i]+"\taddsp  x\"{:04X}\";\n".format(push_cnt)
+      of_lines[i] = of_lines[i]+"\taddsp  x\"{:04X}\";\n".format(push_cnt+1) # +1 to account for the return value
     elif(of_lines[i].startswith("\tret")):
       of_lines[i] = "\tpush $2;\n"+of_lines[i]
       
