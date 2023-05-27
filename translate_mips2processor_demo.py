@@ -15,6 +15,7 @@ inv_dict={} # given a line number of a label, returns the function name
 new_instr_vector=[] # stores the lines to be written of (intermediary file)
 # this dictionary relates a line number with a function for new_instr_vector
 intermediary_inv_dict={}
+funct_returned_regs={} # for each function, stores the number of returned regs
 
 aliases={
 "$gp":"$28",
@@ -457,23 +458,39 @@ def main(argv):
   for line in of: # iterates over lines of intermediary file
     of_lines.append(line)
 
+  for f in funct_start:
+    funct_returned_regs[f]=0
+
   for i in range(len(of_lines)): # iterates over lines of intermediary file
     # adds instruction to load $2 with return value
     # in MIPS convention, the return value is placed at $2 (also use $3 for 64 bit value)
     # in my processor, there a special register RV, ldrv $2 loads $2 with the return value
     # there is no support for returning wider values
-    if(of_lines[i].startswith("\tcall")):
-      of_lines[i] = of_lines[i]+"\tldrv $2;\n"
-      #of_lines[i] = of_lines[i]+"\tpop $2;\n"
-      push_cnt=0
-      for j in reversed(range(i)):
-        if(of_lines[j].startswith("\tpush")):
-          push_cnt=push_cnt+1
-        else:
-          break
-      of_lines[i] = of_lines[i]+"\taddsp  x\"{:04X}\";\n".format(push_cnt+1) # +1 to account for the return value
-    elif(of_lines[i].startswith("\tret")):
+    if(of_lines[i].startswith("\tret")):
       of_lines[i] = "\tpush $2;\n"+of_lines[i]
+      for j in reversed(range(i)):
+        if(of_lines[j].startswith("\tcall")):
+          callee = of_lines[i].split("\tcall") # the function being called
+          callee = callee[0]
+          callee = callee[0:-1]
+          funct_returned_regs[callee]=funct_returned_regs[callee]+1
+          break
+      
+  for i in range(len(of_lines)): # iterates over lines of intermediary file
+    if(of_lines[i].startswith("\tcall")):
+      callee = of_lines[i].split("\tcall") # the function being called
+      callee = callee[0]
+      callee = callee[0:-1]
+      if(funct_returned_regs[callee]>0):
+        of_lines[i] = of_lines[i]+"\tldrv $2;\n"
+        #of_lines[i] = of_lines[i]+"\tpop $2;\n"
+        push_cnt=0
+        for j in reversed(range(i)):
+          if(of_lines[j].startswith("\tpush")):
+            push_cnt=push_cnt+1
+          else:
+            break
+        of_lines[i] = of_lines[i]+"\taddsp x\"{:04X}\";\n".format(push_cnt+funct_returned_regs[callee]) # accounts for the returned value(s)
       
   # split each element in of_lines and flatten the list
   result = [item.split('\n') for item in of_lines]
