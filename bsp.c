@@ -183,7 +183,7 @@ void I2C_Transmit(int addr,int data){
 
 //I2S support
 void I2S_Init(I2S_Init_typedef* i2s_init){
-    int cfg=i2s_init->lr_fifo_select|i2s_init->lr_fifo_select|i2s_init->num_frames;
+    int cfg=i2s_init->lr_fifo_select|i2s_init->data_size|i2s_init->num_frames;
     write_w(I2S_BASE_ADDR+I2S_CR_OFFSET,cfg);
     return;
 }
