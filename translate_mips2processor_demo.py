@@ -486,6 +486,7 @@ def main(argv):
       push_cnt=0
       push_cnt_enable=True
       for j in reversed(range(i)):
+        #of_lines[i]=of_lines[i]+of_lines[j]
         if(of_lines[j].strip().endswith(":")):
           function = of_lines[j]
           function = function.strip()
@@ -496,8 +497,8 @@ def main(argv):
             break
         elif of_lines[j].strip().startswith("push") and push_cnt_enable:
           push_cnt=push_cnt+1
-        elif "addsp" in of_lines[j]:
-          of_lines[i] = of_lines[i]+"found addsp!\n"
+        elif "call" in of_lines[j] and push_cnt_enable:
+          of_lines[i] = of_lines[i]+"found call!\n"
           push_cnt_enable=False
       
   for i in range(len(of_lines)): # iterates over lines of intermediary file
