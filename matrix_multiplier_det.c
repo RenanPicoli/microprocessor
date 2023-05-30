@@ -54,7 +54,7 @@ int main(void){
 	do{
 		i2s_status=read_w(I2S_BASE_ADDR+I2S_SR_OFFSET);
 	
-	}while(i2s_status & 0x80 == 0);
+	}while((i2s_status & 0x80) == 0);
 	
 	codec_init();
 	
