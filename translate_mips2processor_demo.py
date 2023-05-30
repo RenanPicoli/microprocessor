@@ -235,7 +235,7 @@ def main(argv):
             frmt_str = "\taddi {} {} x\"0000\";"
             new_instr= frmt_str.format(arg[2],arg[1])
     
-        elif(opcode=="addi" or opcode=="addiu" or opcode=="slti" or opcode=="sltiu" or opcode=="slt" or  opcode=="sltu" or  opcode=="ori"):
+        elif(opcode=="addi" or opcode=="addiu" or opcode=="slti" or opcode=="sltiu" or opcode=="slt" or opcode=="sltu" or opcode=="ori" or opcode=="andi" or opcode=="xori"):
           hi_lo_used=False
           #checks if immediate is already in hex
           if(arg[3].startswith("0x")):
