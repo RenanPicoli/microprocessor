@@ -486,18 +486,19 @@ def main(argv):
       push_cnt=0
       push_cnt_enable=True
       for j in reversed(range(i)):
+        #of_lines[i]=of_lines[i]+of_lines[j]
         if(of_lines[j].strip().endswith(":")):
           function = of_lines[j]
           function = function.strip()
           function = function[0:-1]
           if function in funct_start:
             funct_returned_regs[function]=push_cnt
-            of_lines[i] = of_lines[i]+"function={}\nfunct_returned_regs[function]={}\n".format(function,funct_returned_regs[function])
+            #of_lines[i] = of_lines[i]+"function={}\nfunct_returned_regs[function]={}\n".format(function,funct_returned_regs[function])
             break
         elif of_lines[j].strip().startswith("push") and push_cnt_enable:
           push_cnt=push_cnt+1
-        elif "addsp" in of_lines[j]:
-          of_lines[i] = of_lines[i]+"found addsp!\n"
+        elif "call" in of_lines[j] and push_cnt_enable:
+          #of_lines[i] = of_lines[i]+"found call!\n"
           push_cnt_enable=False
       
   for i in range(len(of_lines)): # iterates over lines of intermediary file
@@ -515,7 +516,8 @@ def main(argv):
           push_cnt=push_cnt+1
         else:
           break
-      of_lines[i] = of_lines[i]+"\taddsp x\"{:04X}\";\n{}\n".format(push_cnt+funct_returned_regs[callee],funct_returned_regs[callee]) # accounts for the returned value(s)
+      of_lines[i] = of_lines[i]+"\taddsp x\"{:04X}\";\n".format(push_cnt+funct_returned_regs[callee])# accounts for the returned value(s)
+      #of_lines[i] = of_lines[i]+"\taddsp x\"{:04X}\";\n{}\n".format(push_cnt+funct_returned_regs[callee],funct_returned_regs[callee]) # accounts for the returned value(s)
       
   # split each element in of_lines and flatten the list
   result = [item.split('\n') for item in of_lines]
