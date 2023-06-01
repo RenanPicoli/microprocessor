@@ -310,11 +310,20 @@ begin
 	--SP (stack pointer, inside program stack)
 	--RV (return value)
 	--LR (link register)
-	FP: d_flip_flop port map (	CLK => CLK,
-										RST => rst,
-										ENA => fp_en,
-										D => fp_in,
-										Q => fp_out);
+	--FP must receive 0xffffffff on reset (top of stack)
+   FP: process(CLK,rst,fp_en,fp_in)
+   begin
+		if (rst='1') then
+			fp_out <= (others=>'1');
+		elsif (rising_edge(CLK) and fp_en = '1') then
+			fp_out <= fp_in;
+		end if;
+   end process;
+--	FP: d_flip_flop port map (	CLK => CLK,
+--										RST => rst,
+--										ENA => fp_en,
+--										D => fp_in,
+--										Q => fp_out);
 	fp_en <= call or irq or ret or iret;
 	fp_in <= sp when (call='1' or irq='1') else fp_stack_out;--this SP value was converted to byte address
 										
