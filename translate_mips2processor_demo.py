@@ -182,7 +182,7 @@ def main(argv):
                 frmt_str = "\t{} [$30+{}] {};"
                 #instructions that uses FP to get vars from stack or write to it must be translated
                 if(get_curr_funct(line_cnt) in leaf_functions):
-                    new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+0)/4)
+                  new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+0)/4)
                 else:
                   #f=get_curr_funct(line_cnt)
                   #fs=funct_frame_size[f]
@@ -248,7 +248,14 @@ def main(argv):
               continue
             else:
               if not hi_lo_used:
-                new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+                # adding to $fp is pointer arithmetic
+                # offsets are generated with +4 increments
+                # but in my cpu these increments are +1
+                if arg[2]=="$fp":
+                  new_offset=int((-funct_frame_size[get_curr_funct(line_cnt)]+int(arg[3])+0)/4)
+                  new_instr = frmt_str.format(arg[2],arg[1],new_offset if new_offset>=0 else 2**16+new_offset)
+                else:
+                  new_instr = frmt_str.format(arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
               else:
                 frmt_str="\taddi {} {} {};"
                 new_instr = frmt_str.format(arg[2],arg[1],arg[3])
