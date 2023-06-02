@@ -159,6 +159,7 @@ void IRQ0_Handler(){
 	//carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
 	//LVEC(2,LVEC_DST_MSK_3|LVEC_DST_MSK_4|LVEC_DST_MSK_6);
 	LVEC(x"02",x"58");
+	WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
 	word squared_norm_w;
 	READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_w.i);
 	word half_inv_sqr_norm_w;
