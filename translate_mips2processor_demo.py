@@ -211,7 +211,11 @@ def main(argv):
             new_instr = frmt_str.format(arg[1])
           
           else:
-            new_instr = frmt_str.format(opcode,arg[2],arg[3],arg[1])
+            if (int(arg[3]) >= 0):
+              new_instr = frmt_str.format(opcode,arg[2],int(arg[3])//4,arg[1])
+            else:
+              frmt_str = "\t{} [{}-{}] {};"
+              new_instr = frmt_str.format(opcode,arg[2],-int(arg[3])//4,arg[1])                
     
         elif(opcode=="move"):
     
