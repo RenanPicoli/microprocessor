@@ -20,6 +20,8 @@ void IRQ1_Handler();
 void IRQ3_Handler();
 
 float min(float x, float y);
+//determinant of a matrix 2x2
+float det_2x2(float A[2][2]);
 
 //main loop
 int main(void){
@@ -58,8 +60,38 @@ int main(void){
 	
 	codec_init();
 	
+	//computes a matrix product,
+	//then computes its determinant
+	word A[2][2]=	{{1.0f, 0.0f},
+					 {3.0f, 5.0f}};
+	word B[2][2]=	{{1.0f, 1.0f},
+					 {1.0f, 3.0f}};
+	word C[2][2];//will store the product AB
+	
+	for(int i=0;i<2;i++){//iterates through lines of A
+		for(int j=0;j<2;j++){//iterates through columns of B
+			//copies one line of A and one column of B to inner_product
+			for(int k=0;k<2;k++){
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k,A[i][k].i);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k,B[k][j].i);
+			}
+			//fills with zeroes the unused positions
+			for(int k=2;k<8;k++){
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k,0);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k,0);
+			}
+			//enables the inner_product calculation
+			WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
+			//stores the result in memory (which region??? stack?)
+			READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,C[i][j].i);
+		}
+	}
+	word det_w;
+	det_w.f=det_2x2(C);
+	
 	//intentionally ommited the instruction memory write
-	//and 7-seg write
+	//writes determinant to 7-seg
+	print_7segs(det_w.i);
 	
 	filter_control(1);//enables filter	
 	
@@ -242,6 +274,11 @@ float min(float x, float y){
 	}else{//(x-y)>=0
 		return y;
 	}
+}
+
+//determinant of a matrix 2x2
+float det_2x2(float A[2][2]){
+	return ((A[0][0]*A[1][1])-(A[0][1]*A[1][0]));
 }
 
 #include "bsp.c"
