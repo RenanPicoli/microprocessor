@@ -1324,6 +1324,9 @@ void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 				strcat(binary_string,dictionary[pos].binary_string);
 			}
 		}else{
+			//immediates are written as bytes
+			//WARNING: some bits of instruction are ignored (should be zeroed)
+
 			//test for hex constant
 			int sscanf_retval_hex = sscanf(s[i],"x\"%[0-9a-fA-F]\"",s[i]);
 			if(sscanf_retval_hex!=0){//is hex constant
@@ -1335,8 +1338,16 @@ void L_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 				if(sscanf_retval_bin!=0){//is bin constant
 					strcat(binary_string,s[i]);
 				}else{
-					printf("\nInvalid constant: %s\n",s[i]);
-					return;
+					//test for decimal constant
+					unsigned int tmp;
+					char *ptr_non_numeric=calloc(2,sizeof(char));
+					//decimal number
+					tmp=strtod(s[i],&ptr_non_numeric);
+					strcat(binary_string,uint2bin(tmp,8));
+					if(ptr_non_numeric[0]!='\0'){
+						printf("\nInvalid constant: %s\n",s[i]);
+						return;
+					}
 				}
 			}
 		}
