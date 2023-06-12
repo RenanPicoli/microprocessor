@@ -553,10 +553,10 @@ begin
 
 	wren_lvec <= lvec or lvecr;
 	lvec_src <= 	instruction(10 downto 8) when lvec='1' else
-					read_data_1 when lvecr='1' else
+					read_data_1(2 downto 0) when lvecr='1' else
 					(others=>'0');
 	lvec_dst_mask <= instruction(6 downto 0) when lvec='1' else
-					read_data_2 when lvecr='1' else
+					read_data_2(6 downto 0) when lvecr='1' else
 					(others=>'0');
 
 end proc;
