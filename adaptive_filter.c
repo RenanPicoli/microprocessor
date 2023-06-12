@@ -158,7 +158,7 @@ void IRQ0_Handler(){
 	
 	//carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
 	//LVEC(2,LVEC_DST_MSK_3|LVEC_DST_MSK_4|LVEC_DST_MSK_6);
-	LVEC(x"02",x"58");
+	LVEC(2,88);
 	WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
 	word squared_norm_w;
 	READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_w.i);
@@ -206,13 +206,13 @@ void IRQ3_Handler(){
 	WRITE(VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET,lambda_w.i);
 	
 	//Carrega VMAC:A(5) com as componentes do filtro atual(0)
-	LVEC(x"00",x"20");
+	LVEC(0,32);
 	VMAC();
 	//Lê o acumulador do VMAC(5) e atualiza os coeficientes do filtro(0)
-	LVEC(x"05",x"01");
+	LVEC(5,1);
 	//Lê memória de coeficientes do filtro(0) para o filtro(1)
 	//enables filter to update its components (when filter_CLK rises)
-	LVEC(x"00",x"02");
+	LVEC(0,2);
 	
 	//TODO: se filtro já convergiu, sair do loop
 
