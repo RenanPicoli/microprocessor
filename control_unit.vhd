@@ -34,8 +34,7 @@ entity control_unit is
 
 			vmac: out std_logic;--multiply-accumulate
 			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
-			lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
-			lvec_dst_mask: out std_logic_vector(6 downto 0);--mask for destination(s) address(es) for lvec
+			lvecr: out std_logic;--variant of lvec, takes arguments from registers
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
 			);
@@ -100,6 +99,7 @@ branch_type			<= '1' when opcode="000100" else '0';--instrucao de branch
 halt					<= '1' when opcode="000110" else '0';--halt
 --iack					<= '1' when opcode="001010" else '0';--iack (interrupt acknowledgement)
 lvec					<= '1' when opcode="000111" else '0';--instrucao lvec (load vector: loads vector of 8 std_logic_vector in parallel)
+lvecr					<= '1' when opcode="010010" else '0';--lvec taking arguments from rs/rt
 load_type 			<= '1' when opcode="100011" else '0';--instrucao de load (single value)
 store_type 			<= '1' when opcode="101011" else '0';--instrucao de store
 
@@ -204,7 +204,4 @@ fpuControl	<=	"00" when (R_type = '1' and funct = "000000") else--addition
 					"11" when (R_type = '1' and funct = "000011") else--division
 					"XX";
 					
-lvec_src <= instruction(10 downto 8) when lvec='1' else (others=>'0');
-lvec_dst_mask <= instruction(6 downto 0) when lvec='1' else (others=>'0');
-
 end control;
