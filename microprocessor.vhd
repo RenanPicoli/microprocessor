@@ -118,8 +118,7 @@ component control_unit
 			iret: out std_logic;
 			vmac: out std_logic;--multiply-accumulate
 			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
-			lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
-			lvec_dst_mask: out std_logic_vector(6 downto 0);--mask for destination(s) address(es) for lvec
+			lvecr: out std_logic;--variant of lvec, takes arguments from registers
 			aluSrc: out std_logic;
 			regWrite: out std_logic
 			);
@@ -200,6 +199,8 @@ signal aluControl: std_logic_vector (3 downto 0);--ALU operation selector
 signal fpuControl: std_logic_vector (1 downto 0);--FPU operation selector
 signal memWrite: std_logic;
 signal vmac: std_logic;--enables multiply-accumulate
+signal lvec: std_logic;
+signal lvecr: std_logic;
 signal aluSrc: std_logic;
 signal regWrite: std_logic;
 
@@ -545,11 +546,18 @@ begin
 												ret => ret,
 												iret => iret,
 												vmac => vmac,
-												lvec => wren_lvec,
-												lvec_src => lvec_src,
-												lvec_dst_mask => lvec_dst_mask,
+												lvec => lvec,
+												lvecr=> lvecr,
 												aluSrc => aluSrc,
 												regWrite => regWrite);
+
+	wren_lvec <= lvec or lvecr;
+	lvec_src <= 	instruction(10 downto 8) when lvec='1' else
+					read_data_1 when lvecr='1' else
+					(others=>'0');
+	lvec_dst_mask <= instruction(6 downto 0) when lvec='1' else
+					read_data_2 when lvecr='1' else
+					(others=>'0');
 
 end proc;
 
