@@ -36,7 +36,7 @@ typedef union {
 #define FMUL(x,y,z) __asm("\tNO_APP\n\tfmul %0,%1,%2\n\tAPP\n\t":"=r"(z):"r"(x),"r"(y));
 #define FDIV(x,y,z) __asm("\tNO_APP\n\tfdiv %0,%1,%2\n\tAPP\n\t":"=r"(z):"r"(x),"r"(y));
 #define LVEC_M(x,y) __asm("\tlvec x\"%0\" x\"%1\";\n\t" : : "i" (x),"i" (y));
-#define LVECR(x,y) __asm("\tlvecr x\"%0\" x\"%1\";\n\t" : : "r" (x),"r" (y));
+#define LVECR(x,y) __asm("\tlvecr %0 %1;\n\t" : : "r" (x),"r" (y));
 #define READ(addr,dst) __asm("\tlw [r0 + %1] %0;\n\t" : "=r" (dst) : "i" (addr));
 #define WRITE(addr,value) __asm("\tsw [r0 + %0] %1;\n\t" : : "i" (addr),"r" (value));
 
