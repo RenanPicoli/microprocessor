@@ -28,17 +28,24 @@ int main(void){
     float aa=1.0;
     float bb=0.5;
     float cc;
-    FADD(aa,bb,cc);
+    //FADD(aa,bb,cc);
     const int a=1<<6|1<<4|1<<3;
     int b=0;
     int c=1;
-    //LVEC_M(1,a);
-    LVEC_M(1,1<<6|1<<4|1<<3);
-    LVEC_M(I2C_BASE_ADDR,I2S_BASE_ADDR);
+    LVECR(1,1<<6|1<<4|1<<3);
+    LVECR(I2C_BASE_ADDR,I2S_BASE_ADDR);
+    LVECR(aa,bb);
+    LVECR(aa,0x80);	
+    LVECR(cc,cc);
+	LVECR(b,1);
+	LVECR(b,c);
+	LVECR(2,c);
+	LVECR(2,5);
     WRITE(I2S_BASE_ADDR,a);
     READ(I2C_BASE_ADDR,b);
     READ(I2S_BASE_ADDR,c);
 	*/
+
     register_init();
 	GIC_config();
 	
@@ -158,7 +165,7 @@ void IRQ0_Handler(){
 	
 	//carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
 	//LVEC(2,LVEC_DST_MSK_3|LVEC_DST_MSK_4|LVEC_DST_MSK_6);
-	LVEC(2,88);
+	LVECR(2,88);
 	WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
 	word squared_norm_w;
 	READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_w.i);
@@ -206,13 +213,13 @@ void IRQ3_Handler(){
 	WRITE(VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET,lambda_w.i);
 	
 	//Carrega VMAC:A(5) com as componentes do filtro atual(0)
-	LVEC(0,32);
+	LVECR(0,32);
 	VMAC();
 	//Lê o acumulador do VMAC(5) e atualiza os coeficientes do filtro(0)
-	LVEC(5,1);
+	LVECR(5,1);
 	//Lê memória de coeficientes do filtro(0) para o filtro(1)
 	//enables filter to update its components (when filter_CLK rises)
-	LVEC(0,2);
+	LVECR(0,2);
 	
 	//TODO: se filtro já convergiu, sair do loop
 
