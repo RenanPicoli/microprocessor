@@ -68,18 +68,21 @@ int main(void){
 	
 	//computes a matrix product,
 	//then computes its determinant
-	word A[2][2]=	{{1.0f, 0.0f},
+	float A[2][2]=	{{1.0f, 0.0f},
 					 {3.0f, 5.0f}};
-	word B[2][2]=	{{1.0f, 1.0f},
+	float B[2][2]=	{{1.0f, 1.0f},
 					 {1.0f, 3.0f}};
-	word C[2][2];//will store the product AB
+	float C[2][2];//will store the product AB
+	word** A_w = (word**) A;
+	word** B_w = (word**) B;
+	word** C_w = (word**) C;
 	
 	for(int i=0;i<2;i++){//iterates through lines of A
 		for(int j=0;j<2;j++){//iterates through columns of B
 			//copies one line of A and one column of B to inner_product
 			for(int k=0;k<2;k++){
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k,A[i][k].i);
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k,B[k][j].i);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k,A_w[i][k].i);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k,B_w[k][j].i);
 			}
 			//fills with zeroes the unused positions
 			for(int k=2;k<8;k++){
@@ -89,7 +92,7 @@ int main(void){
 			//enables the inner_product calculation
 			WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
 			//stores the result in memory (which region??? stack?)
-			READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,C[i][j].i);
+			READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,C_w[i][j].i);
 		}
 	}
 	word det_w;
