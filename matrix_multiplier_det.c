@@ -48,25 +48,8 @@ int main(void){
     READ(I2S_BASE_ADDR,c);
 	*/
     register_init();
-	GIC_config();
-	
-	filter_control(0);//disables filter
-	
-	I2S_Init_typedef i2s;
-	i2s.num_frames = I2S_NUM_FRAMES_2;
-    i2s.data_size = I2S_DATA_SIZE_16BIT;
-    i2s.lr_fifo_select = I2S_FIFO_SEL_LEFT;
-	
-	I2S_Init(&i2s);
-	int i2s_status;
-	do{
-		i2s_status=read_w(I2S_BASE_ADDR+I2S_SR_OFFSET);
-	
-	}while((i2s_status & 0x80) == 0);
-	
-	codec_init();
-	
-	//computes a matrix product,
+    
+    //computes a matrix product,
 	//then computes its determinant
 	float A[2][2]=	{{1.0f, 0.0f},
 					 {3.0f, 5.0f}};
@@ -101,6 +84,24 @@ int main(void){
 	//intentionally ommited the instruction memory write
 	//writes determinant to 7-seg
 	print_7segs(det_w.i);
+	
+	GIC_config();
+	
+	filter_control(0);//disables filter
+	
+	I2S_Init_typedef i2s;
+	i2s.num_frames = I2S_NUM_FRAMES_2;
+    i2s.data_size = I2S_DATA_SIZE_16BIT;
+    i2s.lr_fifo_select = I2S_FIFO_SEL_LEFT;
+	
+	I2S_Init(&i2s);
+	int i2s_status;
+	do{
+		i2s_status=read_w(I2S_BASE_ADDR+I2S_SR_OFFSET);
+	
+	}while((i2s_status & 0x80) == 0);
+	
+	codec_init();
 	
 	filter_control(1);//enables filter	
 	
