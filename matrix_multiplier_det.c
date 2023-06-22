@@ -56,9 +56,9 @@ int main(void){
 	float B[2][2]=	{{1.0f, 1.0f},
 					 {1.0f, 3.0f}};
 	float C[2][2];//will store the product AB
-	word** A_w = (word**) A;
-	word** B_w = (word**) B;
-	word** C_w = (word**) C;
+	word (*A_w)[2] = A;
+	word (*B_w)[2] = B;
+	word (*C_w)[2] = C;
 	
 	for(int i=0;i<2;i++){//iterates through lines of A
 		for(int j=0;j<2;j++){//iterates through columns of B
