@@ -312,11 +312,11 @@ begin
 	--SP (stack pointer, inside program stack)
 	--RV (return value)
 	--LR (link register)
-	--FP must receive 0xffffffff on reset (top of stack)
+	--FP must receive 0xfffffffc on reset (top of stack)
    FP: process(CLK,rst,fp_en,fp_in)
    begin
 		if (rst='1') then
-			fp_out <= (others=>'1');
+			fp_out <= x"FFFF_FFFC";
 		elsif (rising_edge(CLK) and fp_en = '1') then
 			fp_out <= fp_in;
 		end if;
