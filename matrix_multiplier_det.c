@@ -64,13 +64,13 @@ int main(void){
 		for(int j=0;j<2;j++){//iterates through columns of B
 			//copies one line of A and one column of B to inner_product
 			for(int k=0;k<2;k++){
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k,A_w[i][k].i);
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k,B_w[k][j].i);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k*(sizeof(int)),A_w[i][k].i);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k*(sizeof(int)),B_w[k][j].i);
 			}
 			//fills with zeroes the unused positions
 			for(int k=2;k<8;k++){
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k,0);
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k,0);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k*(sizeof(int)),0);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k*(sizeof(int)),0);
 			}
 			//enables the inner_product calculation
 			WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
@@ -154,11 +154,11 @@ void GIC_config(){
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+0,(int) &IRQ0_Handler);//loads the position 0 of vector with address of IRQ0_Handler
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+0,0);//put IRQ0_Handler in priority 0
 	
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+3,(int) &IRQ3_Handler);//loads the position 3 of vector with address of IRQ3_Handler
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+1,3);//put IRQ3_Handler in priority 1
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+12,(int) &IRQ3_Handler);//loads the position 3 of vector with address of IRQ3_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+4,3);//put IRQ3_Handler in priority 1
 	
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+1,(int) &IRQ1_Handler);//loads the position 1 of vector with address of IRQ1_Handler
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+2,1);//put IRQ1_Handler in priority 2
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+4,(int) &IRQ1_Handler);//loads the position 1 of vector with address of IRQ1_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+8,1);//put IRQ1_Handler in priority 2
 	
 	return;
 }
@@ -214,7 +214,7 @@ void IRQ0_Handler(){
 	
 	word desired_w;
 	READ(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET,desired_w.i);
-	WRITE(CACHE_BASE_ADDR+1,desired_w.i);//saves desired response to position 1 of mini_ram
+	WRITE(CACHE_BASE_ADDR+4,desired_w.i);//saves desired response to position 1 of mini_ram
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
@@ -235,7 +235,7 @@ void IRQ3_Handler(){
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
 	word desired_w;
-	READ(CACHE_BASE_ADDR+1,desired_w.i);
+	READ(CACHE_BASE_ADDR+4,desired_w.i);
 	
 	word error_w;
 	FSUB(desired_w.f,filter_out_w.f,error_w.f);//error_w.f=desired_w.f-filter_out_w.f;
