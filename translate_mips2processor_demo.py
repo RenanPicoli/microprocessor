@@ -249,7 +249,12 @@ def main(argv):
           if(opcode=="addi" or opcode=="addiu"):
             frmt_str="\taddi {} {} x\"{:04X}\";"
             if(arg[1]=="$sp"):
-              continue
+              if(arg[2]=="$sp"):
+                frmt_str="\taddsp x\"{:04X}\";"
+                new_instr = frmt_str.format(int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+              else:
+                print("Instruction not (yet) supported: {}\n".format(line))
+                sys.exit(-1)
             else:
               if not hi_lo_used:
                 # adding to $fp is pointer arithmetic
