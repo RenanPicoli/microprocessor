@@ -25,7 +25,7 @@ aliases={
 }
 
 #TODO: remove this improvised solution
-INSTRUCTION_MEMORY_BASE_ADDR=0x400
+INSTRUCTION_MEMORY_BASE_ADDR=0x1000 # byte address
 
 def main(argv):
   if(len(argv)!=2):
@@ -249,7 +249,12 @@ def main(argv):
           if(opcode=="addi" or opcode=="addiu"):
             frmt_str="\taddi {} {} x\"{:04X}\";"
             if(arg[1]=="$sp"):
-              continue
+              if(arg[2]=="$sp"):
+                frmt_str="\taddsp x\"{:04X}\";"
+                new_instr = frmt_str.format(int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
+              else:
+                print("Instruction not (yet) supported: {}\n".format(line))
+                sys.exit(-1)
             else:
               if not hi_lo_used:
                 # adding to $fp is pointer arithmetic
@@ -527,7 +532,7 @@ def main(argv):
           push_cnt=push_cnt+1
         else:
           break
-      of_lines[i] = of_lines[i]+"\taddsp x\"{:04X}\";\n".format(push_cnt+funct_returned_regs[callee])# accounts for the returned value(s)
+      of_lines[i] = of_lines[i]+"\taddsp x\"{:04X}\";\n".format(4*(push_cnt+funct_returned_regs[callee]))# accounts for the returned value(s)
       #of_lines[i] = of_lines[i]+"\taddsp x\"{:04X}\";\n{}\n".format(push_cnt+funct_returned_regs[callee],funct_returned_regs[callee]) # accounts for the returned value(s)
       
   # split each element in of_lines and flatten the list
@@ -560,8 +565,8 @@ def main(argv):
             offset=offset+1
             break
 		#TODO: remove this improvised solution
-        of_lines[i] = re.sub(r'%lo\(\$[a-zA-Z0-9_]+\)', str((offset+INSTRUCTION_MEMORY_BASE_ADDR)%(2**16)), of_lines[i])
-        of_lines[i] = re.sub(r'%hi\(\$[a-zA-Z0-9_]+\)', str((offset+INSTRUCTION_MEMORY_BASE_ADDR)//(2**16)), of_lines[i])
+        of_lines[i] = re.sub(r'%lo\(\$[a-zA-Z0-9_]+\)', str((4*offset+INSTRUCTION_MEMORY_BASE_ADDR)%(2**16)), of_lines[i])
+        of_lines[i] = re.sub(r'%hi\(\$[a-zA-Z0-9_]+\)', str((4*offset+INSTRUCTION_MEMORY_BASE_ADDR)//(2**16)), of_lines[i])
 
   for label in l: # iterates over labels_dict keys
     #print(label)

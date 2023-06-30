@@ -56,21 +56,21 @@ int main(void){
 	float B[2][2]=	{{1.0f, 1.0f},
 					 {1.0f, 3.0f}};
 	float C[2][2];//will store the product AB
-	word** A_w = (word**) A;
-	word** B_w = (word**) B;
-	word** C_w = (word**) C;
+	word (*A_w)[2] = (word (*)[2]) A;
+	word (*B_w)[2] = (word (*)[2]) B;
+	word (*C_w)[2] = (word (*)[2]) C;
 	
-	for(int i=0;i<2;i++){//iterates through lines of A
-		for(int j=0;j<2;j++){//iterates through columns of B
+	for(register int i=0;i<2;i++){//iterates through lines of A
+		for(register int j=0;j<2;j++){//iterates through columns of B
 			//copies one line of A and one column of B to inner_product
-			for(int k=0;k<2;k++){
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k,A_w[i][k].i);
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k,B_w[k][j].i);
+			for(register int k=0;k<2;k++){
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k*(sizeof(int)),A_w[i][k].i);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k*(sizeof(int)),B_w[k][j].i);
 			}
 			//fills with zeroes the unused positions
-			for(int k=2;k<8;k++){
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k,0);
-				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k,0);
+			for(register int k=2;k<8;k++){
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET+k*(sizeof(int)),0);
+				write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET+k*(sizeof(int)),0);
 			}
 			//enables the inner_product calculation
 			WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
@@ -86,7 +86,6 @@ int main(void){
 	print_7segs(det_w.i);
 	
 	GIC_config();
-	
 	filter_control(0);//disables filter
 	
 	I2S_Init_typedef i2s;
@@ -104,7 +103,7 @@ int main(void){
 	codec_init();
 	
 	filter_control(1);//enables filter	
-	
+
     while(1){
         HALT();
     }
@@ -154,16 +153,16 @@ void GIC_config(){
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+0,(int) &IRQ0_Handler);//loads the position 0 of vector with address of IRQ0_Handler
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+0,0);//put IRQ0_Handler in priority 0
 	
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+3,(int) &IRQ3_Handler);//loads the position 3 of vector with address of IRQ3_Handler
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+1,3);//put IRQ3_Handler in priority 1
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+12,(int) &IRQ3_Handler);//loads the position 3 of vector with address of IRQ3_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+4,3);//put IRQ3_Handler in priority 1
 	
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+1,(int) &IRQ1_Handler);//loads the position 1 of vector with address of IRQ1_Handler
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+2,1);//put IRQ1_Handler in priority 2
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+4,(int) &IRQ1_Handler);//loads the position 1 of vector with address of IRQ1_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+8,1);//put IRQ1_Handler in priority 2
 	
 	return;
 }
 
-//condifgures the audio codec
+//configures the audio codec
 void codec_init(){
 	I2C_Init_typedef i2c;
 	i2c.num_words = I2C_WORDS_2;
@@ -202,19 +201,19 @@ void IRQ0_Handler(){
 	//LVEC(2,LVEC_DST_MSK_3|LVEC_DST_MSK_4|LVEC_DST_MSK_6);
 	LVEC(x"02",x"58");
 	WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
-	word squared_norm_w;
+	register word squared_norm_w;
 	READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_w.i);
-	word half_inv_sqr_norm_w;
+	register word half_inv_sqr_norm_w;
 	FDIV(0.5f,squared_norm_w.f,half_inv_sqr_norm_w.f);
 	float step=min(half_inv_sqr_norm_w.f,1e4f);//f for float
 	//float step=min(0.5/squared_norm_w.f,1e4f);//f for float
-	word step_w;
+	register word step_w;
 	FMUL(2.0f,step,step_w.f);//step_w.f = 2.0f*step;
 	WRITE(CACHE_BASE_ADDR+0,step_w.i);
 	
-	word desired_w;
+	register word desired_w;
 	READ(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET,desired_w.i);
-	WRITE(CACHE_BASE_ADDR+1,desired_w.i);//saves desired response to position 1 of mini_ram
+	WRITE(CACHE_BASE_ADDR+4,desired_w.i);//saves desired response to position 1 of mini_ram
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
@@ -228,22 +227,22 @@ void IRQ1_Handler(){
     __asm(".remove_epilogue\n\t");
 }
 
-// handler of IRQ0 (filter_CLK falling_edge)
+// handler of IRQ3 (filter_CLK falling_edge)
 void IRQ3_Handler(){
     __asm(".remove_prologue\n\t");
-	word filter_out_w;
+	register word filter_out_w;
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
-	word desired_w;
-	READ(CACHE_BASE_ADDR+1,desired_w.i);
+	register word desired_w;
+	READ(CACHE_BASE_ADDR+4,desired_w.i);
 	
-	word error_w;
+	register word error_w;
 	FSUB(desired_w.f,filter_out_w.f,error_w.f);//error_w.f=desired_w.f-filter_out_w.f;
 	
-	word double_step_w;//2*step
+	register word double_step_w;//2*step
 	READ(CACHE_BASE_ADDR+0,double_step_w.i);
 	
-	word lambda_w;
+	register word lambda_w;
 	FMUL(double_step_w.f,error_w.f,lambda_w.f);//lambda_w.f=double_step_w.f*error_w.f; (2*step*error)
 	WRITE(VMAC_BASE_ADDR+VMAC_LAMBDA_OFFSET,lambda_w.i);
 	
@@ -261,12 +260,12 @@ void IRQ3_Handler(){
 	//I2S transmission (left fifo já foi selecionada antes do loop principal)
 	//escreve 2x no DR (upsampling fator 2, 22050 Hz -> 44100 Hz)
 	//habilita a transmissão
-	int converted_output;
+	register int converted_output;
 	READ(CONVERTED_OUTPUT_BASE_ADDR+CONVERTED_OUTPUT_OFFSET,converted_output);
 	WRITE(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
 	WRITE(I2S_BASE_ADDR+I2S_DR_OFFSET,converted_output);
 	
-	int i2s_cfg;
+	register int i2s_cfg;
 	READ(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
 	i2s_cfg |= I2S_EN;
 	WRITE(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);

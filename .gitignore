@@ -8,6 +8,7 @@
 *.sof
 executable*.bin*
 *.bin
+*.log
 db/
 incremental_db/
 simulation/

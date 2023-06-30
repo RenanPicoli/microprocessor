@@ -5,7 +5,7 @@ void print_7segs(int n){
 	ldfp r2;\n\t\
 	lw [r2+0] r1;\n\t\
 	xor r3 r3 r3;\n\t\
-	addi r3 r3 x\"0074\";\n\t\
+	addi r3 r3 x\"01D0\";\n\t\
 	sw [r3+0] r1;\n\t\
 	ret;\n\t\
 	.remove_epilogue\n\t");
@@ -17,7 +17,7 @@ void print_7segs(int n){
 void write_w(int addr,int n){
 	__asm(".remove_prologue\n\t\
 	ldfp r2;\n\t\
-	lw [r2+1] r1;\n\t\
+	lw [r2+4] r1;\n\t\
 	lw [r2+0] r4;\n\t\
 	sw [r4+0] r1;\n\t\
 	ret;\n\t\
@@ -45,8 +45,8 @@ void write_multiple(int src_addr,int dst_addr,int l){
 	__asm(".remove_prologue\n\t\
 	ldfp r30;\n\t\
 	lw [r30+0] r4;\n\t\
-	lw [r30+1] r5;\n\t\
-	lw [r30+2] r6;\n\t\
+	lw [r30+4] r5;\n\t\
+	lw [r30+8] r6;\n\t\
 	xor r1 r1 r1;\n\t\
 	LOOP:\n\t\
 	add r4 r1 r2;\n\t\
@@ -81,7 +81,7 @@ void write_vector(int src_addr,int dst_addr){
 	__asm(".remove_prologue\n\t\
 	ldfp r30;\n\t\
 	lw [r30+0] r4;\n\t\
-	lw [r30+1] r5;\n\t\
+	lw [r30+4] r5;\n\t\
 	xor r6 r6 r6;\n\t\
 	addi r6 r6 x\"0008\";\n\t\
 	xor r1 r1 r1;\n\t\
@@ -116,6 +116,7 @@ LOOP:
 int dot_product(int A_ptr,int B_ptr,int l){//TODO: validate l (l<8)
 	write_multiple(A_ptr,INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_A_OFFSET,l);
 	write_multiple(B_ptr,INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_B_OFFSET,l);
+	write_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
 	int result=read_w(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET);//I don't need cast to float, and it would move to $f0-$f31 (MIPS)
 	return result;
 }

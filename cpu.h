@@ -51,7 +51,6 @@ typedef union {
 //function prototypes
 int one_hot(int n);
 void lvec_f(char src,char dst);
-inline void vmac_f();
 
 //floating point support
 //these functions in MIPS gcc are emulators of FPU operations

@@ -17,7 +17,7 @@ float __addsf3(float x,float y){
 	__asm(".remove_prologue\n\t\
 	ldfp r2;\n\t\
 	lw [r2+0] r3;\n\t\
-	lw [r2+1] r4;\n\t\
+	lw [r2+4] r4;\n\t\
 	fadd r3 r4 r1;\n\t\
 	push r1;\n\t\
 	ret;\n\t\
@@ -28,7 +28,7 @@ float __subsf3(float x,float y){
 	__asm(".remove_prologue\n\t\
 	ldfp r2;\n\t\
 	lw [r2+0] r3;\n\t\
-	lw [r2+1] r4;\n\t\
+	lw [r2+4] r4;\n\t\
 	fsub r3 r4 r1;\n\t\
 	push r1;\n\t\
 	ret;\n\t\
@@ -39,7 +39,7 @@ float __mulsf3(float x,float y){
 	__asm(".remove_prologue\n\t\
 	ldfp r2;\n\t\
 	lw [r2+0] r3;\n\t\
-	lw [r2+1] r4;\n\t\
+	lw [r2+4] r4;\n\t\
 	fmul r3 r4 r1;\n\t\
 	push r1;\n\t\
 	ret;\n\t\
@@ -50,7 +50,7 @@ float __divsf3(float x,float y){
 	__asm(".remove_prologue\n\t\
 	ldfp r2;\n\t\
 	lw [r2+0] r3;\n\t\
-	lw [r2+1] r4;\n\t\
+	lw [r2+4] r4;\n\t\
 	fdiv r3 r4 r1;\n\t\
 	push r1;\n\t\
 	ret;\n\t\
