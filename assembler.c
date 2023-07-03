@@ -25,9 +25,9 @@
 // include bool type
 #include <stdbool.h>
 
-//number of instructions to store
-//256 = 0x100
-#define N_INSTR 256
+//number of bytes to encode one instruction
+#define BYTES_PER_INSTR_LOG2 2
+#define BYTES_PER_INSTR (0x1 << BYTES_PER_INSTR_LOG2)
 
 //maximum length of line in text files
 #define MAX_STR_LENGTH 200
@@ -983,12 +983,20 @@ void B_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 		                    printf("Erro ao alocar a memória para o ponteiro tmp_str ou instruction_str ou data_str ou comment_str\n");
 		                    return;
 					    }
-					    strncpy(label_upper_word,dictionary[pos].binary_string,lsb_to_use);
+					    strncpy(label_upper_word,dictionary[pos].binary_string+BYTES_PER_INSTR_LOG2,lsb_to_use);
 					    label_upper_word[lsb_to_use]='\0';
 					    strcat(binary_string,label_upper_word);
 					}else{//if %lo was used (or no modifier at all)
-					    label_lower_word=dictionary[pos].binary_string+(32-lsb_to_use)*sizeof(char);
-					    strcat(binary_string,label_lower_word);
+						if(lo_modifier_found==1){
+							label_lower_word=dictionary[pos].binary_string+(32-lsb_to_use+BYTES_PER_INSTR_LOG2)*sizeof(char);
+							strcat(binary_string,label_lower_word);
+							for(int i=0;i<BYTES_PER_INSTR_LOG2;i++){
+								strcat(binary_string,"0");
+							}
+						}else{//no modifier used: offset is a symbol, not an address
+							label_lower_word=dictionary[pos].binary_string+(32-lsb_to_use)*sizeof(char);
+							strcat(binary_string,label_lower_word);
+						}
 					}
 				}else{//base dictionary word
 
