@@ -12,10 +12,16 @@ funct_start={} # for each function, stores the line_cnt of their label definitio
 funct_frame_size={} # for each function, stores the size of their stack
 leaf_functions=[] # names of functions that do not call other functions
 inv_dict={} # given a line number of a label, returns the function name
-new_instr_vector=[] # stores the lines to be written of (intermediary file)
 # this dictionary relates a line number with a function for new_instr_vector
 intermediary_inv_dict={}
 funct_returned_regs={} # for each function, stores the number of returned regs
+
+available_sections=["text","data","rdata","bss"]
+curr_section="text"
+new_instr_vector=[] # stores the lines to be written in intermediary file: text section
+data_vector=[] # stores the lines to be written in intermediary file: data section
+rdata_vector=[] # stores the lines to be written in intermediary file: rdata section
+bss_vector=[] # stores the lines to be written in intermediary file: bss section
 
 aliases={
 "$gp":"$28",
@@ -63,7 +69,103 @@ def main(argv):
     # skips empty strings
     if(len(line)==0):
       continue
-
+      
+    # determines current section
+    global curr_section
+    if(line==".text"):
+      curr_section="text"
+      print(line + "-> " + line)
+      continue
+    elif(line==".data"):
+      curr_section="data"
+      print(line + "-> " + line)
+      continue
+    elif(line==".rdata"):
+      curr_section="rdata"
+      print(line + "-> " + line)
+      continue
+    elif(line.startswith(".section\t.bss")):
+      curr_section="bss"
+      print(line + "-> .bss")
+      continue
+    elif(line.startswith(".local")):
+      curr_section="bss"
+      print(line + "-> .bss")
+      # intentionally removed the 'continue' because this line needs to be parsed
+      
+    if(curr_section=="data"):
+      words = line.split()
+      if(words[0].startswith(".word")):#TODO: add support for .byte,.half,.double
+        if(words[1].isdecimal()):
+          new_instr="x{:08X};".format(int(words[1])) # stores the constant in hex
+          print(line + "-> " + new_instr)
+          #of.write(new_instr+"\n")
+          data_vector.extend((new_instr).split("\n"))
+          continue
+      elif(line[-1]==":" and len(words)==1): # LABEL
+        new_instr=line
+        print(line + "-> " + new_instr)
+        #of.write(new_instr+"\n")
+        data_vector.extend((new_instr).split("\n"))
+        # adds to label dictionary
+        labels_dict.update({line[0:-1]:""})
+        continue
+    elif(curr_section=="rdata"):
+      words = line.split()
+      if(words[0].startswith(".word")):#TODO: add support for .byte,.half,.double
+        if(words[1].isdecimal()):
+          new_instr="x{:08X};".format(int(words[1])) # stores the constant in hex
+          print(line + "-> " + new_instr)
+          #of.write(new_instr+"\n")
+          rdata_vector.extend((new_instr).split("\n"))
+          continue
+      elif(line[-1]==":" and len(words)==1): # LABEL
+        new_instr=line
+        print(line + "-> " + new_instr)
+        #of.write(new_instr+"\n")
+        rdata_vector.extend((new_instr).split("\n"))
+        # adds to label dictionary
+        labels_dict.update({line[0:-1]:""})
+        continue
+    elif(curr_section=="bss"):
+      words = line.split()      
+      if(words[0].startswith(".space") and len(words)==2): # size decalration
+        new_instr="x"
+        for i in range(int(words[1])):
+          new_instr = new_instr+"00"
+        new_instr = new_instr+";"
+        print(line + "-> " + new_instr)
+        #of.write(new_instr+"\n")
+        bss_vector.extend((new_instr).split("\n"))
+        continue
+      elif(line[-1]==":" and len(words)==1): # LABEL
+        new_instr=line
+        print(line + "-> " + new_instr)
+        #of.write(new_instr+"\n")
+        bss_vector.extend((new_instr).split("\n"))
+        # adds to label dictionary
+        labels_dict.update({line[0:-1]:""})
+        continue
+      elif(words[0].startswith(".local") and len(words)==2): # "LABEL"
+        new_instr=words[1]+":"
+        print(line + "-> " + new_instr)
+        #of.write(new_instr+"\n")
+        bss_vector.extend((new_instr).split("\n"))
+        # adds to label dictionary
+        labels_dict.update({new_instr[0:-1]:""})
+        continue
+      elif(words[0].startswith(".comm") and len(words)==2): # size decalration
+        words=words[1].split(",")
+        new_instr="x"
+        for i in range(int(words[1])):
+          new_instr = new_instr+"00"
+        new_instr = new_instr+";"
+        print(line + "-> " + new_instr)
+        #of.write(new_instr+"\n")
+        bss_vector.extend((new_instr).split("\n"))
+        continue
+      
+    # elif(curr_section=="text")
     if(line=="#APP" or line=="APP"):
       translation_enable = False
       print("translation DISABLED")
@@ -103,21 +205,7 @@ def main(argv):
               
         # ignores other directives started with dot '.', used only by compiler
         if(words[0][0]=="."):
-            if(words[0].startswith(".word")):#TODO: add support for .byte,.half,.double
-                if(words[1].isdecimal()):
-                    new_instr="x{:04X};".format(int(words[1])) # stores the constant in hex
-                    print(line + "-> " + new_instr)
-                    #of.write(new_instr+"\n")
-                    new_instr_vector.extend((new_instr).split("\n"))
-                    continue
-            elif(words[0].startswith(".rdata")):
-                new_instr=words[0]
-                print(line + "-> " + new_instr)
-                #of.write(new_instr+"\n")
-                new_instr_vector.extend((new_instr).split("\n"))
-                continue
-            else:
-                continue
+          continue
     
         opcode=words[0]
         arg=[opcode]
@@ -430,11 +518,31 @@ def main(argv):
       return
 
   post_process(new_instr_vector) # removes prologues and epilogues, when specified
+  
+  of.write(".text\n")
   for i in new_instr_vector:
     if(i[-1]=="\n"):
       of.write(i)
     else:
       of.write(i+"\n")
+  of.write(".data\n")
+  for d in data_vector:
+    if(d[-1]=="\n"):
+      of.write(d)
+    else:
+      of.write(d+"\n")
+  of.write(".rdata\n")
+  for rd in rdata_vector:
+    if(rd[-1]=="\n"):
+      of.write(rd)
+    else:
+      of.write(rd+"\n")
+  of.write(".bss\n")
+  for u in bss_vector:
+    if(u[-1]=="\n"):
+      of.write(u)
+    else:
+      of.write(u+"\n")
   of.close()
   
   keys_to_be_deleted=[]
@@ -583,10 +691,17 @@ def main(argv):
   for i in range(len(of_lines)): # iterates over lines of intermediary file
     of_lines[i] = re.sub("\${1}(?=\d)", "r", of_lines[i])
     
-  # replaces register aliases
-  for i in range(len(of_lines)): # iterates over lines of intermediary file
+  # replaces section names
+  for i in reversed(range(len(of_lines))): # iterates over lines of intermediary file
     if(of_lines[i].strip().startswith(".rdata")):
+      of_lines.pop(i)
+  for i in range(len(of_lines)): # iterates over lines of intermediary file
+    if(of_lines[i].strip().startswith(".text")):
+      of_lines[i] = ".section code\n"
+    if(of_lines[i].strip().startswith(".data")):
       of_lines[i] = ".section data\n"
+    if(of_lines[i].strip().startswith(".bss")):
+      of_lines[i] = ".section bss\n"
       
   # final file write
   for i in range(len(of_lines)): # iterates over lines of intermediary file
