@@ -318,7 +318,7 @@ int main(int argc,char *argv[]){
 				}
 
 				//checks if the opcode is a label definition
-				sscanf_retval=sscanf(instruction_str,"%[a-zA-Z0-9_]: %*s",s[0]);//parses the instruction, s[0] stores the opcode
+				sscanf_retval=sscanf(instruction_str,"%[a-zA-Z0-9_.]: %*s",s[0]);//parses the instruction, s[0] stores the opcode
 				if(sscanf_retval != 0){
 					if(is_opcode(s[0])){//it is a instruction
 						i++;
@@ -508,7 +508,8 @@ int main(int argc,char *argv[]){
 					break;
 				}
 			}
-			sscanf_retval=sscanf(instruction_str,"%s %*s",s[0]);//parses the instruction, s[0] stores the value in hex or a label
+			
+			sscanf_retval=sscanf(instruction_str,"%s %s",s[0],s[1]);//parses the instruction, s[0] stores the value in hex or a label
 			//TODO: convert instruction_str to lower case
 			if(sscanf_retval!=0){
 				if(instruction_str[0]==';'||instruction_str[0]=='\n'||instruction_str[0]=='\r'||instruction_str[0]=='\0'){//comment line or empty line, must be ignored
@@ -531,8 +532,18 @@ int main(int argc,char *argv[]){
 						strcat(binary_string[i],hex2bin(s[0]));
 						i++;
 					}else{
-						printf("Invalid data: %s\n",s[0]);
-						return -1;
+			            if(strcmp(s[0],".section")==0){
+				            if(strcmp(s[1],"bss")==0){
+					            printf("Found read-write bss section!\n");
+					            continue;
+				            }else{
+					            printf("Invalid section: %s\n",s[1]);
+					            return -1;
+				            }
+			            }else{
+						    printf("Invalid data: %s\n",s[0]);
+						    return -1;
+						}
 					}
 				}
 				
@@ -1369,11 +1380,18 @@ void S_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 	char op;// '+' or '-', offset is mandatory
 	char tmp_offset_binary_string[33];//determined only from s[2], up to 32 chars ('0' or '1') + '\0'
 	char offset_binary_string[33];//the final offset, depends on op, up to 32 chars ('0' or '1') + '\0'
-	int sscanf_retval=sscanf(instruction_str," %[a-zA-Z0-9_] [ %[a-zA-Z0-9_] %1[+-] %[a-zA-Z0-9\"_] ] %s",s[0],s[1],&op,s[2],s[3]);//parses the instruction, s[0] stores the opcode, s[1] stores a register, s[2] stores a immediate (decimal or hexadecimal), s[3] stores a register
+	int sscanf_retval=sscanf(instruction_str," %[a-zA-Z0-9_] [ %[a-zA-Z0-9_] %1[+-] %[a-zA-Z0-9%%%(%).\"_] ] %s",s[0],s[1],&op,s[2],s[3]);//parses the instruction, s[0] stores the opcode, s[1] stores a register, s[2] stores a immediate (decimal or hexadecimal), s[3] stores a register
 	if(sscanf_retval!=5){
 		printf("Invalid number of arguments:%d\n",sscanf_retval);
+		printf("s[0]:%s\n",s[0]);
+		printf("s[1]:%s\n",s[1]);
+		printf("op:%c\n",op);
+		printf("s[2]:%s\n",s[2]);
+		printf("s[3]:%s\n",s[3]);
 		return;
 	}
+	int hi_modifier_found = 0; //1 if %hi was found in immediate
+	int lo_modifier_found = 0; //1 if %lo was found in immediate
 
 	//TODO: convert instruction_str to lower case
 	binary_string[0]='\0';
@@ -1404,6 +1422,22 @@ void S_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 		//the OFFSET must be appended to the END of binary_string
 		//the OFFSET is determined from s[2] AND op (+/-)
 		if(i==2){
+			//tests if %hi / %lo modifiers are present
+            if(strncmp(s[i],"%hi(",4)==0 && s[i][strlen(s[i])-1]==')'){//checks if s[i] is %hi(LABEL)
+                printf("Found %%hi modifier!\n");
+                hi_modifier_found = 1;
+                s[i][strlen(s[i])-1]='\0';//removes the closing parentesis
+                strncpy(s[i],s[i]+4,strlen(s[i])-3);//s[i] now is only the label
+                printf("Parsed label: %s\n",s[i]);
+            }else{
+                if(strncmp(s[i],"%lo(",4)==0 && s[i][strlen(s[i])-1]==')'){//checks if s[i] is %lo(LABEL)
+                    printf("Found %%lo modifier!\n");
+                    lo_modifier_found = 1;
+                    s[i][strlen(s[i])-1]='\0';//removes the closing parentesis
+                    strncpy(s[i],s[i]+4,strlen(s[i])-3);//s[i] now is only the label
+                    printf("Parsed label: %s\n",s[i]);
+                }
+			}
 			pos=find(dictionary,dictionary_size,s[i]);
 			if(pos!=-1){
 				if(pos >= base_dict_size){//it is a constant in data section or label
