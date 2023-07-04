@@ -24,8 +24,8 @@ void IRQ3_Handler();
 int ticks = 0;
 int seconds=10;
 const int minutes=5;
-*/
 int hours=0;
+*/
 
 //main loop
 int main(void){
@@ -100,13 +100,26 @@ void GIC_config(){
 void IRQ0_Handler(){
     __asm(".remove_prologue\n\t");
     static int ticks=0;
-    static int seconds=60;
+    static int seconds=0;
+	static int minutes=0;
+	static int hours=0;
+
     ticks += 1;
     
     if(ticks == 22059){
         ticks = 0;
         seconds += 1;
     }
+    if(seconds == 60){
+        seconds = 0;
+        minutes += 1;
+    }
+    if(minutes == 60){
+        minutes = 0;
+        hours += 1;
+    }
+	int number_to_display;
+	number_to_display = (seconds/10)*16+(seconds%10);
 	print_7segs(seconds);
 	
 	IRET();
