@@ -231,9 +231,16 @@ def main(argv):
           tmp = arg[2].split("(")
           #print("tmp=")
           #print(tmp)
-          if(len(tmp)==1):# lw $x,$LABEL ($x <= mem[LABEL])
+          if(len(tmp)==1 and opcode=="lw"):# lw $x,$LABEL ($x <= mem[LABEL])
             frmt_str = "\tlui {} %hi({});\n\tlw [{}+%lo({})] {};"
             new_instr = frmt_str.format(arg[1],arg[2],arg[1],arg[2],arg[1])
+            print(line + "-> " + new_instr)
+            #of.write(new_instr+"\n")
+            new_instr_vector.extend((new_instr).split("\n"))
+            continue
+          if(len(tmp)==1 and opcode=="sw"):# sw $x,$LABEL (mem[LABEL] <= $x)
+            frmt_str = "\tlui $0 %hi({});\n\tsw [$0+%lo({})] {};\n\txor $0 $0 $0;"
+            new_instr = frmt_str.format(arg[2],arg[2],arg[1])
             print(line + "-> " + new_instr)
             #of.write(new_instr+"\n")
             new_instr_vector.extend((new_instr).split("\n"))
