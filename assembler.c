@@ -25,12 +25,15 @@
 // include bool type
 #include <stdbool.h>
 
-//number of instructions to store
-//256 = 0x100
-#define N_INSTR 256
+//number of bytes to encode one instruction
+#define BYTES_PER_INSTR_LOG2 2
+#define BYTES_PER_INSTR (0x1 << BYTES_PER_INSTR_LOG2)
 
 //maximum length of line in text files
 #define MAX_STR_LENGTH 200
+
+// byte address
+#define INSTRUCTION_MEMORY_BASE_ADDR 0x1000
 
 //for the opcode dictionary
 typedef struct
@@ -847,20 +850,23 @@ void I_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 					int lsb_to_use= 32 - strlen(binary_string);//how many bits of constant will be used
 					//printf("\nbinary_string=%s\n",binary_string);
 					printf("\nlsb_to_use=%d\n",lsb_to_use);
-					if(hi_modifier_found==1){
-					    if(label_upper_word==NULL){
-		                    printf("Erro ao alocar a memória para o ponteiro tmp_str ou instruction_str ou data_str ou comment_str\n");
-		                    return;
+					if(hi_modifier_found==1||lo_modifier_found==1){
+					    if(hi_modifier_found==1){
+					        if(label_upper_word==NULL){
+		                        printf("Erro ao alocar a memória para o ponteiro tmp_str ou instruction_str ou data_str ou comment_str\n");
+		                        return;
+					        }
+						    //+BYTES_PER_INSTR_LOG2 to convert from word address to byte address
+					        int ram_offset=bin2uint(dictionary[pos].binary_string)*BYTES_PER_INSTR+INSTRUCTION_MEMORY_BASE_ADDR;
+					        strncpy(label_upper_word,uint2bin(ram_offset,32),lsb_to_use);
+					        strcat(binary_string,label_upper_word);
+					    }else{//if %lo was used (or no modifier at all)
+						    //+BYTES_PER_INSTR_LOG2 to convert from word address to byte address
+					        int ram_offset=(bin2uint(dictionary[pos].binary_string)*BYTES_PER_INSTR)+INSTRUCTION_MEMORY_BASE_ADDR;
+					        label_lower_word=uint2bin(ram_offset,32)+(32-lsb_to_use)*sizeof(char);
+					        strcat(binary_string,label_lower_word);
 					    }
-						//+2 to convert from word address to byte address
-					    strncpy(label_upper_word,dictionary[pos].binary_string+2,lsb_to_use);
-					    label_upper_word[lsb_to_use]='\0';
-					    strcat(binary_string,label_upper_word);
-					}else{//if %lo was used (or no modifier at all)
-						//+2 to convert from word address to byte address
-					    label_lower_word=dictionary[pos].binary_string+2+(32-lsb_to_use)*sizeof(char);
-					    strcat(binary_string,label_lower_word);
-					}
+			        }
 				}else{//base dictionary word
 
 					strcat(binary_string,dictionary[pos].binary_string);
@@ -983,12 +989,19 @@ void B_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 		                    printf("Erro ao alocar a memória para o ponteiro tmp_str ou instruction_str ou data_str ou comment_str\n");
 		                    return;
 					    }
-					    strncpy(label_upper_word,dictionary[pos].binary_string,lsb_to_use);
+					    int ram_offset=bin2uint(dictionary[pos].binary_string)*BYTES_PER_INSTR+INSTRUCTION_MEMORY_BASE_ADDR;
+					    strncpy(label_upper_word,uint2bin(ram_offset,32),lsb_to_use);
 					    label_upper_word[lsb_to_use]='\0';
 					    strcat(binary_string,label_upper_word);
 					}else{//if %lo was used (or no modifier at all)
-					    label_lower_word=dictionary[pos].binary_string+(32-lsb_to_use)*sizeof(char);
-					    strcat(binary_string,label_lower_word);
+					    if(lo_modifier_found==1){
+					        int ram_offset=bin2uint(dictionary[pos].binary_string)*BYTES_PER_INSTR+INSTRUCTION_MEMORY_BASE_ADDR;
+					        label_lower_word=uint2bin(ram_offset,32)+(32-lsb_to_use)*sizeof(char);
+					        strcat(binary_string,label_lower_word);
+					    }else{//no modifier used: offset is a symbol, but not an address
+					        label_lower_word=dictionary[pos].binary_string+(32-lsb_to_use)*sizeof(char);
+					        strcat(binary_string,label_lower_word);
+					    }
 					}
 				}else{//base dictionary word
 
@@ -1392,6 +1405,8 @@ void S_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 	}
 	int hi_modifier_found = 0; //1 if %hi was found in immediate
 	int lo_modifier_found = 0; //1 if %lo was found in immediate
+	char* label_upper_word=calloc(17,sizeof(char));//16 bits + '\0'
+	char* label_lower_word;//16 bits + '\0'
 
 	//TODO: convert instruction_str to lower case
 	binary_string[0]='\0';
@@ -1447,7 +1462,27 @@ void S_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 					//printf("\nlsb_to_use=%d\n",lsb_to_use);
 					//strcat(binary_string,(dictionary[pos].binary_string)+(strlen(dictionary[pos].binary_string)-lsb_to_use)*sizeof(char));
 					
-					strcpy(tmp_offset_binary_string,dictionary[pos].binary_string);
+					int lsb_to_use= 16;//how many bits will be used in this field
+					if(hi_modifier_found==1||lo_modifier_found==1){
+					    if(hi_modifier_found==1){
+					        if(label_upper_word==NULL){
+		                        printf("Erro ao alocar a memória para o ponteiro tmp_str ou instruction_str ou data_str ou comment_str\n");
+		                        return;
+					        }
+						    //+BYTES_PER_INSTR_LOG2 to convert from word address to byte address
+					        int ram_offset=bin2uint(dictionary[pos].binary_string)*BYTES_PER_INSTR+INSTRUCTION_MEMORY_BASE_ADDR;
+					        strncpy(label_upper_word,uint2bin(ram_offset,32),lsb_to_use);
+					        label_upper_word[lsb_to_use]='\0';
+					        strcpy(tmp_offset_binary_string,label_upper_word);
+					    }else{//if %lo was used (or no modifier at all)
+						    //+BYTES_PER_INSTR_LOG2 to convert from word address to byte address
+					        int ram_offset=bin2uint(dictionary[pos].binary_string)*BYTES_PER_INSTR+INSTRUCTION_MEMORY_BASE_ADDR;
+					        label_lower_word=uint2bin(ram_offset,32)+(32-lsb_to_use)*sizeof(char);
+					        strcpy(tmp_offset_binary_string,label_lower_word);
+					    }
+			        }else{					
+					    strcpy(tmp_offset_binary_string,dictionary[pos].binary_string);
+					}
 				}else{//base dictionary word, this is not allowed
 					printf("\nInvalid offset argument: %s\n",s[i]);
 					return;
@@ -1510,8 +1545,11 @@ void S_type_parse(char *binary_string,char *instruction_str,unsigned int base_di
 		tmp=-tmp;
 		strcpy(offset_binary_string,uint2bin((unsigned int)tmp,32));
 	}
+	printf("\noffset_binary_string: %s\n",offset_binary_string);
+	printf("binary_string: %s\n",binary_string);
 	//must adjust the size to fit in instruction
-	int lsb_to_use= strlen(offset_binary_string)-(32 - strlen(binary_string));//how many bits of constant will be used
+	int lsb_to_use= (32 - strlen(binary_string));//how many bits of constant will be used
+	printf("lsb_to_use: %d\n",lsb_to_use);
 	strcat(binary_string,offset_binary_string+(strlen(offset_binary_string)-lsb_to_use)*sizeof(char));
 	return;
 }
