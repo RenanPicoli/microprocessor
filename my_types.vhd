@@ -123,6 +123,8 @@ package my_types is
 --	constant srl_funct: std_logic_vector(5 downto 0) := "010011";--shrl in my_types 
 --	constant sllv_funct: std_logic_vector(5 downto 0):= "010110";--sll with offset in register bits 4:0 
 --	constant srlv_funct: std_logic_vector(5 downto 0):= "010111";--srl with offset in register bits 4:0
+--	constant sra_funct: std_logic_vector(5 downto 0) := "011000";--shra in my_types 
+--	constant srav_funct: std_logic_vector(5 downto 0) := "011001";--srav in my_types 
 
 	--register codes
 	constant r0:	std_logic_vector(4 downto 0)	:= "00000";

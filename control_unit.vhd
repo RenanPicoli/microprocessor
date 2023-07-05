@@ -74,6 +74,8 @@ signal shrl: std_logic;--shift right logic (srl)
 signal shll: std_logic;--shift left logic (sll)
 signal sllv: std_logic;--sll with offset in register bits 4:0
 signal srlv: std_logic;--srl with offset in register bits 4:0
+signal shra: std_logic;--shift right arithmetic (sra)
+signal srav: std_logic;--sra with offset in register bits 4:0
 --
 --signal ldfp: std_logic;
 --signal ldrv: std_logic;
@@ -124,6 +126,8 @@ shrl		<= '1' when R_type='1' and funct="010011" else '0';
 shll		<= '1' when R_type='1' and funct="010010" else '0';
 sllv		<= '1' when R_type='1' and funct="010110" else '0';
 srlv		<= '1' when R_type='1' and funct="010111" else '0';
+shra		<= '1' when R_type='1' and funct="011000" else '0';
+srav		<= '1' when R_type='1' and funct="011001" else '0';
 
 ldfp		<= '1' when opcode="110000" else '0';--loads fp to register
 ldrv		<= '1' when opcode="110001" else '0';--loads rv to register
@@ -137,7 +141,7 @@ nop		<= '1' when opcode="111111" else '0';--no operation (bubble)
 
 iack <= iret;
 
-regDst 	<=	"01" when (R_type='1' and (shll='0' and shrl='0')) else--usa rd (para escrita) só em instrucao tipo R, exceto sll e srl (escrevem em rt)
+regDst 	<=	"01" when (R_type='1' and (shll='0' and shrl='0' and shra='0')) else--usa rd (para escrita) só em instrucao tipo R, exceto sll, srl e sra (escrevem em rt)
 			"10" when (mfhi='1' or mflo='1' or ldfp='1' or ldrv='1' or pop='1' or lui='1') else--apenas mflo, mfhi, ldfp, ldrv, pop e lui escrevem no rs
 			"00";--demais instrucoes escrevem no rt
 memRead		<= load_type;
@@ -196,6 +200,8 @@ aluControl <= 	--"0010" when (AluOp = "00") else--add, because load/store requir
 					"1111" when (AluOp = "10" and shrl='1') else--srl
 					"0100" when (AluOp = "10" and sllv='1') else--sllv
 					"0101" when (AluOp = "10" and srlv='1') else--srlv
+					"????" when (AluOp = "10" and shra='1') else--shra
+					"????" when (AluOp = "10" and srav='1') else--srav
 					"XXXX";
 					
 fpuControl	<=	"00" when (R_type = '1' and funct = "000000") else--addition
