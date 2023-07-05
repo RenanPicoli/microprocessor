@@ -119,6 +119,9 @@ component control_unit
 			vmac: out std_logic;--multiply-accumulate
 			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
 			lvecr: out std_logic;--variant of lvec, takes arguments from registers
+			shift_src: out std_logic;--'1': use rt
+			shift_direction: out std_logic;--'1': shift right (instead of shift left)
+			shift_mode: out std_logic;--'1': arithmetic shift (instead of logic shift)
 			aluSrc: out std_logic;
 			regWrite: out std_logic
 			);

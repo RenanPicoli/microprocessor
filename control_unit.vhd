@@ -35,6 +35,9 @@ entity control_unit is
 			vmac: out std_logic;--multiply-accumulate
 			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
 			lvecr: out std_logic;--variant of lvec, takes arguments from registers
+			shift_src: out std_logic;--'1': use rt
+			shift_direction: out std_logic;--'1': shift right (instead of shift left)
+			shift_mode: out std_logic;--'1': arithmetic shift (instead of logic shift)
 			aluSrc: out std_logic;
 			regWrite: out std_logic			
 			);
@@ -196,13 +199,11 @@ aluControl <= 	--"0010" when (AluOp = "00") else--add, because load/store requir
 					"0011" when (AluOp = "10" and funct = "100111") else--xor
 					"1100" when (AluOp = "10" and funct = "101000") else--nor
  					"0111" when (AluOp = "10" and funct = "101010") else--set-on-less-than	
-					"1110" when (AluOp = "10" and shll='1') else--sll
-					"1111" when (AluOp = "10" and shrl='1') else--srl
-					"0100" when (AluOp = "10" and sllv='1') else--sllv
-					"0101" when (AluOp = "10" and srlv='1') else--srlv
-					"????" when (AluOp = "10" and shra='1') else--shra
-					"????" when (AluOp = "10" and srav='1') else--srav
+					"1111" when (AluOp = "10" and (shll='1' or shrl='1' or sllv='1' or srlv='1' or shra='1' or srav='1')) else--any shift instruction
 					"XXXX";
+shift_src <= '1' when (sllv='1' or srlv='1' or srav='1') else '0';--'1': use rt
+shift_direction <= '1' when (shrl='1' or srlv='1' or srav='1') else '0';--'1': shift right (instead of shift left)
+shift_mode <= '1' when (shra='1' or srav='1') else '0';--'1': arithmetic shift (instead of logic shift)
 					
 fpuControl	<=	"00" when (R_type = '1' and funct = "000000") else--addition
 					"01" when (R_type = '1' and funct = "000010") else--subtraction
