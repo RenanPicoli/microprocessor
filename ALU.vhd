@@ -149,12 +149,8 @@ begin
 		when "0011" =>
 			result <= A xor B;
 			hi_lo_en <= '0';
-		when "0100" => --sllv
-			result <= shifted_A;
-			hi_lo_en <= '0';
-		when "0101" => --srlv
-			result <= shifted_A;
-			hi_lo_en <= '0';			
+
+			
 	   when "0110" =>						
 			result <= A + (not B) + 1;-- A-B
 			hi_lo_en <= '0';
@@ -177,10 +173,8 @@ begin
 			result <= A nor B;
 			hi_lo_en <= '0';
 			
-		when "1110" => --sll
-			result <= shifted_A;
-			hi_lo_en <= '0';
-		when "1111" => --srl
+			
+		when "1111" => --any shift instruction
 			result <= shifted_A;
 			hi_lo_en <= '0';
 			
