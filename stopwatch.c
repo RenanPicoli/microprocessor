@@ -118,9 +118,11 @@ void IRQ0_Handler(){
         minutes = 0;
         hours += 1;
     }
-	int number_to_display;
-	number_to_display = (seconds/10)*16+(seconds%10);
-	print_7segs(seconds);
+	register int number_to_display;
+	//number_to_display = (seconds/10)*16+(seconds%10);
+	number_to_display = (hours<<24)|(minutes<<16)|(seconds);
+	//number_to_display = seconds;
+	print_7segs(number_to_display);
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
