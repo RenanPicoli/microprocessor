@@ -29,6 +29,8 @@ port(	A:	in std_logic_vector(31 downto 0);
 		B:	in std_logic_vector(31 downto 0);
 		shamt:	in std_logic_vector(4 downto 0);--unsigned
 		Sel:	in std_logic_vector(3 downto 0);
+		shift_direction: in std_logic;--'1': shift right (instead of shift left)
+		shift_mode: in std_logic;--'1': arithmetic shift (instead of logic shift)
 		CLK: in std_logic;
 		RST: in std_logic;
 		flags: out eflags;

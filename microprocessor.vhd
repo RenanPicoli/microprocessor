@@ -73,6 +73,8 @@ component alu is
 			B:	in std_logic_vector(31 downto 0);
 			shamt:	in std_logic_vector(4 downto 0);--unsigned
 			Sel:	in std_logic_vector(3 downto 0);
+			shift_direction: in std_logic;--'1': shift right (instead of shift left)
+			shift_mode: in std_logic;--'1': arithmetic shift (instead of logic shift)
 			CLK: in std_logic;
 			RST: in std_logic;
 			--ZF: out std_logic;
@@ -227,6 +229,9 @@ signal rt: std_logic_vector (4 downto 0);
 signal rd: std_logic_vector (4 downto 0);
 signal shamt: std_logic_vector (4 downto 0);
 signal shamt_or_rt: std_logic_vector (4 downto 0);--shamt for ALU comes from shamt field or from rt(4:0)
+signal shift_src: std_logic;--'1': use rt
+signal shift_direction: std_logic;--'1': shift right (instead of shift left)
+signal shift_mode: std_logic;--'1': arithmetic shift (instead of logic shift)
 signal funct: std_logic_vector (5 downto 0);
 signal addressRelative: std_logic_vector (15 downto 0);--for load,store,branch
 signal addressAbsolute: std_logic_vector (25 downto 0);--for jumps
@@ -450,12 +455,14 @@ begin
 													read_data_2 => read_data_2
 											);
 											
-	shamt_or_rt <= rt(4 downto 0) when (aluControl="0100" or aluControl="0101" )else shamt;--rt for sllv/srlv, for shrl/shll is shamt
+	shamt_or_rt <= rt(4 downto 0) when (shift_src='1') else shamt;--rt for sllv/srlv/srav, for shrl/shll/shra is shamt
 	alu_clk <= CLK;
 	arith_logic_unity: alu port map ( 	A => read_data_1,
 													B => aluOp2,
 													shamt => shamt_or_rt,--shamt for ALU comes from shamt field or from rt(4:0)
 													sel => aluControl,
+													shift_direction=> shift_direction,
+													shift_mode=> shift_mode,
 													CLK => alu_clk,
 													RST => rst,
 													flags => alu_flags,
@@ -556,6 +563,9 @@ begin
 												vmac => vmac,
 												lvec => lvec,
 												lvecr=> lvecr,
+												shift_src=> shift_src,
+												shift_direction=> shift_direction,
+												shift_mode=> shift_mode,
 												aluSrc => aluSrc,
 												regWrite => regWrite);
 
