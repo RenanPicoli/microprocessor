@@ -61,6 +61,8 @@ component var_shift
 generic	(N: natural; O: natural; S: natural);--N: number of bits in input, O in output; S: number of bits in shift
 port(	input:in std_logic_vector(N-1 downto 0);--input vector that will be shifted
 		shift:in std_logic_vector(S-1 downto 0);--signed integer: number of shifts to left (if positive)
+		shift_direction: in std_logic;--'1': shift right (instead of shift left)
+		shift_mode: in std_logic;--'1': arithmetic shift (instead of logic shift)
 		overflow: out std_logic;-- '1' if there are ones that were dropped in the output
 		output: out std_logic_vector(O-1 downto 0)--
 );
@@ -113,10 +115,11 @@ begin
 	port map (input => A,
 				 shift => shamt_signed,
 				 overflow => shift_overflow,
+				 shift_direction => shift_direction,
+				 shift_mode => shift_mode,
 				 output => shifted_A);
-	shamt_signed <= '0' & shamt when (Sel="1110" or Sel="0100") else --sll/sllv
-						(('1' & not shamt) + 1) when (Sel="1111" or Sel="0101") else --srl/srlv
-						(others=>'0');--no shift
+	shamt_signed <= (('1' & not shamt) + 1) when (shift_direction='1') else --srl/srlv/shra/srav
+					'0' & shamt; --sll/sllv
 	 
 	 lsb <= '1' when (A < B) else '0';
 	 imul_A <= A when (A(31)='0') else ((not A)+1);
