@@ -767,7 +767,7 @@ void R_type_parse(char *binary_string,char *instruction_str){
 		}
 		pos=find(dictionary,dictionary_size,s[i]);
 		if(pos==-1){
-			if(i==3 && (strcmp(s[0],"sll")==0 || strcmp(s[0],"srl")==0)){//check if is sll or srl, s[3] should be immediate
+			if(i==3 && (strcmp(s[0],"sll")==0 || strcmp(s[0],"srl")==0 || strcmp(s[0],"sra")==0)){//check if is sll or srl or sra, s[3] should be immediate
 				int sscanf_retval_hex = sscanf(s[i],"x\"%[0-9a-fA-F]\"",s[i]);//keeps in s[3] only the numeric part
 				printf("shamt=%s\n",s[3]);
 				strcat(binary_string,"00000");//append rd(=X) field
@@ -781,7 +781,7 @@ void R_type_parse(char *binary_string,char *instruction_str){
 		}
 	}
 	printf("Instruction is %s\n",s[0]);
-	if(!(strcmp(s[0],"sll")==0 || strcmp(s[0],"srl")==0)){//append default (zeroed) shamt only if is not sll or srl
+	if(!(strcmp(s[0],"sll")==0 || strcmp(s[0],"srl")==0 || strcmp(s[0],"sra")==0)){//append default (zeroed) shamt only if is not sll or srl
 		strcat(binary_string,"00000");//append shamt field
 	}
 	

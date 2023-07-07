@@ -1,6 +1,6 @@
 --intructions categories (according to assembly)
 
-R_type_mnemonics := {add,sub,and,or,xor,nor,slt,fadd,fsub,fdiv,fmul,sll,srl,sra,sllv,srlv,srav};--opcode and 3 registers (uses all bits, except sll/srl/srlv/sllv)
+R_type_mnemonics := {add,sub,and,or,xor,nor,slt,fadd,fsub,fdiv,fmul,sll,srl,sra,sllv,srlv,srav};--opcode and 3 registers (uses all bits, except sll/srl/srlv/sllv/sra/srav)
 I_type_mnemonics := {beq,addi,subi,andi,ori,xori,nori,slti};-- opcode, 2 registers and 1 IMMEDIATE (use all bits)
 B_type_mnemonics := {lui};-- opcode, 1 register and 1 IMMEDIATE(rt is don't care)
 J_type_mnemonics := {jmp,call,addsp};-- opcode and 1 IMMEDIATE(uses all bits)
