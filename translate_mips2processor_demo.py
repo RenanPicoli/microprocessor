@@ -484,7 +484,7 @@ def main(argv):
         # there are 2 variants of the instructions below in MIPS
         # sll rd rs rt: rd <= rs << rt (aka sllv)
         # sll rd rs shift: rd <= rs << shift
-        elif(opcode=="sll" or opcode=="srl"):
+        elif(opcode=="sll" or opcode=="srl" or opcode=="sra"):
           #checks if immediate is already in hex
           if(arg[3].startswith("0x")):
             arg[3]=str(int(arg[3],16))# convert arg[3] to decimal base
@@ -495,7 +495,7 @@ def main(argv):
             frmt_str="\t{} {} {} {};" # arg[1] is rd
             new_instr = frmt_str.format(opcode+"v",arg[2],arg[3],arg[1]) # sll -> sllv, srl -> srlv
               
-        elif(opcode=="sllv" or  opcode=="srlv"):
+        elif(opcode=="sllv" or  opcode=="srlv" or opcode=="srav"):
           frmt_str="\t{} {} {} {};"
           new_instr = frmt_str.format(opcode,arg[2],arg[3],arg[1])
     
