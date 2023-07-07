@@ -493,7 +493,7 @@ def main(argv):
             new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
           else: # arg[3] is a register (rt)
             frmt_str="\t{} {} {} {};" # arg[1] is rd
-            new_instr = frmt_str.format(opcode+"v",arg[2],arg[3],arg[1]) # sll -> sllv, srl -> srlv
+            new_instr = frmt_str.format(opcode+"v",arg[2],arg[3],arg[1]) # sll -> sllv, srl -> srlv, sra -> srav
               
         elif(opcode=="sllv" or  opcode=="srlv" or opcode=="srav"):
           frmt_str="\t{} {} {} {};"
