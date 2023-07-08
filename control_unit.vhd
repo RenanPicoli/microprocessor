@@ -202,7 +202,7 @@ aluControl <= 	--"0010" when (AluOp = "00") else--add, because load/store requir
 					"1111" when (AluOp = "10" and (shll='1' or shrl='1' or sllv='1' or srlv='1' or shra='1' or srav='1')) else--any shift instruction
 					"XXXX";
 shift_src <= '1' when (sllv='1' or srlv='1' or srav='1') else '0';--'1': use rt
-shift_direction <= '1' when (shrl='1' or srlv='1' or srav='1') else '0';--'1': shift right (instead of shift left)
+shift_direction <= '1' when (shrl='1' or srlv='1' or srav='1' or shra='1') else '0';--'1': shift right (instead of shift left)
 shift_mode <= '1' when (shra='1' or srav='1') else '0';--'1': arithmetic shift (instead of logic shift)
 					
 fpuControl	<=	"00" when (R_type = '1' and funct = "000000") else--addition
