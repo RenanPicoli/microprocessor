@@ -119,9 +119,9 @@ void IRQ0_Handler(){
         hours += 1;
     }
 	register int number_to_display;
-	number_to_display = (seconds/10)<<4|(seconds%10);/*
+	number_to_display = (seconds/10)<<4|(seconds%10);
 	number_to_display |= ((minutes/10)<<4|(minutes%10))<<16;
-	number_to_display |= ((hours/10)<<4|(hours%10))<<24;*/
+	number_to_display |= ((hours/10)<<4|(hours%10))<<24;
 	//number_to_display = seconds;
 	print_7segs(number_to_display);
 	
