@@ -77,6 +77,8 @@
 
 // Protótipos das funções
 void lcd_write_command(unsigned int command);
+void lcd_puse_enable();
+void lcd_init();
 void lcd_clear();
 void lcd_return_home();
 void lcd_entry_mode_set(unsigned int i_d, unsigned int s);
