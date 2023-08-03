@@ -17,6 +17,7 @@
 #define CONVERTED_OUTPUT_BASE_ADDR		(0x73 << 2)
 #define DISPLAY_7SEGS_BASE_ADDR			(0x74 << 2)
 #define LCD_CTRL_BASE_ADDR				(0x75 << 2)
+#define LCD_EN_BASE_ADDR				(0x76 << 2)
 #define IRQ_CTRL_BASE_ADDR				(0x80 << 2)
 #define INSTRUCTION_MEMORY_BASE_ADDR	(0x400 << 2)
 #define PROGRAM_STACK_BASE_ADDR			0xFFFFFF00
@@ -45,6 +46,7 @@
 #define CONVERTED_OUTPUT_OFFSET 		(0x00 << 2)
 #define DISPLAY_7SEGS_OFFSET 			(0x00 << 2)
 #define LCD_CTRL_OFFSET 				(0x00 << 2)
+#define LCD_EN_OFFSET 					(0x00 << 2)
 #define IRQ_CTRL_IRQ_PEND_OFFSET		(0x00 << 2)
 #define IRQ_CTRL_IRQ_ACTIVE_OFFSET		(0x01 << 2)
 #define IRQ_CTRL_IRQ_STARTED_OFFSET		(0x02 << 2)
