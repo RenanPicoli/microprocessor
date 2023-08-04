@@ -90,5 +90,7 @@ void lcd_set_ddram_addr(unsigned int addr);
 void lcd_read_busy_flag_addr(unsigned int* busy_flag, unsigned int* address);
 void lcd_write_data(unsigned int data);
 unsigned int lcd_read_data();
+void lcd_pulse_enable_and_wait(unsigned int time_us);
+void delay_us(unsigned int time);
 
 #endif // LCD_HD44780_COMMANDS_H
