@@ -3,6 +3,20 @@
 
 //#include <stdint.h>
 
+//addi cnt_reg, cnt_reg, 4;
+//beq cnt_reg, num_cycles, $FINISH;
+//nop;
+//beq cnt_reg, cnt_reg, -4;
+//$FINISH:
+#define	DELAY_CYCLES(cnt_reg,num_cycles) \
+__asm("\tNO_APP\n\t \
+$BEGIN:\n\t \
+addi %0,%0,4\n\t \
+beq %0,%1,$FINISH\n\t \
+b $BEGIN\n\t \
+$FINISH:\n\t \
+APP\n\t" : "=r" (cnt_reg) : "r" (num_cycles));
+
 // Macros para facilitar a conversão de binário para unsigned int
 #define BIN10(rs, rw, b7, b6, b5, b4, b3, b2, b1, b0) ((unsigned int)( \
     ((rs & 1) << 9) | ((rw & 1) << 8) | ((b7 & 1) << 7) | ((b6 & 1) << 6) | \
