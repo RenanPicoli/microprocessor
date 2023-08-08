@@ -4,7 +4,7 @@
 // Implementações das funções
 void lcd_write_command(unsigned int command) {
     // Implementação para escrever um comando no LCD
-    write_w(LCD_CTRL_BASE_ADDR + LCD_CTRL_OFFSET, command);
+    WRITE(LCD_CTRL_BASE_ADDR + LCD_CTRL_OFFSET, command);
 }
 
 void lcd_clear() {
