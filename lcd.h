@@ -87,6 +87,8 @@ void lcd_set_cgram_addr(unsigned int addr);
 void lcd_set_ddram_addr(unsigned int addr);
 void lcd_read_busy_flag_addr(unsigned int* busy_flag, unsigned int* address);
 void lcd_write_data(unsigned int data);
+void lcd_print(unsigned int* str);
+void lcd_print_reg(unsigned int reg_value);
 unsigned int lcd_read_data();
 
 #endif // LCD_HD44780_COMMANDS_H

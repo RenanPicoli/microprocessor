@@ -57,3 +57,33 @@ unsigned int lcd_read_data() {
 	// Dados são lidos do mesmo endereço onde os comandos são escritos
     return read_w(LCD_CTRL_BASE_ADDR + LCD_CTRL_OFFSET);
 }
+
+//TO-DO: add support in translator script to .ascii directive
+//prints a null-terminated string
+void lcd_print(unsigned int* str){
+	unsigned int i=0;
+	while(str[i]!='\0'){
+		lcd_write_data(str[i]);
+	}
+	return;
+}
+
+void lcd_print_reg(unsigned int reg_value){
+/*
+	static unsigned int printed_regs_cnt = 0;
+	if(printed_regs_cnt == 4){//user mistake printing more registers than available space in display
+		while(1){//blocks processor
+		}
+	}
+	printed_regs_cnt++;
+*/
+	for (int i=0;i<8;i++){
+		unsigned int digit = (reg_value >> 4*(7-i)) & 0xF;
+		if(digit < 10){
+			lcd_write_data('0'+digit);
+		}else{
+			lcd_write_data('A'+digit);
+		}
+	}
+	return;
+}
