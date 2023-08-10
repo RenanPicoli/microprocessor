@@ -455,11 +455,11 @@ begin
 													read_data_2 => read_data_2
 											);
 											
-	shamt_or_rt <= rt(4 downto 0) when (shift_src='1') else shamt;--rt for sllv/srlv/srav, for shrl/shll/shra is shamt
+	shamt_or_rt <= read_data_2(4 downto 0) when (shift_src='1') else shamt;--rt for sllv/srlv/srav, for shrl/shll/shra is shamt
 	alu_clk <= CLK;
 	arith_logic_unity: alu port map ( 	A => read_data_1,
 													B => aluOp2,
-													shamt => shamt_or_rt,--shamt for ALU comes from shamt field or from rt(4:0)
+													shamt => shamt_or_rt,--shamt for ALU comes from shamt field or from read_data_2(4:0) (rt)
 													sel => aluControl,
 													shift_direction=> shift_direction,
 													shift_mode=> shift_mode,
