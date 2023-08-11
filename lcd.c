@@ -82,7 +82,7 @@ void lcd_print_reg(unsigned int reg_value){
 		if(digit < 10){
 			lcd_write_data('0'+digit);
 		}else{
-			lcd_write_data('A'+digit);
+			lcd_write_data('A'+digit-10);
 		}
 	}
 	return;
