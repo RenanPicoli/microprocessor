@@ -69,14 +69,14 @@ void lcd_print(unsigned int* str){
 }
 
 void lcd_print_reg(unsigned int reg_value){
-/*
+///*
 	static unsigned int printed_regs_cnt = 0;
 	if(printed_regs_cnt == 4){//user mistake printing more registers than available space in display
 		while(1){//blocks processor
 		}
 	}
 	printed_regs_cnt++;
-*/
+//*/
 	for (int i=0;i<8;i++){
 		unsigned int digit = (reg_value >> 4*(7-i)) & 0xF;
 		if(digit < 10){
