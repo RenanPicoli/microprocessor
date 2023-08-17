@@ -1,6 +1,11 @@
 #include "bsp.h"
 #include "cpu.h"
 #include "wm8731.h"
+#include "lcd.h"
+
+#define DESIRED_TIME_HR 0
+#define DESIRED_TIME_MIN 3
+#define DESIRED_TIME_SEC 14
 
 void register_init();
 
@@ -125,6 +130,35 @@ void IRQ0_Handler(){
 	//number_to_display = seconds;
 	print_7segs(number_to_display);
 	
+	if(hours == DESIRED_TIME_HR && minutes == DESIRED_TIME_MIN && seconds == DESIRED_TIME_SEC){
+		//print "Desired Time Elapsed" on LCD
+		lcd_write_data('E');
+		lcd_write_data('l');
+		lcd_write_data('a');
+		lcd_write_data('p');
+		lcd_write_data('s');
+		lcd_write_data('e');
+		lcd_write_data('d');
+		lcd_write_data(' ');
+		lcd_write_data('T');
+		lcd_write_data('i');
+		lcd_write_data('m');
+		lcd_write_data('e');
+		lcd_write_data(':');
+		lcd_write_data(' ');
+		lcd_write_data(' ');
+		lcd_write_data(' ');
+		lcd_write_data(hours/10+'0');
+		lcd_write_data(hours%10+'0');
+		lcd_write_data('h');
+		lcd_write_data(minutes/10+'0');
+		lcd_write_data(minutes%10+'0');
+		lcd_write_data('m');
+		lcd_write_data(seconds/10+'0');
+		lcd_write_data(seconds%10+'0');
+		lcd_write_data('s');
+	}
+	
 	IRET();
     __asm(".remove_epilogue\n\t");
 }
@@ -146,3 +180,4 @@ void IRQ3_Handler(){
 
 #include "bsp.c"
 #include "cpu.c"
+#include "lcd.c"
