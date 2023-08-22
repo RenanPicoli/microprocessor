@@ -87,3 +87,87 @@ void lcd_print_reg(unsigned int reg_value){
 	}
 	return;
 }
+
+//prints value in format [-]X.YE[-]Z (X,Y are single digits, Z has 1 our 2 digits)
+//TO-DO: handle special values like +/-0,NaN,+Inf,-Inf
+void lcd_print_float(float value){
+	word w;
+	w.f = value;
+	if(w.i & 0x80000000 != 0){
+		lcd_write_data('-');
+	}
+	unsigned short int biased_exp = (w.i & 0x7F800000) >> 23;
+	signed short int exp = biased_exp-127;//exponent for base 2
+	
+	//exponent for base 10 is given by floor(exp*log2)
+    unsigned int tmp = (exp * 0x4D10);
+    signed short int exp10 = tmp >> 16;
+	
+	unsigned int mantissa = (w.i & 0x007FFFFF);
+	mantissa = mantissa | 0x00800000;// the '1.' implicit is added
+	mantissa = (mantissa >> (23-exp));
+	//TO-DO: remove
+	printf("%u\n",mantissa);
+	printf("exp10=%d\n",exp10);
+	
+	int digit_array[40];
+	if(exp10 >= 0){
+		unsigned short int last_digit = 0;
+		for(int i=0;i<40;i++){
+			digit_array[i] = mantissa % 10;
+			mantissa = mantissa / 10;
+			if(digit_array[i] != 0){
+				last_digit = i;
+			}
+		}
+		lcd_write_data(digit_array[last_digit]+'0');
+		lcd_write_data('.');
+		lcd_write_data(digit_array[last_digit-1]+'0');		
+	}else{
+		unsigned short int last_digit = 0;
+		unsigned int divider = 1 << 23;
+		for(int i=0;i<1-exp10;i++){
+		    divider = divider / 10;
+		}
+	    printf("d=%u\n",divider);
+	    //printf("d=%u\n",divider);
+		mantissa = mantissa / divider;
+		mantissa = mantissa >> (-exp);
+	    printf("m=%u\n",mantissa);
+		for(int i=0;i<40;i++){
+			digit_array[i] = mantissa % 10;
+			mantissa = mantissa / 10;
+			if(digit_array[i] != 0){
+				last_digit = i;
+			}
+		}
+		lcd_write_data(digit_array[last_digit]+'0');
+		lcd_write_data('.');
+		lcd_write_data(digit_array[last_digit-1]+'0');	
+	}
+	
+	//prints the exponent, always an integer
+	lcd_write_data('E');
+	if(exp10 < 0){
+		lcd_write_data('-');
+		exp10 = -exp10;
+	}
+	int exp_digit_array[2];
+	unsigned short int last_digit = 0;
+	for(int i=0;i<2;i++){
+		exp_digit_array[i] = exp10 % 10;
+		exp10 = exp10 / 10;
+		if(exp_digit_array[i] != 0){
+			last_digit = i;
+		}
+	}
+	lcd_write_data(exp_digit_array[last_digit]+'0');
+	if(last_digit != 0){
+		lcd_write_data(exp_digit_array[last_digit-1]+'0');
+	}	
+	
+	//TO-DO: remove	
+	printf("\n\nf=%f\n",w.f);
+	printf("exp=%d\n",exp);
+	return;
+}

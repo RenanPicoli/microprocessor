@@ -3,6 +3,9 @@
 
 //#include <stdint.h>
 
+//includes word type
+#include "lcd.h"
+
 // Macros para facilitar a conversão de binário para unsigned int
 #define BIN10(rs, rw, b7, b6, b5, b4, b3, b2, b1, b0) ((unsigned int)( \
     ((rs & 1) << 9) | ((rw & 1) << 8) | ((b7 & 1) << 7) | ((b6 & 1) << 6) | \
@@ -89,6 +92,7 @@ void lcd_read_busy_flag_addr(unsigned int* busy_flag, unsigned int* address);
 void lcd_write_data(unsigned int data);
 void lcd_print(unsigned int* str);
 void lcd_print_reg(unsigned int reg_value);
+void lcd_print_float(float value);
 unsigned int lcd_read_data();
 
 #endif // LCD_HD44780_COMMANDS_H
