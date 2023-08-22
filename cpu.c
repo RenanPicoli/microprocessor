@@ -67,3 +67,32 @@ float __negsf3(float x){
 	ret;\n\t\
 	.remove_epilogue\n\t");
 }
+
+//convert x to a signed integer, rounding toward zero
+//will call float2int (my implementation)
+int   __fixsfsi(float x){
+	return float2int(x);
+}
+
+//convert x to a signed integer, rounding toward zero
+int float2int(float a){
+    word w;
+    w.f = a;
+    int sgn =1;
+    if((w.i & 0x80000000)!=0){
+        sgn = -1;
+    }
+    unsigned int exp2u = (w.i & 0x7F800000)>>23;
+    int exp2 = exp2u - 127;
+    unsigned int mantissa = (w.i & 0x007FFFFF);
+    mantissa = mantissa | 0x00800000;//appends the implicit '1.'
+    if(exp2 < 0){
+        return 0;
+    }else{
+        if(exp2 < 23){
+            return sgn*(mantissa >> (23-exp2));
+        }else{
+            return sgn*(mantissa << (exp2 - 23));
+        }
+    }
+}
