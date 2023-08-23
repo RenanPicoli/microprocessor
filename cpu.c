@@ -96,3 +96,56 @@ int float2int(float a){
         }
     }
 }
+
+// convert x, a signed integer, to floating point
+//will call int2float (my implementation)
+float __floatsisf (int x){
+	return int2float(x);
+}
+
+float int2float(int x){//convert x (signed int) to a float
+	if(x < 0){
+		word w;
+		w.f = uint2float((unsigned int)(-x));
+		w.i |= 0x80000000;
+		return w.f;
+	}else{
+		return (uint2float((unsigned int) x));
+	}
+}
+
+// convert x, a unsigned integer, to floating point
+//will call uint2float (my implementation)
+float __floatunsisf (unsigned int x){
+	return uint2float(x);
+}
+
+float uint2float(unsigned int x){//convert x (unsigned int) to a float
+	unsigned int clz = 0;//count leading zeros (number of 0s at left of most significant 1)
+	word w;
+	w.i = 0;
+	unsigned int tmp = x;
+	if(x == 0){
+		clz = 32;
+		return w.f;
+	}else{
+		for(int i=0;i<32;i++){
+			tmp = (x >> i);
+			if(tmp == 0){
+				clz = 32-i;
+				break;
+			}
+		}
+	
+		if(clz >= 8){
+			w.i = (x << (clz - 8));
+			w.i = (w.i & 0x007FFFFF);//zeroes the implicit '1.'
+			w.i = (w.i | ((31-clz+127)<<23));
+		}else{
+			w.i = (x >> (8 - clz));
+			w.i = (w.i & 0x007FFFFF);//zeroes the implicit '1.'
+			w.i = (w.i | ((31-clz+127)<<23));
+		}
+		return w.f;
+	}
+}

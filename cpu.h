@@ -52,6 +52,8 @@ typedef union {
 int one_hot(int n);
 void lvec_f(char src,char dst);
 int float2int(float x);//convert x to a signed integer, rounding toward zero
+float int2float(int x);//convert x (signed int) to a float
+float uint2float(unsigned int x);//convert x (unsigned int) to a float
 
 //floating point support
 //these functions in MIPS gcc are emulators of FPU operations
@@ -64,5 +66,11 @@ float __negsf3(float x);
 //convert x to a signed integer, rounding toward zero
 //will call float2int (my implementation)
 int   __fixsfsi(float x);
+// convert x, a signed integer, to floating point
+//will call int2float (my implementation)
+float __floatsisf (int x);
+// convert x, a signed integer, to floating point
+//will call uint2float (my implementation)
+float __floatunsisf (unsigned int x);
 
 #endif
