@@ -91,6 +91,7 @@ void lcd_print_reg(unsigned int reg_value){
 //prints value in format [-]X.YE[-]Z (X,Y are single digits, Z has 1 our 2 digits)
 //TO-DO: handle special values like +/-0,NaN,+Inf,-Inf
 void lcd_print_float(float value){
+	const int decimal_places=1;
 	word w;
 	w.f = value;
 	if(w.i & 0x80000000 != 0){
@@ -98,58 +99,70 @@ void lcd_print_float(float value){
 	}
 	unsigned short int biased_exp = (w.i & 0x7F800000) >> 23;
 	signed short int exp = biased_exp-127;//exponent for base 2
-	
-	//exponent for base 10 is given by floor(exp*log2)
-    unsigned int tmp = (exp * 0x4D10);
-    signed short int exp10 = tmp >> 16;
-	
-	unsigned int mantissa = (w.i & 0x007FFFFF);
-	mantissa = mantissa | 0x00800000;// the '1.' implicit is added
-	mantissa = (mantissa >> (23-exp));
-	//TO-DO: remove
-	printf("%u\n",mantissa);
-	printf("exp10=%d\n",exp10);
-	
-	int digit_array[40];
-	if(exp10 >= 0){
-		unsigned short int last_digit = 0;
-		for(int i=0;i<40;i++){
-			digit_array[i] = mantissa % 10;
-			mantissa = mantissa / 10;
-			if(digit_array[i] != 0){
-				last_digit = i;
-			}
-		}
-		lcd_write_data(digit_array[last_digit]+'0');
-		lcd_write_data('.');
-		lcd_write_data(digit_array[last_digit-1]+'0');		
-	}else{
-		unsigned short int last_digit = 0;
-		unsigned int divider = 1 << 23;
-		for(int i=0;i<1-exp10;i++){
-		    divider = divider / 10;
-		}
-	    printf("d=%u\n",divider);
-	    //printf("d=%u\n",divider);
-		mantissa = mantissa / divider;
-		mantissa = mantissa >> (-exp);
-	    printf("m=%u\n",mantissa);
-		for(int i=0;i<40;i++){
-			digit_array[i] = mantissa % 10;
-			mantissa = mantissa / 10;
-			if(digit_array[i] != 0){
-				last_digit = i;
-			}
-		}
-		lcd_write_data(digit_array[last_digit]+'0');
-		lcd_write_data('.');
-		lcd_write_data(digit_array[last_digit-1]+'0');	
+	signed short int exp10;//exponent for base 10
+
+    unsigned short int negative = 0;
+	if((w.i & 0x80000000) != 0){
+	    negative = 1;
+	    w.f = w.f * (-1.0);
 	}
 	
+	float tmp = w.f;
+	
+	if(w.f < 1.0){
+    	for(int i=0;i<40;i++){
+    	    if(tmp >= 1.0){
+    	       exp10 = -i;
+    	       break;
+    	    }else{
+    	        tmp = tmp * 10.0;
+    	    }
+    	}
+	}else{
+    	for(int i=0;i<40;i++){
+    	    if(tmp < 1.0){
+    	       exp10 = i-1;
+    	       tmp = tmp * 10.0;
+    	       break;
+    	    }else{
+    	        tmp = tmp / 10.0;
+    	    }
+    	}
+	}
+	
+	//TO-DO: remove
+	//printf("exp10=%d\n",exp10);
+	//printf("tmp=%f\n",tmp);
+	//printf("%f\n",tmp-1.0);
+	
+	if(negative !=0){
+		lcd_write_data('-');
+	}
+	char digit_array[decimal_places+1];
+//	tmp = w.f;
+	for(int i=0;i<decimal_places+1;i++){
+        digit_array[i] = '0'+(int)tmp;
+        tmp = tmp - (int)tmp;
+        tmp = tmp * 10.0;
+	    //printf("%c",digit_array[i]);
+	    //printf("%f\n",tmp);
+	}
+	//printf("\n%c",digit_array[0]);
+	//printf(".");
+	lcd_write_data(digit_array[0]);
+	lcd_write_data('.');
+	for(int i=1;i<decimal_places+1;i++){
+	    //printf("%c",digit_array[i]);
+		lcd_write_data(digit_array[i]);
+	}
+
+	
 	//prints the exponent, always an integer
+	//printf("E");
 	lcd_write_data('E');
 	if(exp10 < 0){
-		lcd_write_data('-');
+		//printf("-");
+		lcd_write_data('-');		
 		exp10 = -exp10;
 	}
 	int exp_digit_array[2];
@@ -161,13 +174,15 @@ void lcd_print_float(float value){
 			last_digit = i;
 		}
 	}
-	lcd_write_data(exp_digit_array[last_digit]+'0');
+	//printf("%d",exp_digit_array[last_digit]);
+	lcd_write_data('0'+exp_digit_array[last_digit]);
 	if(last_digit != 0){
-		lcd_write_data(exp_digit_array[last_digit-1]+'0');
-	}	
+		//printf("%d",exp_digit_array[last_digit-1]);
+		lcd_write_data('0'+exp_digit_array[last_digit-1]);
+	}
 	
 	//TO-DO: remove	
-	printf("\n\nf=%f\n",w.f);
-	printf("exp=%d\n",exp);
-	return;
+	//printf("\n\nf=%f\n",w.f);
+	//printf("exp=%d\n",exp);
+    return;
 }
