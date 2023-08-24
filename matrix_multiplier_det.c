@@ -1,6 +1,7 @@
 #include "bsp.h"
 #include "cpu.h"
 #include "wm8731.h"
+#include "lcd.h"
 
 void register_init();
 
@@ -82,8 +83,9 @@ int main(void){
 	det_w.f=det_2x2(C);
 	
 	//intentionally ommited the instruction memory write
-	//writes determinant to 7-seg
+	//writes determinant to 7-seg and LCD (scientific notation)
 	print_7segs(det_w.i);
+	lcd_print_float(det_w.f);
 	
 	GIC_config();
 	filter_control(0);//disables filter
@@ -292,3 +294,4 @@ float det_2x2(float A[2][2]){
 
 #include "bsp.c"
 #include "cpu.c"
+#include "lcd.c"
