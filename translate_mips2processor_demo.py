@@ -439,6 +439,12 @@ def main(argv):
           elif(opcode=="beq"):
             frmt_str="\tbeq {} {} x\"0001\";\n\tbeq $0 $0 x\"0001\";\n\tjmp {};"
             new_instr = frmt_str.format(arg[1], arg[2], arg[3])
+          elif(opcode=="bgez"):
+            frmt_str="\tpush $16;\n\tslt {} $0 $16;\n\tbeq $16 $0 x\"0002\";\n\tpop $16;\n\tbeq $0 $0 x\"0002\";\n\tpop $16;\n\tjmp {};"
+            new_instr = frmt_str.format(arg[1], arg[2])
+          elif(opcode=="bltz"):
+            frmt_str="\tpush $16;\n\tslt {} $0 $16;\n\tbeq $16 $0 x\"0002\";\n\tpop $16;\n\tjmp {}\n\tpop $16;"
+            new_instr = frmt_str.format(arg[1], arg[2])
     
         # R-type and similars: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
         elif (opcode=="add" or opcode=="addu" or opcode=="and" or opcode=="xor" or opcode=="sub" or opcode=="subu" or opcode=="or" or opcode=="nor" or opcode=="fadd" or opcode=="fsub" or opcode=="fmul" or opcode=="fdiv"):
@@ -527,11 +533,14 @@ def main(argv):
   post_process(new_instr_vector) # removes prologues and epilogues, when specified
   
   of.write(".text\n")
+  instr_vector_cnt=0
   for i in new_instr_vector:
+    print(str(instr_vector_cnt)+":"+i)
     if(i[-1]=="\n"):
       of.write(i)
     else:
       of.write(i+"\n")
+    instr_vector_cnt=instr_vector_cnt+1
   of.write(".data\n")
   for d in data_vector:
     if(d[-1]=="\n"):
