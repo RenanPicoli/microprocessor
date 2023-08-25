@@ -94,24 +94,30 @@ void lcd_print_float(float value){
 	const int decimal_places=1;
 	word w;
 	w.f = value;
+    unsigned short int negative = 0;
 	if(w.i & 0x80000000 != 0){
 		lcd_write_data('-');
+	    negative = 1;
 	}
 	unsigned short int biased_exp = (w.i & 0x7F800000) >> 23;
 	signed short int exp = biased_exp-127;//exponent for base 2
 	signed short int exp10;//exponent for base 10
 
-    unsigned short int negative = 0;
-	if((w.i & 0x80000000) != 0){
-	    negative = 1;
-	    w.f = w.f * (-1.0);
+	if(negative){
+	    w.i ^= 0x80000000;//flips w.f bit signal
 	}
 	
 	float tmp = w.f;
+	float tmp2;
+	word w2;
 	
-	if(w.f < 1.0){
+	tmp2 = w.f-1.0;
+	w2.f=tmp2;
+	if(w2.i < 0){
     	for(int i=0;i<40;i++){
-    	    if(tmp >= 1.0){
+	        tmp2 = tmp-1.0;
+	        w2.f=tmp2;
+    	    if(w2.i >= 0){
     	       exp10 = -i;
     	       break;
     	    }else{
@@ -120,7 +126,9 @@ void lcd_print_float(float value){
     	}
 	}else{
     	for(int i=0;i<40;i++){
-    	    if(tmp < 1.0){
+	        tmp2 = tmp-1.0;
+	        w2.f=tmp2;
+    	    if(w2.i < 0){
     	       exp10 = i-1;
     	       tmp = tmp * 10.0;
     	       break;
