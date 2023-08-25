@@ -226,7 +226,14 @@ def main(argv):
             new_instr=words[0]
     
         # processes instructions
-        elif(opcode=="sw" or opcode=="lw"):
+        # for now, there is no support for types sizes different from 32 bits
+        # sb, sh will translate to sw
+        # lb, lbu, lh, lhu will translate to lw
+        elif(opcode=="sw" or opcode=="lw" or opcode=="sb" or opcode=="sh" or opcode=="lb" or opcode=="lbu" or opcode=="lh" or opcode=="lhu"):
+          if(opcode=="sb" or opcode=="sh"):
+            opcode = "sw"
+          elif(opcode=="lb" or opcode=="lbu" or opcode=="lh" or opcode=="lhu"):
+            opcode = "lw"
           # arg2 will be parsed in the form offset($x)      
           tmp = arg[2].split("(")
           #print("tmp=")
@@ -443,7 +450,7 @@ def main(argv):
             frmt_str="\tpush $16;\n\tslt {} $0 $16;\n\tbeq $16 $0 x\"0002\";\n\tpop $16;\n\tbeq $0 $0 x\"0002\";\n\tpop $16;\n\tjmp {};"
             new_instr = frmt_str.format(arg[1], arg[2])
           elif(opcode=="bltz"):
-            frmt_str="\tpush $16;\n\tslt {} $0 $16;\n\tbeq $16 $0 x\"0002\";\n\tpop $16;\n\tjmp {}\n\tpop $16;"
+            frmt_str="\tpush $16;\n\tslt {} $0 $16;\n\tbeq $16 $0 x\"0002\";\n\tpop $16;\n\tjmp {};\n\tpop $16;"
             new_instr = frmt_str.format(arg[1], arg[2])
     
         # R-type and similars: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
