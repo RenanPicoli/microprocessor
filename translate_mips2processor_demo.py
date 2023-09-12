@@ -31,7 +31,7 @@ aliases={
 }
 
 #TODO: remove this improvised solution
-INSTRUCTION_MEMORY_BASE_ADDR=0x1000 # byte address
+INSTRUCTION_MEMORY_BASE_ADDR=0x2000 # byte address
 
 def main(argv):
   if(len(argv)!=2):
