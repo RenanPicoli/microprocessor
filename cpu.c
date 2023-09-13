@@ -79,7 +79,8 @@ int float2int(float a){
     word w;
     w.f = a;
     int sgn =1;
-    if((w.i & 0x80000000)!=0){
+    int masked_w = (w.i & 0x80000000);
+    if(masked_w != 0){
         sgn = -1;
     }
     unsigned int exp2u = (w.i & 0x7F800000)>>23;
