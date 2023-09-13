@@ -81,6 +81,7 @@ signal imul_res: std_logic_vector(63 downto 0);
 signal hi_out: std_logic_vector(31 downto 0);
 signal lo_out: std_logic_vector(31 downto 0);
 signal hi_lo_en: std_logic;--enables  writes on hi/lo registers
+signal A_minus_B: std_logic_vector(31 downto 0);
 signal lsb: std_logic;
 signal zero_flag: std_logic;
 
@@ -119,7 +120,8 @@ begin
 	shamt_signed <= (('1' & not shamt) + 1) when (shift_direction='1') else --srl/srlv/shra/srav
 					'0' & shamt; --sll/sllv
 	 
-	 lsb <= '1' when (A < B) else '0';
+	 A_minus_B <= A + (not B) + 1;-- A-B
+	 lsb <= '1' when A_minus_B(31)='1' else '0';
 	 imul_A <= A when (A(31)='0') else ((not A)+1);
 	 imul_B <= B when (B(31)='0') else ((not B)+1);
 	 imul_res <= multiplier_out when ((A(31) xor B(31))='0') else ((not multiplier_out)+1);--if signs are equal, result is positive (product) 

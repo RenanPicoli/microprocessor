@@ -38,7 +38,7 @@ entity control_unit is
 			shift_src: out std_logic;--'1': use rt
 			shift_direction: out std_logic;--'1': shift right (instead of shift left)
 			shift_mode: out std_logic;--'1': arithmetic shift (instead of logic shift)
-			aluSrc: out std_logic;
+			aluSrc: out std_logic_vector(1 downto 0);
 			regWrite: out std_logic			
 			);
 
@@ -160,7 +160,13 @@ reg_data_src <= "11" when (ldfp='1' or ldrv='1' or pop='1' or lui='1') else
 					 "00";
 
 mem_data_src <= '1';--now I don't understand how to implement a instruction that operates on fp numbers and save the result to memory 
-aluSrc 	<= addi or subi or andi or ori or xori or nori or slti;--'1': operando 2 da ALU é imediato com extensão de sinal
+
+--"10": operando 2 da ALU é imediato com extensão de zeros
+--"01": operando 2 da ALU é imediato com extensão de sinal
+--"00": operando 2 da ALU é saída do register file (read_data_2)
+aluSrc 	<= "01" when (addi='1' or subi='1' or slti='1') else
+				"10" when (andi='1' or ori='1' or xori='1' or nori='1') else
+				"00";
 regWrite <= R_type or load_type or addi or subi or andi or ori or
 				xori or nori or slti or mfhi or mflo or ldfp or ldrv or
 				pop or lui;--addi tambem escreve no register file, como R-type

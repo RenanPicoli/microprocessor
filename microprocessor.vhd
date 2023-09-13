@@ -124,7 +124,7 @@ component control_unit
 			shift_src: out std_logic;--'1': use rt
 			shift_direction: out std_logic;--'1': shift right (instead of shift left)
 			shift_mode: out std_logic;--'1': arithmetic shift (instead of logic shift)
-			aluSrc: out std_logic;
+			aluSrc: out std_logic_vector(1 downto 0);
 			regWrite: out std_logic
 			);
 end component;
@@ -191,7 +191,7 @@ signal addr_stack: std_logic_vector (31 downto 0) := (others => '0');
 signal wren_stack: std_logic;
 signal Q_stack: std_logic_vector (31 downto 0) := (others => '0');
 constant STACK_LEVELS_LOG2: natural := 2;--for GPR's, FP and LR
-constant PROGRAM_STACK_LEVELS_LOG2: natural := 6;--for program_stack
+constant PROGRAM_STACK_LEVELS_LOG2: natural := 7;--for program_stack
 
 --signals driven by control unit
 signal regDst: std_logic_vector(1 downto 0);
@@ -206,7 +206,7 @@ signal memWrite: std_logic;
 signal vmac: std_logic;--enables multiply-accumulate
 signal lvec: std_logic;
 signal lvecr: std_logic;
-signal aluSrc: std_logic;
+signal aluSrc: std_logic_vector(1 downto 0);
 signal regWrite: std_logic;
 
 signal writeLoc: std_logic_vector (4  downto 0);
@@ -235,7 +235,8 @@ signal shift_mode: std_logic;--'1': arithmetic shift (instead of logic shift)
 signal funct: std_logic_vector (5 downto 0);
 signal addressRelative: std_logic_vector (15 downto 0);--for load,store,branch
 signal addressAbsolute: std_logic_vector (25 downto 0);--for jumps
-signal addressRelativeExtended: std_logic_vector (31 downto 0);--addressRelative after sign extension
+signal addressRelativeSignExtended: std_logic_vector (31 downto 0);--addressRelative after sign extension
+signal addressRelativeZeroExtended: std_logic_vector (31 downto 0);--addressRelative after zero extension
 signal lui_immediate: std_logic_vector (31 downto 0);--addressRelative after sll 16
 
 signal data_memory_output: std_logic_vector (31 downto 0);
@@ -245,7 +246,7 @@ signal alu_flags: eflags;--flags da ALU
 signal fpu_flags: std_logic_vector(31 downto 0);--flags da FPU
 signal muxNextInstrOutput: std_logic_vector (31 downto 0);
 signal pc_incremented: std_logic_vector (31 downto 0);--pc+4
-signal branch_address: std_logic_vector (31 downto 0);--(addressRelativeExtended(29 downto 0)&"00")+pc_out
+signal branch_address: std_logic_vector (31 downto 0);--(addressRelativeSignExtended(29 downto 0)&"00")+pc_out
 signal branch_or_next: std_logic;--branch and ZF
 signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & addressAbsolute & "00"
 signal full_ADDR_ram: std_logic_vector (31 downto 0);
@@ -480,7 +481,7 @@ begin
 	fpu_flags(31 downto 3) <= (others=>'0');
 								
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NA MEMÓRIA NA BORDA DE DESCIDA
-	full_ADDR_ram <= read_data_1 + addressRelativeExtended;--byte address
+	full_ADDR_ram <= read_data_1 + addressRelativeSignExtended;--byte address
 	ADDR_ram <= "00" & full_ADDR_ram(31 downto 2);--WORD ADDRESS
 	
 	write_data_ram <= mem_write_data;
@@ -507,7 +508,7 @@ begin
 							fpu_result;
 												
 	pc_incremented <= (pc_out+4);
-	branch_address <=  (addressRelativeExtended(29 downto 0)&"00")+pc_incremented;
+	branch_address <=  (addressRelativeSignExtended(29 downto 0)&"00")+pc_incremented;
 	branch_or_next <= branch and alu_flags.ZF;
 	addressAbsolute <= instruction(25 downto 0);
 	jump_address <= pc_out(31 downto 28) & addressAbsolute & "00";--TODO: é pc_incremented em vez de pc_out CHECAR
@@ -532,11 +533,13 @@ begin
 	instruction <= Q_rom when i_cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
-	addressRelativeExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
+	addressRelativeSignExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
+	addressRelativeZeroExtended <= (31 downto 16 => '0') & addressRelative;
 	lui_immediate <= instruction(15 downto 0) & (15 downto 0 => '0');
 	
-	aluOp2 <= 	addressRelativeExtended when aluSrc='1' else
-					read_data_2;
+	aluOp2 <= 	addressRelativeSignExtended when aluSrc="01" else
+					addressRelativeZeroExtended when aluSrc="10" else
+					read_data_2;--aluSrc="00"
 										
 	control: control_unit port map (	instruction => instruction,
 												regDst => regDst,
