@@ -91,15 +91,16 @@ void lcd_print_reg(unsigned int reg_value){
 //prints value in format [-]X.YE[-]Z (X,Y are single digits, Z has 1 our 2 digits)
 //TO-DO: handle special values like +/-0,NaN,+Inf,-Inf
 void lcd_print_float(float value){
-	const int decimal_places=1;
+	#define DECIMAL_PLACES 1
 	word w;
 	w.f = value;
     unsigned short int negative = 0;
-	if(w.i & 0x80000000 != 0){
+    int masked_w = (w.i & 0x80000000);
+    if(masked_w != 0){
 		lcd_write_data('-');
 	    negative = 1;
 	}
-	unsigned short int biased_exp = (w.i & 0x7F800000) >> 23;
+	unsigned int biased_exp = (w.i & 0x7F800000) >> 23;
 	signed short int exp = biased_exp-127;//exponent for base 2
 	signed short int exp10;//exponent for base 10
 
@@ -128,9 +129,9 @@ void lcd_print_float(float value){
     	for(int i=0;i<40;i++){
 	        tmp2 = tmp-1.0;
 	        w2.f=tmp2;
-    	    if(w2.i < 0){
-    	       exp10 = i-1;
+    	    if(i<40 && (w2.i < 0) && (w2.i != 0x80000000)){
     	       tmp = tmp * 10.0;
+    	       exp10 = i-1;
     	       break;
     	    }else{
     	        tmp = tmp / 10.0;
@@ -143,12 +144,9 @@ void lcd_print_float(float value){
 	//printf("tmp=%f\n",tmp);
 	//printf("%f\n",tmp-1.0);
 	
-	if(negative !=0){
-		lcd_write_data('-');
-	}
-	char digit_array[decimal_places+1];
+	int digit_array[DECIMAL_PLACES+1];
 //	tmp = w.f;
-	for(int i=0;i<decimal_places+1;i++){
+	for(int i=0;i<DECIMAL_PLACES+1;i++){
         digit_array[i] = '0'+(int)tmp;
         tmp = tmp - (int)tmp;
         tmp = tmp * 10.0;
@@ -159,7 +157,7 @@ void lcd_print_float(float value){
 	//printf(".");
 	lcd_write_data(digit_array[0]);
 	lcd_write_data('.');
-	for(int i=1;i<decimal_places+1;i++){
+	for(int i=1;i<DECIMAL_PLACES+1;i++){
 	    //printf("%c",digit_array[i]);
 		lcd_write_data(digit_array[i]);
 	}
