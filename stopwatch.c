@@ -131,7 +131,7 @@ void IRQ0_Handler(){
 	print_7segs(number_to_display);
 	
 	if(hours == DESIRED_TIME_HR && minutes == DESIRED_TIME_MIN && seconds == DESIRED_TIME_SEC){
-		//print "Desired Time Elapsed" on LCD
+		//print "Elapsed Time: XXhYYmZZs" on LCD
 		lcd_write_data('E');
 		lcd_write_data('l');
 		lcd_write_data('a');
