@@ -108,6 +108,7 @@ void IRQ0_Handler(){
     static int seconds=0;
 	static int minutes=0;
 	static int hours=0;
+	static int message_printed = 0;
 
     ticks += 1;
     
@@ -130,7 +131,7 @@ void IRQ0_Handler(){
 	//number_to_display = seconds;
 	print_7segs(number_to_display);
 	
-	if(hours == DESIRED_TIME_HR && minutes == DESIRED_TIME_MIN && seconds == DESIRED_TIME_SEC){
+	if((!message_printed) && hours == DESIRED_TIME_HR && minutes == DESIRED_TIME_MIN && seconds == DESIRED_TIME_SEC){
 		//print "Elapsed Time: XXhYYmZZs" on LCD
 		lcd_write_data('E');
 		lcd_write_data('l');
@@ -157,6 +158,7 @@ void IRQ0_Handler(){
 		lcd_write_data(seconds/10+'0');
 		lcd_write_data(seconds%10+'0');
 		lcd_write_data('s');
+		message_printed = 1;
 	}
 	
 	IRET();
