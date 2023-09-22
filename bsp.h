@@ -67,8 +67,8 @@ typedef struct{
 #define I2C_WORDS_3 2<<8
 #define I2C_WORDS_4 3<<8
 
-#define I2C_DIRECTION_READ  0
-#define I2C_DIRECTION_WRITE 1
+#define I2C_DIRECTION_READ  1
+#define I2C_DIRECTION_WRITE 0
 
 #define I2C_EN 1<<10
 
