@@ -175,11 +175,11 @@ void IRQ0_Handler(){
 	//float step=min(0.5/squared_norm_w.f,1e4f);//f for float
 	word step_w;
 	FMUL(2.0f,step,step_w.f);//step_w.f = 2.0f*step;
-	WRITE(CACHE_BASE_ADDR+0,step_w.i);
+	WRITE(CACHE_BASE_ADDR+0*4,step_w.i);
 	
 	word desired_w;
 	READ(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET,desired_w.i);
-	WRITE(CACHE_BASE_ADDR+1,desired_w.i);//saves desired response to position 1 of mini_ram
+	WRITE(CACHE_BASE_ADDR+1*4,desired_w.i);//saves desired response to position 1 of mini_ram
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
@@ -200,13 +200,13 @@ void IRQ3_Handler(){
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
 	word desired_w;
-	READ(CACHE_BASE_ADDR+1,desired_w.i);
+	READ(CACHE_BASE_ADDR+1*4,desired_w.i);
 	
 	word error_w;
 	FSUB(desired_w.f,filter_out_w.f,error_w.f);//error_w.f=desired_w.f-filter_out_w.f;
 	
 	word double_step_w;//2*step
-	READ(CACHE_BASE_ADDR+0,double_step_w.i);
+	READ(CACHE_BASE_ADDR+0*4,double_step_w.i);
 	
 	word lambda_w;
 	FMUL(double_step_w.f,error_w.f,lambda_w.f);//lambda_w.f=double_step_w.f*error_w.f; (2*step*error)
