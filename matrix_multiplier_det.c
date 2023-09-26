@@ -152,14 +152,14 @@ __asm(".remove_prologue\n\t\
 
 //configures the global interrupt controller
 void GIC_config(){
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+0,(int) &IRQ0_Handler);//loads the position 0 of vector with address of IRQ0_Handler
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+0,0);//put IRQ0_Handler in priority 0
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+0*4,(int) &IRQ0_Handler-INSTRUCTION_MEMORY_BASE_ADDR);//loads the position 0 of vector with address of IRQ0_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+0*4,0);//put IRQ0_Handler in priority 0
 	
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+12,(int) &IRQ3_Handler);//loads the position 3 of vector with address of IRQ3_Handler
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+4,3);//put IRQ3_Handler in priority 1
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+3*4,(int) &IRQ3_Handler-INSTRUCTION_MEMORY_BASE_ADDR);//loads the position 3 of vector with address of IRQ3_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+1*4,3);//put IRQ3_Handler in priority 1
 	
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+4,(int) &IRQ1_Handler);//loads the position 1 of vector with address of IRQ1_Handler
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+8,1);//put IRQ1_Handler in priority 2
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+1*4,(int) &IRQ1_Handler-INSTRUCTION_MEMORY_BASE_ADDR);//loads the position 1 of vector with address of IRQ1_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+2*4,1);//put IRQ1_Handler in priority 2
 	
 	return;
 }
@@ -211,11 +211,11 @@ void IRQ0_Handler(){
 	//float step=min(0.5/squared_norm_w.f,1e4f);//f for float
 	register word step_w;
 	FMUL(2.0f,step,step_w.f);//step_w.f = 2.0f*step;
-	WRITE(CACHE_BASE_ADDR+0,step_w.i);
+	WRITE(CACHE_BASE_ADDR+0*4,step_w.i);
 	
 	register word desired_w;
 	READ(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET,desired_w.i);
-	WRITE(CACHE_BASE_ADDR+4,desired_w.i);//saves desired response to position 1 of mini_ram
+	WRITE(CACHE_BASE_ADDR+1*4,desired_w.i);//saves desired response to position 1 of mini_ram
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
@@ -236,13 +236,13 @@ void IRQ3_Handler(){
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
 	register word desired_w;
-	READ(CACHE_BASE_ADDR+4,desired_w.i);
+	READ(CACHE_BASE_ADDR+1*4,desired_w.i);
 	
 	register word error_w;
 	FSUB(desired_w.f,filter_out_w.f,error_w.f);//error_w.f=desired_w.f-filter_out_w.f;
 	
 	register word double_step_w;//2*step
-	READ(CACHE_BASE_ADDR+0,double_step_w.i);
+	READ(CACHE_BASE_ADDR+0*4,double_step_w.i);
 	
 	register word lambda_w;
 	FMUL(double_step_w.f,error_w.f,lambda_w.f);//lambda_w.f=double_step_w.f*error_w.f; (2*step*error)
