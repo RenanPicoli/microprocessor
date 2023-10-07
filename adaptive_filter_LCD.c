@@ -205,9 +205,11 @@ void IRQ3_Handler(){
 	VMAC();
 	//Lê o acumulador do VMAC(5) e atualiza os coeficientes do filtro(0)
 	LVECR(5,1);
-	//Lê memória de coeficientes do filtro(0) para o filtro(1)
-	//enables filter to update its components (when filter_CLK rises)
-	LVECR(0,2);
+	//Lê memória de coeficientes do filtro(0) para o filtro(1), produto interno (A e B - 3 e 4)
+	LVECR(0,26);
+	WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
+	word squared_norm_coeffs_w;//squared norm of filter coefficients
+	READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_coeffs_w.i);
 	
 	//TODO: se filtro já convergiu, sair do loop
 
@@ -230,6 +232,11 @@ void IRQ3_Handler(){
 	word squared_norm_w;
 	READ(CACHE_BASE_ADDR+2*4,squared_norm_w.i);
 	FMUL(squared_lambda_w.f,squared_norm_w.f,squared_norm_w.f);
+	float squared_dev;//filter coefficients SQUARED deviation
+	FDIV(squared_norm_w.f,squared_norm_coeffs_w.f,squared_dev);
+	
+	//saves the squared deviation of filter coefficients to cache, position 3
+	WRITE(CACHE_BASE_ADDR+3*4,squared_dev);
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
