@@ -17,10 +17,13 @@ void IRQ0_Handler();
 // handler of IRQ1 (I2C)
 void IRQ1_Handler();
 
+// handler of IRQ2 (I2S)
+//void IRQ2_Handler();
+
 // handler of IRQ3 (filter_CLK falling_edge)
 void IRQ3_Handler();
 
-// handler of IRQ4 (LCD printing task)
+// handler of IRQ4 (LCD printing task, software interrupt)
 void IRQ4_Handler();
 
 // alias for IRQ4_Handler()
@@ -110,6 +113,9 @@ void GIC_config(){
 	
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+1*4,(int) &IRQ1_Handler-INSTRUCTION_MEMORY_BASE_ADDR);//loads the position 1 of vector with address of IRQ1_Handler
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+2*4,1);//put IRQ1_Handler in priority 2
+	
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+4*4,(int) &IRQ4_Handler-INSTRUCTION_MEMORY_BASE_ADDR);//loads the position 1 of vector with address of IRQ1_Handler
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+31*4,4);//put IRQ4_Handler in priority 31
 	
 	return;
 }
@@ -232,11 +238,63 @@ void IRQ3_Handler(){
 	word squared_norm_w;
 	READ(CACHE_BASE_ADDR+2*4,squared_norm_w.i);
 	FMUL(squared_lambda_w.f,squared_norm_w.f,squared_norm_w.f);
+
 	float squared_dev;//filter coefficients SQUARED deviation
 	FDIV(squared_norm_w.f,squared_norm_coeffs_w.f,squared_dev);
-	
+
 	//saves the squared deviation of filter coefficients to cache, position 3
-	WRITE(CACHE_BASE_ADDR+3*4,squared_dev);
+	//WRITE(CACHE_BASE_ADDR+3*4,squared_dev);
+	   
+	//tests if filter converged
+	word d_w;
+	FSUB(squared_dev,1e-13f,d_w.f);
+	//d_w.i &= 0x80000000;
+	if((d_w.i & 0x80000000)==0x80000000){//(squared_dev - 1e-13f)<0
+	//if(squared_dev < 1e-13f){
+		//creates a software interrupt
+		WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_SW_IRQ_REG_OFFSET,1<<4);
+	}
+	   
+	IRET();
+    __asm(".remove_epilogue\n\t");
+}
+
+// handler of IRQ4 (software )
+void IRQ4_Handler(){
+    __asm(".remove_prologue\n\t");
+	word tmp;
+	
+	READ(FILTER_COEFFS_BASE_ADDR+0*4,tmp.i);
+	lcd_print_float(tmp.f);
+	lcd_write_data(',');
+	
+	READ(FILTER_COEFFS_BASE_ADDR+1*4,tmp.i);
+	lcd_print_float(tmp.f);
+	lcd_write_data(',');
+	
+	READ(FILTER_COEFFS_BASE_ADDR+2*4,tmp.i);
+	lcd_print_float(tmp.f);
+	lcd_write_data(',');
+	
+	READ(FILTER_COEFFS_BASE_ADDR+3*4,tmp.i);
+	lcd_print_float(tmp.f);
+	lcd_write_data(',');
+	
+	READ(FILTER_COEFFS_BASE_ADDR+4*4,tmp.i);
+	lcd_print_float(tmp.f);
+	lcd_write_data(',');
+	
+	READ(FILTER_COEFFS_BASE_ADDR+5*4,tmp.i);
+	lcd_print_float(tmp.f);
+	lcd_write_data(',');
+	
+	READ(FILTER_COEFFS_BASE_ADDR+6*4,tmp.i);
+	lcd_print_float(tmp.f);
+	lcd_write_data(',');
+	
+	READ(FILTER_COEFFS_BASE_ADDR+7*4,tmp.i);
+	lcd_print_float(tmp.f);
+>>>>>>> 7d7106d9866c3810e4aa0171fb24b0f09ea2cab4
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
