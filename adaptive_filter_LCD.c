@@ -294,7 +294,6 @@ void IRQ4_Handler(){
 	
 	READ(FILTER_COEFFS_BASE_ADDR+7*4,tmp.i);
 	lcd_print_float(tmp.f);
->>>>>>> 7d7106d9866c3810e4aa0171fb24b0f09ea2cab4
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
