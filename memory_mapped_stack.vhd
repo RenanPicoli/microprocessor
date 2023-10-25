@@ -20,6 +20,7 @@ entity mm_stack is
 generic(L: natural);--log2 of number of stored words
 port (CLK: in std_logic;--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
 		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
+		ready: buffer std_logic;-- for both interfaces
 		--STACK INTERFACE
 		pop: in std_logic;
 		push: in std_logic;
@@ -31,6 +32,7 @@ port (CLK: in std_logic;--active edge: rising_edge, there MUST be a falling_edge
 		--MEMORY-MAPPED INTERFACE
 		D: in std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
 		WREN: in std_logic;--write enable for memory-mapped interface
+		RDEN: in std_logic;--read enable for memory-mapped interface
 		ADDR: in std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
 		Q:		out std_logic_vector(31 downto 0)-- data output for memory-mapped interface
 );
@@ -40,11 +42,12 @@ architecture bhv of mm_stack is
 
 component tdp_ram
 	generic (N: natural; L: natural);--N: data width in bits; L: address width in bits
-	port (CLK: in std_logic;
+	port (CLK_A: in std_logic;
 			WDAT_A: in std_logic_vector(N-1 downto 0);--data for write
 			ADDR_A: in std_logic_vector(L-1 downto 0);--address for read/write
 			WREN_A: in std_logic;--enables write on port A
 			Q_A: out std_logic_vector(N-1 downto 0);
+			CLK_B: in std_logic;
 			WDAT_B: in std_logic_vector(N-1 downto 0);--data for write
 			ADDR_B: in std_logic_vector(L-1 downto 0);--address for read/write
 			WREN_B: in std_logic;--enables write on port A
@@ -67,7 +70,7 @@ component ram_2_port
 	);
 END component;
 
-constant USE_TDP_RAM: boolean := false;
+constant USE_TDP_RAM: boolean := true;
 
 --signal empty: std_logic;
 --signal full: std_logic;
@@ -84,17 +87,18 @@ signal ram: memory;
 attribute ramstyle : string;
 attribute ramstyle of ram : signal is "no_rw_check";
 
+signal	stack_addr:std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
 	begin
 	
-	sp_update: process(CLK,rst,pop,push,addsp,imm)
+	sp_update: process(CLK,rst,pop,push,addsp,imm,ready)
 	begin
 		if(rst='1')then
 			sp <= (others=>'0');--sp=xffffffff means stack with one element, x00000000-1=xffffffff
 		elsif(rising_edge(CLK))then--there must be a falling_edge even when recovering from a cache miss
 			--only one of these inputs can be asserted in one cycle
-			if(pop='1')then
+			if(pop='1' and ready='1')then
 				sp <= sp + 1;
-			elsif(push='1')then
+			elsif(push='1' and ready='1')then
 				sp <= sp - 1;
 			elsif(addsp='1')then
 				sp <= sp + imm;-- immediate is sign-extended
@@ -170,31 +174,47 @@ attribute ramstyle of ram : signal is "no_rw_check";
 	end generate single_port_ram_inst;
 	
 	tdp_ram_inst: if USE_TDP_RAM generate
---	memory_inst: tdp_ram
---		generic map (N => 32, L => L)--N: data width in bits; L: address width in bits
---		port map(CLK => CLK,
---					
---					WDAT_A => stack_in,--data for write
---					ADDR_A => sp,--address for read/write
---					WREN_A => push,--enables write on port A
---					Q_A => stack_out,
---					
---					WDAT_B => D,--data for write
---					ADDR_B => ADDR,--address for read/write
---					WREN_B => WREN,--enables write on port A
---					Q_B	 => Q
---			);
-	memory_inst : ram_2_port PORT MAP (
-		address_a	=> sp,
-		address_b	=> ADDR,
-		clock			=> CLK,
-		data_a		=> stack_in,
-		data_b		=> D,
-		wren_a		=> push,
-		wren_b		=> WREN,
-		q_a			=> stack_out,
-		q_b			=> Q
-	);
+		stack_addr <=	sp-1 when (push='1') else-- sp is already in use, sp-1 is the next available location
+							sp when (pop='1') else
+							ADDR;
+		memory_inst: tdp_ram
+			generic map (N => 32, L => L)--N: data width in bits; L: address width in bits
+			port map(CLK_A => CLK,					
+						WDAT_A => stack_in,--data for write
+						ADDR_A => stack_addr,--address for push/pop
+						WREN_A => push,--enables write on port A
+						Q_A => stack_out,
+						CLK_B => CLK,
+						WDAT_B => D,--data for write
+						ADDR_B => ADDR,--address for read/write
+						WREN_B => WREN,--enables write on port A
+						Q_B	 => Q
+				);
+--	memory_inst : ram_2_port PORT MAP (
+--		address_a	=> sp,
+--		address_b	=> ADDR,
+--		clock			=> CLK,
+--		data_a		=> stack_in,
+--		data_b		=> D,
+--		wren_a		=> push,
+--		wren_b		=> WREN,
+--		q_a			=> stack_out,
+--		q_b			=> Q
+--	);
+	
+		-----------------ready----------------------------
+		process(CLK,RST,push,pop,WREN,RDEN)
+		begin
+			if(RST='1')then
+				ready <= '0';
+			elsif(rising_edge(CLK))then
+				if(ready='0' and (push='1' or WREN='1' or RDEN='1' or pop='1'))then
+					ready <= '1';
+				else
+					ready <= '0';
+				end if;
+			end if;
+		end process;
 	end generate tdp_ram_inst;
 
 	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
