@@ -148,8 +148,9 @@ end component;
 --memory-mapped stack
 component mm_stack
 generic(L: natural);--log2 of number of stored words
-port (CLK: in std_logic;--active edge: rising_edge
+port (CLK: in std_logic;--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
 		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
+		ready: buffer std_logic;-- for both interfaces
 		--STACK INTERFACE
 		pop: in std_logic;
 		push: in std_logic;
@@ -161,6 +162,7 @@ port (CLK: in std_logic;--active edge: rising_edge
 		--MEMORY-MAPPED INTERFACE
 		D: in std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
 		WREN: in std_logic;--write enable for memory-mapped interface
+		RDEN: in std_logic;--read enable for memory-mapped interface
 		ADDR: in std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
 		Q:		out std_logic_vector(31 downto 0)-- data output for memory-mapped interface
 );
@@ -189,9 +191,12 @@ signal sp: std_logic_vector(31 downto 0);
 signal program_stack_out: std_logic_vector (31 downto 0) := (others => '0');
 signal addr_stack: std_logic_vector (31 downto 0) := (others => '0');
 signal wren_stack: std_logic;
+signal rden_stack: std_logic;
+signal reading_stack: std_logic;
+signal ready_stack: std_logic;
 signal Q_stack: std_logic_vector (31 downto 0) := (others => '0');
 constant STACK_LEVELS_LOG2: natural := 2;--for GPR's, FP and LR
-constant PROGRAM_STACK_LEVELS_LOG2: natural := 7;--for program_stack
+constant PROGRAM_STACK_LEVELS_LOG2: natural := 10;--for program_stack
 
 --signals driven by control unit
 signal regDst: std_logic_vector(1 downto 0);
@@ -267,13 +272,15 @@ signal reg_push: std_logic;
 signal reg_pop: std_logic;
 
 begin
+
+	reading_stack <= rden_stack or push or pop;
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,CLK_IN,gating_signal)
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,reading_stack,CLK_IN,gating_signal)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if(d_cache_ready='0')then
+			if((d_cache_ready='0' and reading_stack='0') or (ready_stack='0' and reading_stack='1'))then
 				clk_enable <= '0';
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
 			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -281,7 +288,7 @@ begin
 				clk_enable <= '1';--irq wakes up processor from halt
 			elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 				clk_enable <= '0';
-			elsif(i_cache_ready='1' and d_cache_ready='1')then
+			elsif(i_cache_ready='1' and ((d_cache_ready='1' and reading_stack='0') or (ready_stack='1' and reading_stack='1')))then
 				clk_enable <= '1';
 			else--if(i_cache_ready='0' or d_cache_ready='0')then
 				clk_enable <= '0';
@@ -291,12 +298,12 @@ begin
 	
 	CLK <= CLK_IN and clk_enable;	
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,CLK_IN,gating_signal)
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,reading_stack,CLK_IN,gating_signal)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			CLK_rom_en <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if(i_cache_ready='1' and d_cache_ready='0')then--miss apenas no d_cache, esperar o dado para continuar o programa
+			if(i_cache_ready='1' and ((d_cache_ready='0' and reading_stack='0') or (ready_stack='0' and reading_stack='1')))then--miss apenas no d_cache, esperar o dado para continuar o programa
 				CLK_rom_en <= '0';
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
 			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -304,7 +311,7 @@ begin
 				CLK_rom_en <= '1';--irq wakes up processor from halt
 			elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 				CLK_rom_en <= '0';
-			elsif(i_cache_ready='1' and d_cache_ready='1')then
+			elsif(i_cache_ready='1' and ((d_cache_ready='1' and reading_stack='0') or (ready_stack='1' and reading_stack='1')))then
 				CLK_rom_en <= '1';
 			elsif(i_cache_ready='0')then--miss no i_cache, continuar o CLK_rom para buscar a instruction
 				CLK_rom_en <= '1';
@@ -369,6 +376,7 @@ begin
 						--during the cycle of valid instruction (i_cache_ready='1')
 						port map(CLK => CLK_IN,--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
+									ready => ready_stack,
 									--STACK INTERFACE
 									pop => pop,--(pop: opcode(31..26) rs(25..21) (20..0=>X))
 									push => push,--for argument passing (push: opcode(31..26) rs(25..21) (20..0=>X))
@@ -381,6 +389,7 @@ begin
 									--MEMORY-MAPPED INTERFACE
 									D => mem_write_data,-- data to be written by memory-mapped interface
 									WREN => wren_stack,--write enable for memory-mapped interface
+									RDEN => rden_stack,
 									ADDR => addr_stack(PROGRAM_STACK_LEVELS_LOG2-1 downto 0),-- address to be written by memory-mapped interface
 									Q    => Q_stack-- data output for memory-mapped interface
 							);
@@ -389,6 +398,9 @@ begin
 
 	addr_stack <= (31 downto PROGRAM_STACK_LEVELS_LOG2=>'0') & full_ADDR_ram(PROGRAM_STACK_LEVELS_LOG2+1 downto 2);
 	wren_stack <= '1' when (memWrite='1' and 
+						full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1'))
+						else '0';--ADDR_ram(N)='1' imply stack (ADDR_ram is generated by ALU)
+	rden_stack <= '1' when (memRead='1' and 
 						full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1'))
 						else '0';--ADDR_ram(N)='1' imply stack (ADDR_ram is generated by ALU)
 
