@@ -134,6 +134,7 @@ component stack
 generic(L: natural);--log2 of number of stored words
 port (CLK: in std_logic;--active edge: rising_edge
 		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
+		ready: buffer std_logic;
 		--STACK INTERFACE
 		pop: in std_logic;
 		push: in std_logic;
@@ -184,6 +185,7 @@ signal lr_en: 	std_logic;
 signal lr_out: std_logic_vector (31 downto 0) := (others => '0');
 signal lr_stack_pop: std_logic;
 signal lr_stack_push: std_logic;
+signal lr_stack_ready: std_logic;
 signal lr_stack_out: std_logic_vector (31 downto 0) := (others => '0');
 signal rv_in: 	std_logic_vector (31 downto 0);
 signal rv_out: std_logic_vector (31 downto 0) := (others => '0');
@@ -195,7 +197,7 @@ signal rden_stack: std_logic;
 signal reading_stack: std_logic;
 signal ready_stack: std_logic;
 signal Q_stack: std_logic_vector (31 downto 0) := (others => '0');
-constant STACK_LEVELS_LOG2: natural := 2;--for GPR's, FP and LR
+constant STACK_LEVELS_LOG2: natural := 4;--for GPR's, FP and LR
 constant PROGRAM_STACK_LEVELS_LOG2: natural := 10;--for program_stack
 
 --signals driven by control unit
@@ -275,12 +277,14 @@ begin
 
 	reading_stack <= rden_stack or push or pop;
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,reading_stack,CLK_IN,gating_signal)
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,reading_stack,CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if((d_cache_ready='0' and reading_stack='0') or (ready_stack='0' and reading_stack='1'))then
+			if((d_cache_ready='0' and reading_stack='0') or
+				(ready_stack='0' and reading_stack='1') or 
+				(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1')))then
 				clk_enable <= '0';
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
 			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -298,12 +302,15 @@ begin
 	
 	CLK <= CLK_IN and clk_enable;	
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,reading_stack,CLK_IN,gating_signal)
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,reading_stack,CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			CLK_rom_en <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if(i_cache_ready='1' and ((d_cache_ready='0' and reading_stack='0') or (ready_stack='0' and reading_stack='1')))then--miss apenas no d_cache, esperar o dado para continuar o programa
+			if(i_cache_ready='1' and
+				((d_cache_ready='0' and reading_stack='0') or
+				(ready_stack='0' and reading_stack='1') or 
+				(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))))then--miss apenas no d_cache, esperar o dado para continuar o programa
 				CLK_rom_en <= '0';
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
 			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -412,6 +419,7 @@ begin
 						--during the cycle of valid instruction (i_cache_ready='1')
 						port map(CLK => CLK_IN,--active edge: rising_edge
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
+									ready=> open,
 									--STACK INTERFACE
 									pop => fp_stack_pop,
 									push => fp_stack_push,
@@ -430,6 +438,7 @@ begin
 						--during the cycle of valid instruction (i_cache_ready='1')
 						port map(CLK => CLK_IN,--active edge: rising_edge
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
+									ready => lr_stack_ready,
 									--STACK INTERFACE
 									pop => lr_stack_pop,
 									push => lr_stack_push,

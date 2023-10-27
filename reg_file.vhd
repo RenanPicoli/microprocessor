@@ -63,6 +63,7 @@ architecture func_reg_file of reg_file is
 	generic(L: natural);--log2 of number of stored words
 	port (CLK: in std_logic;--active edge: rising_edge
 			rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
+			ready: buffer std_logic;
 			--STACK INTERFACE
 			pop: in std_logic;
 			push: in std_logic;
@@ -101,6 +102,7 @@ architecture func_reg_file of reg_file is
 						generic map (L => L)
 						port map(CLK => stack_CLK,--active edge: rising_edge
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
+									ready=> open,
 									--STACK INTERFACE
 									pop => pop,
 									push => push,

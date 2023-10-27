@@ -20,6 +20,7 @@ entity stack is
 generic(L: natural);--log2 of number of stored words
 port (CLK: in std_logic;--active edge: rising_edge
 		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
+		ready: buffer std_logic;
 		--STACK INTERFACE
 		pop: in std_logic;
 		push: in std_logic;
@@ -33,17 +34,7 @@ end entity;
 
 architecture bhv of stack is
 
-component ram_1_port
-	PORT
-	(
-		address		: IN STD_LOGIC_VECTOR (5 DOWNTO 0);
-		clock		: IN STD_LOGIC  := '1';
-		data		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		wren		: IN STD_LOGIC ;
-		q		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
-	);
-END component;
-
+signal stack_addr:std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
 
 type memory is array (0 to 2**L-1) of std_logic_vector(31 downto 0);
 signal ram: memory;
@@ -80,36 +71,54 @@ attribute ramstyle of ram : signal is "no_rw_check";
 --				'1' when sp=(others=>'0') else
 --				'0';
 	
-	stack_io: process(CLK,rst,stack_in,sp,push)
+--	stack_io: process(CLK,rst,stack_in,sp,push)
+--	begin
+--		if(rst='1')then
+--			ram <= (others=>(others=>'0'));
+--		elsif(rising_edge(CLK))then
+--			--only one of these inputs/interfaces can be asserted in one cycle
+--			if(push='1')then
+--				-- sp-1 because position pointed by sp is already used,
+--				--concurrently, sp will be updated (decremented) by other process
+--				ram(to_integer(unsigned(sp-1))) <= stack_in;
+--			end if;
+--		end if;
+--	end process;
+--	-- read-during-write on mixed port returns OLD data
+--	stack_out <= ram(to_integer(unsigned(sp)));
+-- ready='1';
+	
+	stack_addr <=	sp-1 when (push='1') else-- sp is already in use, sp-1 is the next available location
+						sp;
+						
+	--stack based on inferred RAM
+	process(CLK,stack_addr,stack_in)
 	begin
-		if(rst='1')then
-			ram <= (others=>(others=>'0'));
-		elsif(rising_edge(CLK))then
---		if(rising_edge(CLK))then
-			--only one of these inputs/interfaces can be asserted in one cycle
-			if(push='1')then
-				-- sp-1 because position pointed by sp is already used,
-				--concurrently, sp will be updated (decremented) by other process
-				ram(to_integer(unsigned(sp-1))) <= stack_in;
---				-- read-during-write on the same port returns NEW data
---				stack_out <= stack_in;
---			else
---				-- read-during-write on mixed port returns OLD data
---				--if addsp='1' or pop='1', memory contents is not updated
---				stack_out <= ram(to_integer(unsigned(sp)));
+		if(rising_edge(CLK)) then
+			if(push = '1') then
+				ram(to_integer(unsigned(stack_addr))) <= stack_in;
+				-- Read-during-write on the same port returns NEW data
+				stack_out <= stack_in;
+			else
+				-- Read-during-write on the mixed port returns OLD data
+				stack_out <= ram(to_integer(unsigned(stack_addr)));
 			end if;
 		end if;
 	end process;
-	-- read-during-write on mixed port returns OLD data
-	stack_out <= ram(to_integer(unsigned(sp)));
-
---	memory_inst : ram_1_port PORT MAP (
---			address	=> sp,
---			clock		=> CLK,
---			data		=> stack_in,
---			wren		=> push,
---			q			=> stack_out
---		);
+	
+	-----------------ready----------------------------
+	process(CLK,RST,push,pop)
+	begin
+		if(RST='1')then
+			ready <= '0';
+		elsif(rising_edge(CLK))then
+			if(ready='0' and (push='1' or pop='1'))then
+				ready <= '1';
+			else
+				ready <= '0';
+			end if;
+		end if;
+	end process;
 	
 	--TODO:	signal error conditions: sp incremented/decremented beyond limits
 	--			popping empty stack, pushing to full stack
