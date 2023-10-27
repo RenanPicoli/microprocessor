@@ -176,7 +176,7 @@ signal	stack_addr:std_logic_vector(L-1 downto 0);-- address to be written by mem
 	tdp_ram_inst: if USE_TDP_RAM generate
 		stack_addr <=	sp-1 when (push='1') else-- sp is already in use, sp-1 is the next available location
 							sp when (pop='1') else
-							ADDR;
+							sp;--this is the default case because stack_out must be available for RV update
 		memory_inst: tdp_ram
 			generic map (N => 32, L => L)--N: data width in bits; L: address width in bits
 			port map(CLK_A => CLK,					
