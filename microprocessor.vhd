@@ -194,7 +194,7 @@ signal program_stack_out: std_logic_vector (31 downto 0) := (others => '0');
 signal addr_stack: std_logic_vector (31 downto 0) := (others => '0');
 signal wren_stack: std_logic;
 signal rden_stack: std_logic;
-signal reading_stack: std_logic;
+signal accessing_stack: std_logic;
 signal ready_stack: std_logic;
 signal Q_stack: std_logic_vector (31 downto 0) := (others => '0');
 constant STACK_LEVELS_LOG2: natural := 4;--for GPR's, FP and LR
@@ -275,15 +275,15 @@ signal reg_pop: std_logic;
 
 begin
 
-	reading_stack <= rden_stack or push or pop;
+	accessing_stack <= rden_stack or wren_stack or push or pop;
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,reading_stack,CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready)
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if((d_cache_ready='0' and reading_stack='0') or
-				(ready_stack='0' and reading_stack='1') or 
+			if((d_cache_ready='0' and accessing_stack='0') or
+				(ready_stack='0' and accessing_stack='1') or 
 				(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1')))then
 				clk_enable <= '0';
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
@@ -292,7 +292,7 @@ begin
 				clk_enable <= '1';--irq wakes up processor from halt
 			elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 				clk_enable <= '0';
-			elsif(i_cache_ready='1' and ((d_cache_ready='1' and reading_stack='0') or (ready_stack='1' and reading_stack='1')))then
+			elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
 				clk_enable <= '1';
 			else--if(i_cache_ready='0' or d_cache_ready='0')then
 				clk_enable <= '0';
@@ -302,14 +302,14 @@ begin
 	
 	CLK <= CLK_IN and clk_enable;	
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,reading_stack,CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready)
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			CLK_rom_en <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
 			if(i_cache_ready='1' and
-				((d_cache_ready='0' and reading_stack='0') or
-				(ready_stack='0' and reading_stack='1') or 
+				((d_cache_ready='0' and accessing_stack='0') or
+				(ready_stack='0' and accessing_stack='1') or 
 				(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))))then--miss apenas no d_cache, esperar o dado para continuar o programa
 				CLK_rom_en <= '0';
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
@@ -318,7 +318,7 @@ begin
 				CLK_rom_en <= '1';--irq wakes up processor from halt
 			elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 				CLK_rom_en <= '0';
-			elsif(i_cache_ready='1' and ((d_cache_ready='1' and reading_stack='0') or (ready_stack='1' and reading_stack='1')))then
+			elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
 				CLK_rom_en <= '1';
 			elsif(i_cache_ready='0')then--miss no i_cache, continuar o CLK_rom para buscar a instruction
 				CLK_rom_en <= '1';
