@@ -17,9 +17,9 @@ use work.my_types.all;
 entity microprocessor is
 port (CLK_IN: in std_logic;
 		rst: in std_logic;
+		ready: out std_logic;--processor is ready (for new IRQs), clk_enable, synchronized to falling edge of CLK_IN
 		irq: in std_logic;--interrupt request
 		iack: out std_logic;--interrupt acknowledgement
-		return_value: out std_logic_vector (31 downto 0);-- output of RV register
 		ISR_addr: in std_logic_vector (31 downto 0);--address for interrupt handler, loaded when irq is asserted, it is valid one clock cycle after the IRQ detection
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(31 downto 0);--addr é endereço de word
@@ -275,6 +275,7 @@ signal reg_pop: std_logic;
 
 begin
 
+	ready <= clk_enable;
 	accessing_stack <= rden_stack or wren_stack or push or pop;
 	
 	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready)
