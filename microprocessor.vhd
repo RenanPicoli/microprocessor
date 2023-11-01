@@ -369,7 +369,6 @@ begin
 										D => rv_in,
 										Q => rv_out);
 	rv_in <= program_stack_out;
-	return_value <= rv_out;
 	
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
