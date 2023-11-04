@@ -284,8 +284,7 @@ begin
 			clk_enable <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
 			if((d_cache_ready='0' and accessing_stack='0') or
-				(ready_stack='0' and accessing_stack='1') or 
-				(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1')))then
+				(ready_stack='0' and accessing_stack='1'))then
 				clk_enable <= '0';
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
 			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -295,6 +294,8 @@ begin
 				clk_enable <= '0';
 			elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
 				clk_enable <= '1';
+			elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
+				clk_enable <= '0';
 			else--if(i_cache_ready='0' or d_cache_ready='0')then
 				clk_enable <= '0';
 			end if;
@@ -310,8 +311,7 @@ begin
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
 			if(i_cache_ready='1' and
 				((d_cache_ready='0' and accessing_stack='0') or
-				(ready_stack='0' and accessing_stack='1') or 
-				(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))))then--miss apenas no d_cache, esperar o dado para continuar o programa
+				(ready_stack='0' and accessing_stack='1')))then--miss apenas no d_cache, esperar o dado para continuar o programa
 				CLK_rom_en <= '0';
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
 			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -321,6 +321,8 @@ begin
 				CLK_rom_en <= '0';
 			elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
 				CLK_rom_en <= '1';
+			elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
+				CLK_rom_en <= '0';
 			elsif(i_cache_ready='0')then--miss no i_cache, continuar o CLK_rom para buscar a instruction
 				CLK_rom_en <= '1';
 --			else--miss apenas no d_cache, esperar o dado para continuar o programa
