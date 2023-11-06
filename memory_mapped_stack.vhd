@@ -88,6 +88,7 @@ attribute ramstyle : string;
 attribute ramstyle of ram : signal is "no_rw_check";
 
 signal	stack_addr:std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
+signal	read_pop_ready: std_logic;--this is used only for stack reading/popping
 	begin
 	
 	sp_update: process(CLK,rst,pop,push,addsp,imm,ready)
@@ -114,36 +115,17 @@ signal	stack_addr:std_logic_vector(L-1 downto 0);-- address to be written by mem
 --				'1' when sp=(others=>'0') else
 --				'0';
 	
-	single_port_ram_inst: if not USE_TDP_RAM generate
+	registers: if not USE_TDP_RAM generate
 		mem_addr <= sp-1 when (push='1') else-- sp is already in use, sp-1 is the next available location
 						sp when (pop='1') else
 						ADDR;
 		mem_wren <= '1' when (push='1') else WREN;
 		mem_d		<= stack_in when (push='1') else D;
 		
---		process(CLK,RST,mem_q,pop)
---		begin
---			if(RST='1')then
---				stack_out <= (others=>'0');
---			elsif(rising_edge(CLK) and pop='1')then
---				stack_out <= mem_q;
---			end if;
---		end process;
 		stack_out <= ram(to_integer(unsigned(sp)));
 
 		Q <= mem_q;
 		
-		--registers
---		process(RST,CLK,mem_wren,mem_addr,mem_d,ram)
---		begin
---			if(RST='1')then
---				ram <= (others=>(others=>'0'));
---			elsif(rising_edge(CLK))then
---				if(mem_wren='1')then
---					ram(to_integer(unsigned(mem_addr))) <= mem_d;
---				end if;
---			end if;
---		end process;
 		ram_i: for i in 0 to 2**L-1 generate
 			mem_en(i) <= '1' when (i=to_integer(unsigned(mem_addr))) else '0';
 			process(RST,CLK,mem_wren,mem_addr,mem_d,ram)
@@ -159,19 +141,8 @@ signal	stack_addr:std_logic_vector(L-1 downto 0);-- address to be written by mem
 		end generate ram_i;
 		-- asynchronous reading logic
 		mem_q <= ram(to_integer(unsigned(mem_addr)));
-		
-		--single port ram
---		process(CLK,mem_wren,mem_addr,mem_d,ram)
---		begin
---			if(rising_edge(CLK))then
---				if(mem_wren='1')then
---					ram(to_integer(unsigned(mem_addr))) <= mem_d;
---				end if;
---				-- read-during-write returns OLD data
---				mem_q <= ram(to_integer(unsigned(mem_addr)));
---			end if;
---		end process;
-	end generate single_port_ram_inst;
+		ready <= '1';
+	end generate registers;
 	
 	tdp_ram_inst: if USE_TDP_RAM generate
 		stack_addr <=	sp-1 when (push='1') else-- sp is already in use, sp-1 is the next available location
@@ -190,31 +161,22 @@ signal	stack_addr:std_logic_vector(L-1 downto 0);-- address to be written by mem
 						WREN_B => WREN,--enables write on port A
 						Q_B	 => Q
 				);
---	memory_inst : ram_2_port PORT MAP (
---		address_a	=> sp,
---		address_b	=> ADDR,
---		clock			=> CLK,
---		data_a		=> stack_in,
---		data_b		=> D,
---		wren_a		=> push,
---		wren_b		=> WREN,
---		q_a			=> stack_out,
---		q_b			=> Q
---	);
 	
-		-----------------ready----------------------------
-		process(CLK,RST,push,pop,WREN,RDEN)
+		-----------------read_pop_ready----------------------
+		process(CLK,RST,pop,RDEN)
 		begin
 			if(RST='1')then
-				ready <= '0';
+				read_pop_ready <= '0';
 			elsif(rising_edge(CLK))then
-				if(ready='0' and (push='1' or WREN='1' or RDEN='1' or pop='1'))then
-					ready <= '1';
+				if(read_pop_ready='0' and (RDEN='1' or pop='1'))then
+					read_pop_ready <= '1';
 				else
-					ready <= '0';
+					read_pop_ready <= '0';
 				end if;
 			end if;
 		end process;
+		
+		ready <= '1' when (WREN='1' or push='1') else read_pop_ready;
 	end generate tdp_ram_inst;
 
 	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
