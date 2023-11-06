@@ -146,7 +146,7 @@ void IRQ1_Handler(){
     __asm(".remove_epilogue\n\t");
 }
 
-// handler of IRQ0 (filter_CLK falling_edge)
+// handler of IRQ3 (filter_CLK falling_edge)
 void IRQ3_Handler(){
     __asm(".remove_prologue\n\t");
 	register word filter_out_w;
