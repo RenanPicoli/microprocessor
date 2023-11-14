@@ -333,9 +333,11 @@ def main(argv):
               new_instr="\tldfp $30;"
     
             else:# FP can be updated only with SP contents
-              #raise ValueError("Instruction not (yet) supported: %s\n" % line);
-              print("Instruction not (yet) supported: {}\n".format(line))
-              sys.exit(-1)
+              ##raise ValueError("Instruction not (yet) supported: %s\n" % line);
+              #print("Instruction not (yet) supported: {}\n".format(line))
+              #sys.exit(-1)
+              frmt_str = "\taddi {} {} x\"0000\";"
+              new_instr= frmt_str.format(arg[2],arg[1])
     
           else:
             frmt_str = "\taddi {} {} x\"0000\";"
@@ -452,6 +454,12 @@ def main(argv):
           elif(opcode=="bltz"):
             frmt_str="\tpush $16;\n\tslt {} $0 $16;\n\tbeq $16 $0 x\"0002\";\n\tpop $16;\n\tjmp {};\n\tpop $16;"
             new_instr = frmt_str.format(arg[1], arg[2])
+          elif(opcode=="bgtz"):
+            frmt_str="\tpush $16;\n\tslt $0 {} $16;\n\tbeq $16 $0 x\"0002\";\n\tpop $16;\n\tjmp {};\n\tpop $16;"
+            new_instr = frmt_str.format(arg[1], arg[2])
+          elif(opcode=="blez"):
+            frmt_str="\tpush $16;\n\tslt {} $0 $16;\n\tbeq $16 $0 x\"0003\";\n\tbeq {} $0 x\"0002\";\n\tpop $16;\n\tbeq $0 $0 x\"0002\";\n\tpop $16;\n\tjmp {};"
+            new_instr = frmt_str.format(arg[1], arg[1], arg[2])
     
         # R-type and similars: add,sub,and,or,xor,nor,fadd,fmul,fdiv,fsub
         elif (opcode=="add" or opcode=="addu" or opcode=="and" or opcode=="xor" or opcode=="sub" or opcode=="subu" or opcode=="or" or opcode=="nor" or opcode=="fadd" or opcode=="fsub" or opcode=="fmul" or opcode=="fdiv"):
