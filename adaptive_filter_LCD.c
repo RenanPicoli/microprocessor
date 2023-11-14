@@ -148,7 +148,7 @@ void IRQ1_Handler(){
 
 // handler of IRQ3 (filter_CLK falling_edge)
 void IRQ3_Handler(){
-    __asm(".remove_prologue\n\t");
+    //__asm(".remove_prologue\n\t");
 	register word filter_out_w;
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
@@ -215,7 +215,7 @@ void IRQ3_Handler(){
 	}
 	   
 	IRET();
-    __asm(".remove_epilogue\n\t");
+    //__asm(".remove_epilogue\n\t");
 }
 
 // handler of IRQ4 (software )
