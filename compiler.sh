@@ -20,7 +20,7 @@ echo "gcc output will be at file $gcc_out"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	# '2>' means redirect the standard ERROR output to file
 	# '>' means redirect the standard output to file
-	mips-linux-gnu-gcc -O1 -fno-toplevel-reorder -S -o $gcc_out $1 -march=mips32 -mno-explicit-relocs -fno-stack-protector -msoft-float 2> mips_gcc.log
+	mips-linux-gnu-gcc -O1 -fno-toplevel-reorder -S -o $gcc_out $1 -march=mips32 -mno-explicit-relocs  -fno-omit-frame-pointer -fno-stack-protector -msoft-float 2> mips_gcc.log
 elif [[ "$OSTYPE" == "msys" ]]; then
 	echo "Unsupported OS"
 	exit 5
