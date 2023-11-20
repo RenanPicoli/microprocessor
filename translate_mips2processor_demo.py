@@ -84,6 +84,10 @@ def main(argv):
       curr_section="rdata"
       print(line + "-> " + line)
       continue
+    elif(line.startswith(".section\t.rodata")):
+      curr_section="rdata"
+      print(line + "-> " + line)
+      continue
     elif(line.startswith(".section\t.bss")):
       curr_section="bss"
       print(line + "-> .bss")
@@ -129,7 +133,7 @@ def main(argv):
         continue
     elif(curr_section=="bss"):
       words = line.split()      
-      if(words[0].startswith(".space") and len(words)==2): # size decalration
+      if(words[0].startswith(".space") and len(words)==2): # size declaration
         new_instr="x"
         for i in range(int(words[1])):
           new_instr = new_instr+"00"
@@ -342,6 +346,12 @@ def main(argv):
           else:
             frmt_str = "\taddi {} {} x\"0000\";"
             new_instr= frmt_str.format(arg[2],arg[1])
+        elif(opcode=="movz"):
+            frmt_str="\tbeq {} $0 x\"0001\";\n\tbeq $0 $0 x\"0001\";\n\taddi {} {} x\"0000\";"
+            new_instr = frmt_str.format(arg[3], arg[2], arg[1])
+        elif(opcode=="movn"):
+            frmt_str="\tbeq {} $0 x\"0001\";\n\taddi {} {} x\"0000\";"
+            new_instr = frmt_str.format(arg[3], arg[2], arg[1])
     
         elif(opcode=="addi" or opcode=="addiu" or opcode=="slti" or opcode=="sltiu" or opcode=="slt" or opcode=="sltu" or opcode=="ori" or opcode=="andi" or opcode=="xori"):
           hi_lo_used=False
@@ -685,7 +695,8 @@ def main(argv):
         result_flat.append(item+"\n")
   of_lines=result_flat
       
-  #TODO: remove this after adding support to %hi/%lo in lw/sw offset in assembler.c    
+  #TODO: remove this after adding support to %hi/%lo in lw/sw offset in assembler.c
+  #ori might also use %lo for la instructions
   #finds instructions of form lw [$x+%lo(LABEL)] $y and
   # replaces LABEL by numeric immediate
   pattern = r"^\s*(lw|sw) \[\$[a-zA-Z0-9]+[+-](%lo|%hi)\(\$?[a-zA-Z0-9_]+\)\] \$[a-zA-Z0-9]+;$"
