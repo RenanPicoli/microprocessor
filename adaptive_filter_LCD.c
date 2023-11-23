@@ -197,6 +197,27 @@ void IRQ3_Handler(){
 	register word squared_norm_w;
 	READ(CACHE_BASE_ADDR+2*4,squared_norm_w.i);
 	FMUL(squared_lambda_w.f,squared_norm_w.f,squared_norm_w.f);
+	
+	if(squared_norm_coeffs_w.i == 0xFFFFFFFF){
+		word coeffs[8];
+		READ(FILTER_COEFFS_BASE_ADDR+0*4,coeffs[0].i);
+        lcd_print_float(coeffs[0].f);
+		READ(FILTER_COEFFS_BASE_ADDR+1*4,coeffs[1].i);
+        lcd_print_float(coeffs[1].f);
+		READ(FILTER_COEFFS_BASE_ADDR+2*4,coeffs[2].i);
+        lcd_print_float(coeffs[2].f);
+		READ(FILTER_COEFFS_BASE_ADDR+3*4,coeffs[3].i);
+        lcd_print_float(coeffs[3].f);
+		READ(FILTER_COEFFS_BASE_ADDR+4*4,coeffs[4].i);
+        lcd_print_float(coeffs[4].f);
+		READ(FILTER_COEFFS_BASE_ADDR+5*4,coeffs[5].i);
+        lcd_print_float(coeffs[5].f);
+		READ(FILTER_COEFFS_BASE_ADDR+6*4,coeffs[6].i);
+        lcd_print_float(coeffs[6].f);
+		READ(FILTER_COEFFS_BASE_ADDR+7*4,coeffs[7].i);
+        lcd_print_float(coeffs[7].f);
+		IRET();
+	}
 
 	register float squared_dev;//filter coefficients SQUARED deviation
 	FDIV(squared_norm_w.f,squared_norm_coeffs_w.f,squared_dev);
