@@ -123,7 +123,6 @@ void IRQ0_Handler(){
 	word half_inv_sqr_norm_w;
 	FDIV(0.5f,squared_norm_w.f,half_inv_sqr_norm_w.f);
 	float step=min(half_inv_sqr_norm_w.f,1e4f);//f for float
-	//float step=min(0.5/squared_norm_w.f,1e4f);//f for float
 	word step_w;
 	FMUL(2.0f,step,step_w.f);//step_w.f = 2.0f*step;
 	WRITE(CACHE_BASE_ADDR+0*4,step_w.i);
@@ -132,7 +131,7 @@ void IRQ0_Handler(){
 	READ(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET,desired_w.i);
 	WRITE(CACHE_BASE_ADDR+1*4,desired_w.i);//saves desired response to position 1 of mini_ram
 
-	WRITE(CACHE_BASE_ADDR+2*4,squared_norm_w.i);//saves squared_norm_w to position 2 of mini_ram
+	//WRITE(CACHE_BASE_ADDR+2*4,squared_norm_w.i);//saves squared_norm_w to position 2 of mini_ram
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
@@ -148,7 +147,7 @@ void IRQ1_Handler(){
 
 // handler of IRQ3 (filter_CLK falling_edge)
 void IRQ3_Handler(){
-    //__asm(".remove_prologue\n\t");
+    __asm(".remove_prologue\n\t");
 	register word filter_out_w;
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
@@ -172,9 +171,9 @@ void IRQ3_Handler(){
 	LVECR(5,1);
 	//Lê memória de coeficientes do filtro(0) para o filtro(1), produto interno (A e B - 3 e 4)
 	LVECR(0,26);
-	WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
-	register word squared_norm_coeffs_w;//squared norm of filter coefficients
-	READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_coeffs_w.i);
+	//WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
+	//register word squared_norm_coeffs_w;//squared norm of filter coefficients
+	//READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_coeffs_w.i);
 	
 	//TODO: se filtro já convergiu, sair do loop
 
@@ -190,7 +189,7 @@ void IRQ3_Handler(){
 	READ(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
 	i2s_cfg |= I2S_EN;
 	WRITE(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
-		
+	/*
 	register word squared_lambda_w;
 	//computes squared_lambda_w
 	FMUL(lambda_w.f,lambda_w.f,squared_lambda_w.f);
@@ -199,23 +198,24 @@ void IRQ3_Handler(){
 	FMUL(squared_lambda_w.f,squared_norm_w.f,squared_norm_w.f);
 	
 	if(squared_norm_coeffs_w.i == 0xFFFFFFFF){
-		word coeffs[8];
-		READ(FILTER_COEFFS_BASE_ADDR+0*4,coeffs[0].i);
-        lcd_print_float(coeffs[0].f);
-		READ(FILTER_COEFFS_BASE_ADDR+1*4,coeffs[1].i);
-        lcd_print_float(coeffs[1].f);
-		READ(FILTER_COEFFS_BASE_ADDR+2*4,coeffs[2].i);
-        lcd_print_float(coeffs[2].f);
-		READ(FILTER_COEFFS_BASE_ADDR+3*4,coeffs[3].i);
-        lcd_print_float(coeffs[3].f);
-		READ(FILTER_COEFFS_BASE_ADDR+4*4,coeffs[4].i);
-        lcd_print_float(coeffs[4].f);
-		READ(FILTER_COEFFS_BASE_ADDR+5*4,coeffs[5].i);
-        lcd_print_float(coeffs[5].f);
-		READ(FILTER_COEFFS_BASE_ADDR+6*4,coeffs[6].i);
-        lcd_print_float(coeffs[6].f);
-		READ(FILTER_COEFFS_BASE_ADDR+7*4,coeffs[7].i);
-        lcd_print_float(coeffs[7].f);
+		register word b0 asm ("$1");
+		register word b1 asm ("$2");
+		register word b2 asm ("$3");
+		register word b3 asm ("$4");
+		register word b4 asm ("$1");
+		register word b5 asm ("$2");
+		register word b6 asm ("$3");
+		register word b7 asm ("$4");
+		//__asm("\tmult %0 %1;\n\t" : : "r" (b2),"r"(b3));
+		__asm("\tlw [$0 + 0] %0;\n\t"::"r"(b0));
+		__asm("\tlw [$0 + 4] %0;\n\t"::"r"(b1));
+		__asm("\tlw [$0 + 8] %0;\n\t"::"r"(b2));
+		__asm("\tlw [$0 + 12] %0;\n\t"::"r"(b3));
+		__asm("\tlw [$0 + 16] %0;\n\t"::"r"(b4));
+		__asm("\tlw [$0 + 20] %0;\n\t"::"r"(b5));
+		__asm("\tlw [$0 + 24] %0;\n\t"::"r"(b6));
+		__asm("\tlw [$0 + 28] %0;\n\t"::"r"(b7));
+		__asm("\tnop;\n\t");
 		IRET();
 	}
 
@@ -234,9 +234,9 @@ void IRQ3_Handler(){
 		//creates a software interrupt
 		WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_SW_IRQ_REG_OFFSET,1<<4);
 	}
-	   
+	*/
 	IRET();
-    //__asm(".remove_epilogue\n\t");
+    __asm(".remove_epilogue\n\t");
 }
 
 // handler of IRQ4 (software )
