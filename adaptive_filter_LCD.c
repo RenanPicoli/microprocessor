@@ -131,8 +131,9 @@ void IRQ0_Handler(){
 	READ(DESIRED_RESPONSE_BASE_ADDR+DESIRED_RESPONSE_OFFSET,desired_w.i);
 	WRITE(CACHE_BASE_ADDR+1*4,desired_w.i);//saves desired response to position 1 of mini_ram
 
-	//WRITE(CACHE_BASE_ADDR+2*4,squared_norm_w.i);//saves squared_norm_w to position 2 of mini_ram
-	
+	//__asm("\taddi $17 $1 x\"0000\";\n\t");
+	WRITE(CACHE_BASE_ADDR+2*4,squared_norm_w.i);//saves squared_norm_w to position 2 of mini_ram
+	//__asm("\tnop;\n\t");
 	IRET();
     __asm(".remove_epilogue\n\t");
 }
@@ -147,7 +148,7 @@ void IRQ1_Handler(){
 
 // handler of IRQ3 (filter_CLK falling_edge)
 void IRQ3_Handler(){
-    __asm(".remove_prologue\n\t");
+    //__asm(".remove_prologue\n\t");
 	register word filter_out_w;
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
@@ -171,9 +172,9 @@ void IRQ3_Handler(){
 	LVECR(5,1);
 	//Lê memória de coeficientes do filtro(0) para o filtro(1), produto interno (A e B - 3 e 4)
 	LVECR(0,26);
-	//WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
-	//register word squared_norm_coeffs_w;//squared norm of filter coefficients
-	//READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_coeffs_w.i);
+	WRITE(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_CTRL_OFFSET,0x1);
+	register word squared_norm_coeffs_w;//squared norm of filter coefficients
+	READ(INNER_PRODUCT_BASE_ADDR+INNER_PRODUCT_RESULT_OFFSET,squared_norm_coeffs_w.i);
 	
 	//TODO: se filtro já convergiu, sair do loop
 
@@ -189,7 +190,7 @@ void IRQ3_Handler(){
 	READ(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
 	i2s_cfg |= I2S_EN;
 	WRITE(I2S_BASE_ADDR+I2S_CR_OFFSET,i2s_cfg);
-	/*
+	
 	register word squared_lambda_w;
 	//computes squared_lambda_w
 	FMUL(lambda_w.f,lambda_w.f,squared_lambda_w.f);
@@ -197,7 +198,21 @@ void IRQ3_Handler(){
 	READ(CACHE_BASE_ADDR+2*4,squared_norm_w.i);
 	FMUL(squared_lambda_w.f,squared_norm_w.f,squared_norm_w.f);
 	
-	if(squared_norm_coeffs_w.i == 0xFFFFFFFF){
+	register float squared_dev;//filter coefficients SQUARED deviation
+	FDIV(squared_norm_w.f,squared_norm_coeffs_w.f,squared_dev);
+
+	//saves the squared deviation of filter coefficients to cache, position 3
+	//WRITE(CACHE_BASE_ADDR+3*4,squared_dev);
+	   
+	//tests if filter converged
+	register word d_w;
+	FSUB(squared_dev,1e-13f,d_w.f);
+	//d_w.i &= 0x80000000;
+	if((d_w.i & 0x80000000)==0x80000000){//(squared_dev - 1e-13f)<0
+	//if(squared_dev < 1e-13f){
+		//creates a software interrupt
+		//WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_SW_IRQ_REG_OFFSET,1<<4);
+		
 		register word b0 asm ("$1");
 		register word b1 asm ("$2");
 		register word b2 asm ("$3");
@@ -215,28 +230,11 @@ void IRQ3_Handler(){
 		__asm("\tlw [$0 + 20] %0;\n\t"::"r"(b5));
 		__asm("\tlw [$0 + 24] %0;\n\t"::"r"(b6));
 		__asm("\tlw [$0 + 28] %0;\n\t"::"r"(b7));
-		__asm("\tnop;\n\t");
-		IRET();
+		//__asm("\tnop;\n\t");
 	}
-
-	register float squared_dev;//filter coefficients SQUARED deviation
-	FDIV(squared_norm_w.f,squared_norm_coeffs_w.f,squared_dev);
-
-	//saves the squared deviation of filter coefficients to cache, position 3
-	//WRITE(CACHE_BASE_ADDR+3*4,squared_dev);
-	   
-	//tests if filter converged
-	register word d_w;
-	FSUB(squared_dev,1e-13f,d_w.f);
-	//d_w.i &= 0x80000000;
-	if((d_w.i & 0x80000000)==0x80000000){//(squared_dev - 1e-13f)<0
-	//if(squared_dev < 1e-13f){
-		//creates a software interrupt
-		WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_SW_IRQ_REG_OFFSET,1<<4);
-	}
-	*/
+	
 	IRET();
-    __asm(".remove_epilogue\n\t");
+    //__asm(".remove_epilogue\n\t");
 }
 
 // handler of IRQ4 (software )
