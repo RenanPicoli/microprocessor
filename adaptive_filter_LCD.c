@@ -149,6 +149,7 @@ void IRQ1_Handler(){
 // handler of IRQ3 (filter_CLK falling_edge)
 void IRQ3_Handler(){
     //__asm(".remove_prologue\n\t");
+	static int converged = 0;
 	register word filter_out_w;
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
 
@@ -208,10 +209,9 @@ void IRQ3_Handler(){
 	register word d_w;
 	FSUB(squared_dev,1e-13f,d_w.f);
 	//d_w.i &= 0x80000000;
-	if((d_w.i & 0x80000000)==0x80000000){//(squared_dev - 1e-13f)<0
+	if(((d_w.i & 0x80000000)==0x80000000) && converged == 0){//(squared_dev - 1e-13f)<0
 	//if(squared_dev < 1e-13f){
-		//creates a software interrupt
-		//WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_SW_IRQ_REG_OFFSET,1<<4);
+		converged = 1;
 		
 		register word b0 asm ("$1");
 		register word b1 asm ("$2");
@@ -221,16 +221,25 @@ void IRQ3_Handler(){
 		register word b5 asm ("$2");
 		register word b6 asm ("$3");
 		register word b7 asm ("$4");
-		//__asm("\tmult %0 %1;\n\t" : : "r" (b2),"r"(b3));
 		__asm("\tlw [$0 + 0] %0;\n\t"::"r"(b0));
+		__asm("\tsw [$0 + 96] %0;\n\t"::"r"(b0));
 		__asm("\tlw [$0 + 4] %0;\n\t"::"r"(b1));
+		__asm("\tsw [$0 + 100] %0;\n\t"::"r"(b1));
 		__asm("\tlw [$0 + 8] %0;\n\t"::"r"(b2));
+		__asm("\tsw [$0 + 104] %0;\n\t"::"r"(b2));
 		__asm("\tlw [$0 + 12] %0;\n\t"::"r"(b3));
+		__asm("\tsw [$0 + 108] %0;\n\t"::"r"(b3));
 		__asm("\tlw [$0 + 16] %0;\n\t"::"r"(b4));
+		__asm("\tsw [$0 + 112] %0;\n\t"::"r"(b4));
 		__asm("\tlw [$0 + 20] %0;\n\t"::"r"(b5));
+		__asm("\tsw [$0 + 116] %0;\n\t"::"r"(b5));
 		__asm("\tlw [$0 + 24] %0;\n\t"::"r"(b6));
+		__asm("\tsw [$0 + 120] %0;\n\t"::"r"(b6));
 		__asm("\tlw [$0 + 28] %0;\n\t"::"r"(b7));
-		//__asm("\tnop;\n\t");
+		__asm("\tsw [$0 + 124] %0;\n\t"::"r"(b7));
+		
+		//creates a software interrupt
+		WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_SW_IRQ_REG_OFFSET,1<<4);
 	}
 	
 	IRET();
@@ -242,35 +251,35 @@ void IRQ4_Handler(){
     __asm(".remove_prologue\n\t");
 	word tmp;
 	
-	READ(FILTER_COEFFS_BASE_ADDR+0*4,tmp.i);
+	READ(CACHE_BASE_ADDR+8*4,tmp.i);
 	lcd_print_float(tmp.f);
 	lcd_write_data(',');
 	
-	READ(FILTER_COEFFS_BASE_ADDR+1*4,tmp.i);
+	READ(CACHE_BASE_ADDR+9*4,tmp.i);
 	lcd_print_float(tmp.f);
 	lcd_write_data(',');
 	
-	READ(FILTER_COEFFS_BASE_ADDR+2*4,tmp.i);
+	READ(CACHE_BASE_ADDR+10*4,tmp.i);
 	lcd_print_float(tmp.f);
 	lcd_write_data(',');
 	
-	READ(FILTER_COEFFS_BASE_ADDR+3*4,tmp.i);
+	READ(CACHE_BASE_ADDR+11*4,tmp.i);
 	lcd_print_float(tmp.f);
 	lcd_write_data(',');
 	
-	READ(FILTER_COEFFS_BASE_ADDR+4*4,tmp.i);
+	READ(CACHE_BASE_ADDR+12*4,tmp.i);
 	lcd_print_float(tmp.f);
 	lcd_write_data(',');
 	
-	READ(FILTER_COEFFS_BASE_ADDR+5*4,tmp.i);
+	READ(CACHE_BASE_ADDR+13*4,tmp.i);
 	lcd_print_float(tmp.f);
 	lcd_write_data(',');
 	
-	READ(FILTER_COEFFS_BASE_ADDR+6*4,tmp.i);
+	READ(CACHE_BASE_ADDR+14*4,tmp.i);
 	lcd_print_float(tmp.f);
 	lcd_write_data(',');
 	
-	READ(FILTER_COEFFS_BASE_ADDR+7*4,tmp.i);
+	READ(CACHE_BASE_ADDR+15*4,tmp.i);
 	lcd_print_float(tmp.f);
 	
 	IRET();
