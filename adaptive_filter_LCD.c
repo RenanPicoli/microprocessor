@@ -53,8 +53,9 @@ int main(void){
 	
 	//intentionally ommited the instruction memory write
 	//and 7-seg write
+	lcd_print_float(1.0e+3f);
 	
-	filter_control(1);//enables filter	
+	filter_control(1);//enables filter
 	
     while(1){
         HALT();
@@ -252,35 +253,43 @@ void IRQ4_Handler(){
 	word tmp;
 	
 	READ(CACHE_BASE_ADDR+8*4,tmp.i);
-	lcd_print_float(tmp.f);
-	lcd_write_data(',');
+	//lcd_print_float(tmp.f);
+	//lcd_print_float(1.0f);
+	//lcd_write_data(',');
 	
 	READ(CACHE_BASE_ADDR+9*4,tmp.i);
-	lcd_print_float(tmp.f);
-	lcd_write_data(',');
+	//lcd_print_float(tmp.f);
+	//lcd_print_float(0.5f);
+	//lcd_write_data(',');
 	
 	READ(CACHE_BASE_ADDR+10*4,tmp.i);
-	lcd_print_float(tmp.f);
-	lcd_write_data(',');
+	//lcd_print_float(tmp.f);
+	//lcd_print_float(2.5e-1f);
+	//lcd_write_data(',');
 	
 	READ(CACHE_BASE_ADDR+11*4,tmp.i);
-	lcd_print_float(tmp.f);
-	lcd_write_data(',');
+	//lcd_print_float(tmp.f);
+	//lcd_print_float(1.25e-1f);
+	//lcd_write_data(',');
 	
 	READ(CACHE_BASE_ADDR+12*4,tmp.i);
-	lcd_print_float(tmp.f);
-	lcd_write_data(',');
+	//lcd_print_float(tmp.f);
+	//lcd_print_float(1.0f);
+	//lcd_write_data(',');
 	
 	READ(CACHE_BASE_ADDR+13*4,tmp.i);
-	lcd_print_float(tmp.f);
-	lcd_write_data(',');
+	//lcd_print_float(tmp.f);
+	//lcd_print_float(2.0e1f);
+	//lcd_write_data(',');
 	
 	READ(CACHE_BASE_ADDR+14*4,tmp.i);
-	lcd_print_float(tmp.f);
-	lcd_write_data(',');
+	//lcd_print_float(tmp.f);
+	//lcd_print_float(4.0e2f);
+	//lcd_write_data(',');
 	
 	READ(CACHE_BASE_ADDR+15*4,tmp.i);
-	lcd_print_float(tmp.f);
+	//lcd_print_float(tmp.f);
+	//lcd_print_float(8.0e3f);
 	
 	IRET();
     __asm(".remove_epilogue\n\t");
