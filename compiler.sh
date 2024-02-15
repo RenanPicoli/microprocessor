@@ -20,7 +20,9 @@ echo "gcc output will be at file $gcc_out"
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 	# '2>' means redirect the standard ERROR output to file
 	# '>' means redirect the standard output to file
-	mips-linux-gnu-gcc -O1 -fno-toplevel-reorder -S -o $gcc_out $1 -march=mips32 -mno-explicit-relocs  -fno-omit-frame-pointer -fno-stack-protector -msoft-float 2> mips_gcc.log
+	# mips-linux-gnu-gcc -O1 -fno-toplevel-reorder -S -o $gcc_out $1 -march=mips32 -mno-explicit-relocs  -fno-omit-frame-pointer -fno-stack-protector -msoft-float 2> mips_gcc.log
+	flags="-fssa-phiopt -fssa-backprop -fsplit-wide-types -fshrink-wrap-separate -fshrink-wrap -fomit-frame-pointer -fmove-loop-invariants -fmerge-constants -fauto-inc-dec -fbranch-count-reg -fcombine-stack-adjustments -fcompare-elim -fcprop-registers -fdefer-pop -fdelayed-branch -fguess-branch-probability -finline-functions-called-once -fif-conversion2 -fif-conversion -funit-at-a-time -ftree-ter -ftree-sra -ftree-slsr -ftree-scev-cprop -ftree-pta -ftree-phiprop -ftree-fre -ftree-copy-prop -ftree-coalesce-vars -ftree-ch -ftree-ccp -ftree-bit-ccp -fipa-reference-addressable -fipa-reference -fipa-pure-const -fipa-profile -ftree-sink -ftree-dominator-opts -ftree-forwprop -ftree-dse -ftree-dce -fdse -fdce -freorder-blocks -fforward-propagate -fno-toplevel-reorder -march=mips32 -mno-explicit-relocs -fno-omit-frame-pointer -fno-stack-protector -msoft-float"
+	mips-linux-gnu-gcc $flags -S -o $gcc_out $1 2> mips_gcc.log
 elif [[ "$OSTYPE" == "msys" ]]; then
 	echo "Unsupported OS"
 	exit 5
