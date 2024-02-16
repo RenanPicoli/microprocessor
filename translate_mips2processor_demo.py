@@ -423,6 +423,8 @@ def main(argv):
               new_instr = new_instr+"\tpush {};\n".format(r)
             frmt_str="\tcall {};"
             new_instr = new_instr + frmt_str.format(arg[1])
+            ## já fiz o push dos registradores usados, posso limpar a lista
+            used_arg_regs.clear();
           elif(opcode=="j"):
             if(arg[1] != "$31" and arg[1] != "$ra"):
               frmt_str="\tjmp {};"
