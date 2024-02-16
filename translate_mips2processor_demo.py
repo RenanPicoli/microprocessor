@@ -62,8 +62,8 @@ def main(argv):
   
   for line in fp:
     line_cnt = line_cnt+1 # end of for line in fp
-    #line = "xor $0, $0, $0"
-    #line = "add $0,$1,$2"
+    # line = "xor $0, $0, $0"
+    # line = "	lw	$5,$LC5"
     line=line.strip() # removes spaces at beggining and end of string
 
     # skips empty strings
@@ -219,6 +219,18 @@ def main(argv):
         for i in range(len(arg)):
           arg[i]=arg[i].strip()
         frmt_str=""
+        
+        if(len(arg)>=2 and arg[1] in arg_regs and arg[1] not in used_arg_regs):
+            if(opcode!="sw" and opcode!="sb" and opcode!="sh" and opcode!="swl" and 
+               opcode!="swr" and opcode!="usw" and
+               opcode!="div" and opcode!="divu" and opcode!="madd" and
+               opcode!="maddu" and opcode!="msub" and opcode!="msubu" and
+               opcode!="mult" and opcode!="multu" and
+               opcode!="mthi" and opcode!="mtlo" and
+               not opcode.startswith("b") and
+               opcode!="jalr"):
+                print("arg="+str(arg))
+                used_arg_regs.append(arg[1])
     
         # check for label definition
         if(opcode[-1]==":" and len(words)==1):
@@ -228,6 +240,8 @@ def main(argv):
             new_instr=words[0]+"\n\txor $0 $0 $0;" # includes instruction to reset $0 since this is reserved for zero in MIPS assembly
           else:
             new_instr=words[0]
+          if(opcode[0:-1] in funct_start.keys()):#the label definition is also a function start
+            used_arg_regs.clear()
     
         # processes instructions
         # for now, there is no support for types sizes different from 32 bits
@@ -540,15 +554,8 @@ def main(argv):
           #print("Instruction not (yet) supported: {}\n".format(opcode))
           #sys.exit(-1)
           new_instr = line # repeats the instruction, will cause error at assembler, if not cut
-          
-        if(opcode!="ext" and opcode!="div" and opcode!="divu" and opcode!="madd" and opcode!="maddu" and opcode!="msub" and opcode!="msubu" and opcode!="mult" and opcode!="multu"and opcode!="call"):
-          if(len(arg)>=2 and arg[1] in arg_regs and arg[1] not in used_arg_regs):
-            used_arg_regs.append(arg[1])
-        elif(opcode=="call"):
-          ## já fiz o push dos registradores usados, posso limpar a lista
-          used_arg_regs.clear();
-          #print (used_arg_regs)
-    
+        
+  
         #print(txt)
         print(line + "-> " + new_instr)
         #of.write(new_instr+"\n")
