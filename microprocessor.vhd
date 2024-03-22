@@ -34,7 +34,7 @@ port (CLK_IN: in std_logic;
 		d_cache_ready: in std_logic;--indicates d_cache is ready (Q_ram is valid), synchronous to rising_edge(CLK_IN)
 		wren_lvec: out std_logic;--enables load vector: loads vector of 8 std_logic_vector in parallel
 		lvec_src: out std_logic_vector(2 downto 0);--a single source address for lvec
-		lvec_dst_mask: out std_logic_vector(6 downto 0);--mask for destination(s) address(es) for lvec
+		lvec_dst_mask: out std_logic_vector(7 downto 0);--mask for destination(s) address(es) for lvec
 		vmac_en: out std_logic;--multiply-accumulate enable
 		Q_ram:in std_logic_vector(31 downto 0)
 );
@@ -599,8 +599,8 @@ begin
 	lvec_src <= 	instruction(10 downto 8) when lvec='1' else
 					read_data_1(2 downto 0) when lvecr='1' else
 					(others=>'0');
-	lvec_dst_mask <= instruction(6 downto 0) when lvec='1' else
-					read_data_2(6 downto 0) when lvecr='1' else
+	lvec_dst_mask <= instruction(7 downto 0) when lvec='1' else
+					read_data_2(7 downto 0) when lvecr='1' else
 					(others=>'0');
 
 end proc;
