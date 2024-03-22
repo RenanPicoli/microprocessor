@@ -6,6 +6,10 @@
 //includes word type
 #include "lcd.h"
 
+//macros para evitar trocas de contexto excessivas
+#define LCD_WRITE_COMMAND(command) WRITE(LCD_CTRL_BASE_ADDR + LCD_CTRL_OFFSET, command);
+#define LCD_WRITE_DATA(data) LCD_WRITE_COMMAND(LCD_WRITE_DDRAM_DATA | data);
+
 // Macros para facilitar a conversão de binário para unsigned int
 #define BIN10(rs, rw, b7, b6, b5, b4, b3, b2, b1, b0) ((unsigned int)( \
     ((rs & 1) << 9) | ((rw & 1) << 8) | ((b7 & 1) << 7) | ((b6 & 1) << 6) | \
