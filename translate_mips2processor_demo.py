@@ -100,8 +100,8 @@ def main(argv):
     if(curr_section=="data"):
       words = line.split()
       if(words[0].startswith(".word")):#TODO: add support for .byte,.half,.double
-        if(words[1].isdecimal()):
-          new_instr="x{:08X};".format(int(words[1])) # stores the constant in hex
+        if(words[1].isdecimal() or words[1][0]=='-'):# "-123" is not decimal
+          new_instr="x{:08X};".format(2**32+int(words[1])) if words[1][0]=='-' else "x{:08X};".format(int(words[1])) # stores the constant in hex
           print(line + "-> " + new_instr)
           #of.write(new_instr+"\n")
           data_vector.extend((new_instr).split("\n"))
@@ -117,8 +117,8 @@ def main(argv):
     elif(curr_section=="rdata"):
       words = line.split()
       if(words[0].startswith(".word")):#TODO: add support for .byte,.half,.double
-        if(words[1].isdecimal()):
-          new_instr="x{:08X};".format(int(words[1])) # stores the constant in hex
+        if(words[1].isdecimal() or words[1][0]=='-'):# "-123" is not decimal
+          new_instr="x{:08X};".format(2**32+int(words[1])) if words[1][0]=='-' else "x{:08X};".format(int(words[1])) # stores the constant in hex
           print(line + "-> " + new_instr)
           #of.write(new_instr+"\n")
           rdata_vector.extend((new_instr).split("\n"))
