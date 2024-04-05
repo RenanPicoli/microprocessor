@@ -155,20 +155,20 @@ void lcd_print_float(float value){
 	}
 	//printf("\n%c",digit_array[0]);
 	//printf(".");
-	lcd_write_data(digit_array[0]);
-	lcd_write_data('.');
+	LCD_WRITE_DATA(digit_array[0]);
+	LCD_WRITE_DATA('.');
 	for(int i=1;i<DECIMAL_PLACES+1;i++){
 	    //printf("%c",digit_array[i]);
-		lcd_write_data(digit_array[i]);
+		LCD_WRITE_DATA(digit_array[i]);
 	}
 
 	
 	//prints the exponent, always an integer
 	//printf("E");
-	lcd_write_data('E');
+	LCD_WRITE_DATA('E');
 	if(exp10 < 0){
 		//printf("-");
-		lcd_write_data('-');		
+		LCD_WRITE_DATA('-');		
 		exp10 = -exp10;
 	}
 	int exp_digit_array[2];
@@ -181,10 +181,10 @@ void lcd_print_float(float value){
 		}
 	}
 	//printf("%d",exp_digit_array[last_digit]);
-	lcd_write_data('0'+exp_digit_array[last_digit]);
+	LCD_WRITE_DATA('0'+exp_digit_array[last_digit]);
 	if(last_digit != 0){
 		//printf("%d",exp_digit_array[last_digit-1]);
-		lcd_write_data('0'+exp_digit_array[last_digit-1]);
+		LCD_WRITE_DATA('0'+exp_digit_array[last_digit-1]);
 	}
 	
 	//TO-DO: remove	

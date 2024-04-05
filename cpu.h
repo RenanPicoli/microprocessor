@@ -21,6 +21,7 @@ typedef union {
 #define LVEC_DST_MSK_4 1<<4
 #define LVEC_DST_MSK_5 1<<5
 #define LVEC_DST_MSK_6 1<<6
+#define LVEC_DST_MSK_7 1<<7
 
 #define LVEC_DST_MSK(n) LVEC_DST_MSK_ ## n
 
