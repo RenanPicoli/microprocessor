@@ -67,6 +67,8 @@ signal gpr: std_logic_vector(4 downto 0);
 signal gpr_valid: std_logic;
 signal gpr_stack_in: std_logic_vector(31 downto 0);
 signal gpr_stack_out: std_logic_vector(31 downto 0);
+
+signal ADDR_difference: std_logic_vector(31 downto 0);
 signal ADDR_ram_oor: std_logic;--ADDR_ram is out of stack boundaries
 
 	begin
@@ -78,7 +80,7 @@ signal ADDR_ram_oor: std_logic;--ADDR_ram is out of stack boundaries
 	wren_stack <= ldfp;
 	addr_stack <= sp;
 	rden_stack <= '0';
-	mem_write_data <= (31=>'1',30 downto 5=>'0') & rs;
+	mem_write_data <= (31 downto 6=>'0', 5=>'1') & rs;
 	
 	--mapped on last 2^L word addresses (0xffffffff-2^L+1)-0xffffffff (bit 9='1'=> stack,bit 9='0'=>external ram)
 	gpr_stack: mm_stack
@@ -104,10 +106,11 @@ signal ADDR_ram_oor: std_logic;--ADDR_ram is out of stack boundaries
 				ADDR => addr_stack(L-1 downto 0),-- address to be written by memory-mapped interface
 				Q    => Q_stack-- data output for memory-mapped interface
 		);
-	gpr_valid <= gpr_stack_out(31);
+	gpr_valid <= gpr_stack_out(5);
 	gpr <= gpr_stack_out(4 downto 0);
 	
-	ADDR_ram_oor <= '1' when (full_ADDR_ram < sck_lower_limit) else '0';
+	ADDR_difference <= full_ADDR_ram - sck_lower_limit;
+	ADDR_ram_oor <= ADDR_difference(31);
 	oor <= '1' when (lw='1' or sw='1') and gpr_valid='1' and rs=gpr and ADDR_ram_oor='1'
 			else '0';
 
