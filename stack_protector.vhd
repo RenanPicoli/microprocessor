@@ -27,27 +27,6 @@ entity stack_protector is
 end entity;
 
 architecture bhv of stack_protector is
-component mm_stack
-generic(L: natural);--log2 of number of stored words
-port (CLK: in std_logic;--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
-		rst: in std_logic;-- active high asynchronous reset (should be deasserted at rising_edge of CLK)
-		ready: buffer std_logic;-- for both interfaces
-		--STACK INTERFACE
-		pop: in std_logic;
-		push: in std_logic;
-		addsp: in std_logic;--sp <- sp + imm
-		imm: in std_logic_vector(L-1 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
-		stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
-		sp: buffer std_logic_vector(L-1 downto 0);-- points to last stacked item (address of a 32-bit word)
-		stack_out: out std_logic_vector(31 downto 0);--data retrieved from stack
-		--MEMORY-MAPPED INTERFACE
-		D: in std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
-		WREN: in std_logic;--write enable for memory-mapped interface
-		RDEN: in std_logic;--read enable for memory-mapped interface
-		ADDR: in std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
-		Q:		out std_logic_vector(31 downto 0)-- data output for memory-mapped interface
-);
-end component;
 
 --NO EDAPLAYGROUND, precisei substituir L pelo valor numérico para compilar
 signal sck_lower_limit: std_logic_vector(31 downto 0):=(31 downto L+2=>'1',L+1 downto 0=>'0');
@@ -55,18 +34,25 @@ signal sck_lower_limit: std_logic_vector(31 downto 0):=(31 downto L+2=>'1',L+1 d
 signal pop: std_logic;
 signal push: std_logic;
 signal sp: std_logic_vector(L-1 downto 0);
+signal read_pop_ready: std_logic;--this is used only for stack reading/popping
 
 --MEMORY-MAPPED INTERFACE
-signal mem_write_data: std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
+signal mem_write_data: std_logic_vector(5 downto 0);-- data to be written by memory-mapped interface
 signal wren_stack: std_logic;--write enable for memory-mapped interface
 signal rden_stack: std_logic;
 signal addr_stack: std_logic_vector(L-1 downto 0);-- address to be written by memory-mapped interface
-signal Q_stack: std_logic_vector(31 downto 0);-- data output for memory-mapped interface
+signal Q_stack: std_logic_vector(5 downto 0);-- data output for memory-mapped interface
+
+type memory is array (0 to 2**L-1) of std_logic_vector(5 downto 0);
+signal ram: memory;
+--since the upper hierarchy guarantees there will be no read-during-write
+attribute ramstyle : string;
+attribute ramstyle of ram : signal is "no_rw_check";
 
 signal gpr: std_logic_vector(4 downto 0);
 signal gpr_valid: std_logic;
-signal gpr_stack_in: std_logic_vector(31 downto 0);
-signal gpr_stack_out: std_logic_vector(31 downto 0);
+signal gpr_stack_in: std_logic_vector(5 downto 0);
+signal gpr_stack_out: std_logic_vector(5 downto 0);
 
 signal ADDR_difference: std_logic_vector(31 downto 0);
 signal ADDR_ram_oor: std_logic;--ADDR_ram is out of stack boundaries
@@ -76,42 +62,64 @@ signal ADDR_ram_oor: std_logic;--ADDR_ram is out of stack boundaries
 	pop <= ret or iret;
 	push <= call or irq;	
 	gpr_stack_in <= (others=>'0');
+
+	sp_update: process(CLK,rst,pop,push,ready_stack)
+	begin
+		if(rst='1')then
+			sp <= (others=>'0');--sp=xffffffff means stack with one element, x00000000-1=xffffffff
+		elsif(rising_edge(CLK))then--there must be a falling_edge even when recovering from a cache miss
+			--only one of these inputs can be asserted in one cycle
+			if(pop='1' and ready_stack='1')then
+				sp <= sp + 1;
+			elsif(push='1' and ready_stack='1')then
+				sp <= sp - 1;
+			end if;
+		end if;
+	end process;
+    
+		-----------------read_pop_ready----------------------
+		process(CLK,RST,pop,rden_stack)
+		begin
+			if(RST='1')then
+				read_pop_ready <= '0';
+			elsif(rising_edge(CLK))then
+				if(read_pop_ready='0' and (rden_stack='1' or pop='1'))then
+					read_pop_ready <= '1';
+				else
+					read_pop_ready <= '0';
+				end if;
+			end if;
+		end process;
+		
+		ready_stack <= '1' when (wren_stack='1' or push='1') else read_pop_ready;
 	
 	wren_stack <= ldfp;
 	addr_stack <= sp;
 	rden_stack <= '0';
-	mem_write_data <= (31 downto 6=>'0', 5=>'1') & rs;
+	mem_write_data <= '1' & rs;
 	
 	--mapped on last 2^L word addresses (0xffffffff-2^L+1)-0xffffffff (bit 9='1'=> stack,bit 9='0'=>external ram)
-	gpr_stack: mm_stack
-		generic map (L => L)
-		--USING PROCESSOR CLK because if a miss occurs, there will be no falling_edge(CLK)
-		--during the cycle of valid instruction (i_cache_ready='1')
-		port map(CLK => CLK,--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
-				rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
-				ready => ready_stack,
-				--STACK INTERFACE
-				pop => pop,
-				push => push,
-				addsp => '0',
-				--ignores 2 LSb of immediate in instruction, because sp is word address, processor deals with byte addresses
-				imm => (others=>'0'),
-				stack_in => gpr_stack_in,-- word to be pushed
-				sp => sp,-- points to last stacked item (address of a 32-bit word)
-				stack_out => gpr_stack_out,--data retrieved from stack
-				--MEMORY-MAPPED INTERFACE
-				D => mem_write_data,-- data to be written by memory-mapped interface
-				WREN => wren_stack,--write enable for memory-mapped interface
-				RDEN => rden_stack,
-				ADDR => addr_stack(L-1 downto 0),-- address to be written by memory-mapped interface
-				Q    => Q_stack-- data output for memory-mapped interface
-		);
-	gpr_valid <= gpr_stack_out(5);
-	gpr <= gpr_stack_out(4 downto 0);
+	--USING PROCESSOR CLK because if a miss occurs, there will be no falling_edge(CLK)
+	--during the cycle of valid instruction (i_cache_ready='1')
+	process(rst,CLK,mem_write_data,wren_stack,addr_stack)
+	begin
+--		if(rst='1')then
+--			ram <= (others=>(others=>'0'));
+		if(rising_edge(CLK)) then
+			if(wren_stack = '1') then
+				ram(to_integer(unsigned(addr_stack(L-1 downto 0)))) <= mem_write_data;
+				Q_stack <= mem_write_data;
+			end if;
+			Q_stack <= ram(to_integer(unsigned(addr_stack(L-1 downto 0))));
+		end if;
+	end process;
+        
+	gpr_valid <= Q_stack(5);
+	gpr <= Q_stack(4 downto 0);
 	
 	ADDR_difference <= full_ADDR_ram - sck_lower_limit;
 	ADDR_ram_oor <= ADDR_difference(31);
-	oor <= '1' when (lw='1' or sw='1') and gpr_valid='1' and rs=gpr and ADDR_ram_oor='1'
+	oor <= '1' when ((lw='1' or sw='1') and gpr_valid='1' and rs=gpr and ADDR_ram_oor='1')
 			else '0';
 
 	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
