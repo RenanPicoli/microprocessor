@@ -298,7 +298,8 @@ begin
 	ready <= clk_enable;
 	accessing_stack <= rden_stack or wren_stack or push or pop;
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready)
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
+				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,stack_fault)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
@@ -327,12 +328,16 @@ begin
 	
 	CLK <= CLK_IN and clk_enable;	
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready)
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
+				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,stack_fault)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			CLK_rom_en <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if(i_cache_ready='1' and
+			if(stack_fault='1')then--stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
+				--MUST REMAIN FROZEN UNTIL RESET
+				CLK_rom_en <= '0';
+			elsif(i_cache_ready='1' and
 				((d_cache_ready='0' and accessing_stack='0') or
 				(ready_stack='0' and accessing_stack='1')))then--miss apenas no d_cache, esperar o dado para continuar o programa
 				CLK_rom_en <= '0';
