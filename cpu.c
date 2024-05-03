@@ -71,7 +71,11 @@ float __negsf3(float x){
 //convert x to a signed integer, rounding toward zero
 //will call float2int (my implementation)
 int   __fixsfsi(float x){
-	return float2int(x);
+	WRITE(FP32_TO_INT32_BASE_ADDR+FP32_TO_INT32_IN_OFFSET,x);
+	int converted;
+	READ(FP32_TO_INT32_BASE_ADDR+FP32_TO_INT32_OUT_OFFSET,converted);
+	return converted;
+	//return float2int(x);
 }
 
 //convert x to a signed integer, rounding toward zero

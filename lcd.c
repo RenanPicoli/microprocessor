@@ -94,9 +94,9 @@ void lcd_print_float(float value){
 	#define DECIMAL_PLACES 1
 	word w;
 	w.f = value;
-    unsigned short int negative = 0;
-    int masked_w = (w.i & 0x80000000);
-    if(masked_w != 0){
+	unsigned short int negative = 0;
+	int masked_w = (w.i & 0x80000000);
+	if(masked_w != 0){
 		lcd_write_data('-');
 	    negative = 1;
 	}

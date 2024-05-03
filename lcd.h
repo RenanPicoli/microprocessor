@@ -4,7 +4,7 @@
 //#include <stdint.h>
 
 //includes word type
-#include "lcd.h"
+#include "cpu.h"
 
 //macros para evitar trocas de contexto excessivas
 #define LCD_WRITE_COMMAND(command) WRITE(LCD_CTRL_BASE_ADDR + LCD_CTRL_OFFSET, command);
