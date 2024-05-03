@@ -31,6 +31,7 @@ entity control_unit is
 			call: out std_logic;
 			ret: out  std_logic;
 			iret: out std_logic;
+			callr: out std_logic;
 
 			vmac: out std_logic;--multiply-accumulate
 			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
@@ -140,6 +141,8 @@ pop		<= '1' when opcode="110100" else '0';--pops all GPR from their stacks
 call 		<= '1' when opcode="110101" else '0';--jumps to immediate and save return address to LR
 ret 		<= '1' when opcode="110110" else '0';--jumps to link register, stores return value in RV and restores FP; return from normal function call
 iret 		<= '1' when opcode="110111" else '0';--jumps to link register, send iack and restores FP (IRQHandlers don't have return value); return from interrupt
+callr		<= '1' when opcode="111000" else '0';--jumps to address in GPR and saves return address to LR
+
 nop		<= '1' when opcode="111111" else '0';--no operation (bubble)
 
 iack <= iret;

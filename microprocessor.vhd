@@ -118,6 +118,7 @@ component control_unit
 			call: out std_logic;
 			ret: out  std_logic;
 			iret: out std_logic;
+			callr: out std_logic;
 			vmac: out std_logic;--multiply-accumulate
 			lvec: out std_logic;--load vector: loads vector of 8 std_logic_vector in parallel
 			lvecr: out std_logic;--variant of lvec, takes arguments from registers
@@ -287,6 +288,7 @@ signal pop:  std_logic;
 signal call: std_logic;
 signal ret:  std_logic;
 signal iret: std_logic;
+signal callr: std_logic;
 
 signal reg_clk: std_logic;--register file clock signal
 signal alu_clk: std_logic;--alu clock signal
@@ -380,17 +382,17 @@ begin
 --										ENA => fp_en,
 --										D => fp_in,
 --										Q => fp_out);
-	fp_en <= call or irq or ret or iret;
-	fp_in <= sp when (call='1' or irq='1') else fp_stack_out;--this SP value was converted to byte address
+	fp_en <= call or callr or irq or ret or iret;
+	fp_in <= sp when (call='1' or callr='1' or irq='1') else fp_stack_out;--this SP value was converted to byte address
 										
 	LR: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
 										ENA => lr_en,
 										D => lr_in,
 										Q => lr_out);
-	lr_en <= call or irq or ret or iret;
+	lr_en <= call or callr or irq or ret or iret;
 	lr_in <= lr_stack_out when (ret='1' or iret='1') else
-				pc_incremented when call='1'else
+				pc_incremented when (call='1' or callr='1') else
 				pc_in_no_irq;--when irq='1', this points to the instruction that was "preempted" by IRQ
 										
 	RV: d_flip_flop port map (	CLK => CLK,
@@ -451,7 +453,7 @@ begin
 		lw=>memRead,
 		sw=>memWrite,
 		ldfp=>ldfp,
-		call=>call,
+		call=>call or callr,
 		ret=>ret,
 		irq=>irq,
 		iret=>iret,
@@ -460,7 +462,7 @@ begin
 	);
   
 	fp_stack_pop <= ret or iret;
-	fp_stack_push<= call or irq;
+	fp_stack_push<= call or callr or irq;
 	fp_stack: stack
 						generic map (L => STACK_LEVELS_LOG2)
 						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
@@ -479,7 +481,7 @@ begin
 							);
 
 	lr_stack_pop <= ret or iret;
-	lr_stack_push<= call or irq;
+	lr_stack_push<= call or callr or irq;
 	lr_stack: stack
 						generic map (L => STACK_LEVELS_LOG2)
 						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
@@ -509,7 +511,7 @@ begin
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	reg_clk <= CLK;
 	reg_pop <= ret or iret;--automatically restores context
-	reg_push<= call or irq;--automatically saves context
+	reg_push<= call or callr or irq;--automatically saves context
 	register_file: reg_file generic map (L => STACK_LEVELS_LOG2)
 									port map (	CLK => reg_clk,									
 													stack_CLK=> CLK_IN,--if a miss occurs, there will be no falling_edge(CLK) during the cycle of valid instruction
@@ -587,6 +589,7 @@ begin
 						jump_address when (jump='1') else--next pc_out if not reset
 						branch_address when (branch_or_next='1') else
 						pc_out(31 downto 28) & instruction(25 downto 0) & "00" when (call='1') else-- call: opcode(31..26) func_WORD_addr(25..0)
+						read_data_1 when (callr='1') else
 						lr_out when (ret='1' or iret='1') else
 						pc_incremented;
 				
@@ -632,6 +635,7 @@ begin
 												call => call,
 												ret => ret,
 												iret => iret,
+												callr => callr,
 												vmac => vmac,
 												lvec => lvec,
 												lvecr=> lvecr,
