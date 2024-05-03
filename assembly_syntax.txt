@@ -12,7 +12,7 @@ S_type_mnemonics := {sw,lw};-- opcode, 2 registers and 1 IMMEDIATE for MEMORY ac
 
 --opcodes (keep it in ascending order)
 
-R_type	:= "000000";
+R_type:= "000000";
 ori	:= "000001";
 jmp	:= "000010";
 andi	:= "000011";
@@ -23,10 +23,11 @@ lvec	:= "000111";
 addi	:= "001000";
 subi	:= "001001";
 --	 iack	:= "001010";
+
 imul	:= "001101";
 vmac	:= "001111";
 xori	:= "010000";
-lui		:= "010001";
+lui	:= "010001";
 lvecr	:= "010010";
 
 nori	:= "010100";
@@ -43,7 +44,9 @@ push	:= "110011";--pushes specified GPR to program stack
 pop	:= "110100";--pops specified GPR from program stack
 call	:= "110101";--jumps to immediate and save return address to LR
 ret	:= "110110";--jumps to link register, stores return value in RV and restores FP
-iret	:= "110111";--jumps to link register and restores FP (IRQHandlers don't have return value)		
+iret	:= "110111";--jumps to link register and restores FP (IRQHandlers don't have return value)
+callr	:= "111000";--jumps to address in GPR and saves return address to LR
+
 nop	:= "111111";--no operation (bubble)	
 
 --funct codes: use only with R_type
