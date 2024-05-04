@@ -425,9 +425,16 @@ def main(argv):
               sys.exit(-1)
             new_instr="\tret;"
           elif(opcode=="jalr"):
-            #raise ValueError("Instruction not (yet) supported: %s\n" % line)
-            print("Instruction not (yet) supported: {}\n".format(line))
-            sys.exit(-1)
+            # before function call, will push used register arguments
+            used_arg_regs.sort(reverse = True)
+            new_instr=""
+            print(used_arg_regs)
+            for r in used_arg_regs:
+              new_instr = new_instr+"\tpush {};\n".format(r)
+            frmt_str="\tcallr {};"
+            new_instr = new_instr + frmt_str.format(arg[1])
+            ## já fiz o push dos registradores usados, posso limpar a lista
+            used_arg_regs.clear();
           elif(opcode=="jalx" or opcode=="jal"):
             # before function call, will push used register arguments
             used_arg_regs.sort(reverse = True)
@@ -671,16 +678,34 @@ def main(argv):
             break
         elif of_lines[j].strip().startswith("push") and push_cnt_enable:
           push_cnt=push_cnt+1
-        elif "call" in of_lines[j] and push_cnt_enable:
+        elif "call" in of_lines[j] and push_cnt_enable:# accounts for 'call' and 'callr'
           #of_lines[i] = of_lines[i]+"found call!\n"
           push_cnt_enable=False
       
   for i in range(len(of_lines)): # iterates over lines of intermediary file
-    if(of_lines[i].startswith("\tcall")):
-      callee = of_lines[i].split("\tcall") # the function being called
-      callee = callee[1]
-      callee = callee.strip()
-      callee = callee[0:-1]
+    if(of_lines[i].startswith("\tcall")):# accounts for 'call' and 'callr'
+      if(of_lines[i].startswith("\tcall ")):
+        callee = of_lines[i].split("\tcall") # the function being called
+        callee = callee[1]
+        callee = callee.strip()
+        callee = callee[0:-1]
+      else:#callr
+        # determines which function is being called if using callr
+        callee = of_lines[i].split("\tcallr") # the function being called
+        callee = callee[1]
+        callee = callee.strip()
+        callee = callee[0:-1]#here, callee is a register, must determine where it is pointing to
+        for j in reversed(range(i)):
+          if(of_lines[j].startswith("\taddi $") and
+             of_lines[j].strip().endswith("{} x\"0000\";".format(callee))):
+            callee_src=(of_lines[j].strip().split())[1]
+            for k in reversed(range(j)):
+              if(of_lines[k].strip().startswith("addi {} {} %lo".format(callee_src,callee_src))):
+                callee=(of_lines[k].strip().split("addi {} {} %lo".format(callee_src,callee_src)))[1]
+                callee=callee[1:-2]#removes "(" from start and ");" from end
+                break
+            break
+        
       if(funct_returned_regs[callee]>0):
         of_lines[i] = of_lines[i]+"\tldrv $2;\n"
         #of_lines[i] = of_lines[i]+"\tpop $2;\n"
@@ -790,7 +815,8 @@ def pre_process(fp):
       else:
         print("Syntax error at directive: {}".format(line))
     # detects function calls (non-leaf functions)
-    elif(found_function and len(words)>=2 and (words[0]=="jal" or words[0]=="jalx")):
+    elif(found_function and len(words)>=2 and (words[0]=="jal" or words[0]=="jalx" or words[0]=="jalr")):
+        #TODO: determine which function is being called if using jalr
         print("Found function call inside {} called {}".format(nxt_label, words[1]))
         if nxt_label in leaf_functions: # to avoid removing twice a object
             leaf_functions.remove(get_curr_funct(line_cnt))
