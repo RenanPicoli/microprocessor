@@ -431,6 +431,8 @@ def main(argv):
             print(used_arg_regs)
             for r in used_arg_regs:
               new_instr = new_instr+"\tpush {};\n".format(r)
+            # offset of instruction memory (will added by assembler) must be removed
+            new_instr = new_instr + "\tsubi {} {} x\"{:04X}\";\n".format(arg[1],arg[1],INSTRUCTION_MEMORY_BASE_ADDR)
             frmt_str="\tcallr {};"
             new_instr = new_instr + frmt_str.format(arg[1])
             ## já fiz o push dos registradores usados, posso limpar a lista
@@ -442,8 +444,14 @@ def main(argv):
             print(used_arg_regs)
             for r in used_arg_regs:
               new_instr = new_instr+"\tpush {};\n".format(r)
-            frmt_str="\tcall {};"
-            new_instr = new_instr + frmt_str.format(arg[1])
+            if(arg[1][0]!="$"): # arg[1] is a function label
+              frmt_str="\tcall {};"
+              new_instr = new_instr + frmt_str.format(arg[1])
+            else: # arg[1] is a register, equivalent to jalr
+              # offset of instruction memory (will added by assembler) must be removed
+              new_instr = new_instr + "\tsubi {} {} x\"{:04X}\";\n".format(arg[1],arg[1],INSTRUCTION_MEMORY_BASE_ADDR)
+              frmt_str="\tcallr {};"
+              new_instr = new_instr + frmt_str.format(arg[1])
             ## já fiz o push dos registradores usados, posso limpar a lista
             used_arg_regs.clear();
           elif(opcode=="j"):
@@ -700,8 +708,8 @@ def main(argv):
              of_lines[j].strip().endswith("{} x\"0000\";".format(callee))):
             callee_src=(of_lines[j].strip().split())[1]
             for k in reversed(range(j)):
-              if(of_lines[k].strip().startswith("addi {} {} %lo".format(callee_src,callee_src))):
-                callee=(of_lines[k].strip().split("addi {} {} %lo".format(callee_src,callee_src)))[1]
+              if(of_lines[k].strip().startswith("lui {} %hi".format(callee_src))):
+                callee=(of_lines[k].strip().split("lui {} %hi".format(callee_src)))[1]
                 callee=callee[1:-2]#removes "(" from start and ");" from end
                 break
             break
