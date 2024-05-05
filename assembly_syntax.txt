@@ -12,7 +12,7 @@ S_type_mnemonics := {sw,lw};-- opcode, 2 registers and 1 IMMEDIATE for MEMORY ac
 
 --opcodes (keep it in ascending order)
 
-R_type:= "000000";
+R_type	:= "000000";
 ori	:= "000001";
 jmp	:= "000010";
 andi	:= "000011";
