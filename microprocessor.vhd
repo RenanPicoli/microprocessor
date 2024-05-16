@@ -157,7 +157,7 @@ port (CLK: in std_logic;--active edge: rising_edge, there MUST be a falling_edge
 		pop: in std_logic;
 		push: in std_logic;
 		addsp: in std_logic;--sp <- sp + imm
-		imm: in std_logic_vector(L-1 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
+		imm: in std_logic_vector(L downto 0);--imm(L) > 0: deletes vars, imm(L) < 0: reserves space for vars
 		stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
 		sp: buffer std_logic_vector(L-1 downto 0);-- points to last stacked item (address of a 32-bit word)
 		stack_out: out std_logic_vector(31 downto 0);--data retrieved from stack
@@ -175,8 +175,10 @@ component stack_protector
   port(
 		CLK:in std_logic;--processor clock
 		rst: in std_logic;
+		---------------------------------
+		--memory-mapped itfc monitoring--
 		rs: in std_logic_vector(4 downto 0);
-		full_ADDR_ram: in std_logic_vector(31 downto 0);--BYTE ADDRESS
+		full_ADDR_ram: in std_logic_vector(31 downto 0);--BYTE ADDRESS, addr_stack
 		lw: in std_logic;
 		sw: in std_logic;
 		ldfp: in std_logic;
@@ -184,8 +186,18 @@ component stack_protector
 		ret: in std_logic;
 		irq: in std_logic;
 		iret: in std_logic;
-		ready_stack: out std_logic;--'0' will freeze cpu
-		oor: out std_logic--'1' address is out of range
+		oor: out std_logic;--'1' address is out of range
+		---------------------------------
+		----stack specific monitoring----
+		sp: in std_logic_vector(L-1 downto 0);--stack pointer, WORD address
+		push: in std_logic;
+		pop: in std_logic;
+		addsp: in std_logic;
+		imm: in std_logic_vector(L downto 0);--imm(L) > 0: deletes vars, imm(L) < 0: reserves space for vars
+		ovf: out std_logic;--'1': stack overflow
+		unf: out std_logic;--'1': stack underflow
+		--------------------
+		ready_stack: out std_logic--'0' will freeze cpu
 );
 end component;
 
@@ -219,7 +231,11 @@ signal ready_stack: std_logic;
 signal Q_stack: std_logic_vector (31 downto 0) := (others => '0');
 constant STACK_LEVELS_LOG2: natural := 4;--for GPR's, FP and LR
 constant PROGRAM_STACK_LEVELS_LOG2: natural := 10;--for program_stack
-signal stack_fault: std_logic;
+
+signal mm_stack_oor: std_logic;
+signal mm_stack_ovf: std_logic;
+signal mm_stack_unf: std_logic;
+signal mm_stack_fault: std_logic;
 
 --signals driven by control unit
 signal regDst: std_logic_vector(1 downto 0);
@@ -301,12 +317,12 @@ begin
 	accessing_stack <= rden_stack or wren_stack or push or pop;
 	
 	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
-				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,stack_fault)
+				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if(stack_fault='1')then--stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
+			if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 				--MUST REMAIN FROZEN UNTIL RESET
 				clk_enable <= '0';
 			elsif((d_cache_ready='0' and accessing_stack='0') or
@@ -331,12 +347,12 @@ begin
 	CLK <= CLK_IN and clk_enable;	
 	
 	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
-				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,stack_fault)
+				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			CLK_rom_en <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if(stack_fault='1')then--stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
+			if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 				--MUST REMAIN FROZEN UNTIL RESET
 				CLK_rom_en <= '0';
 			elsif(i_cache_ready='1' and
@@ -421,7 +437,7 @@ begin
 									push => push,--for argument passing (push: opcode(31..26) rs(25..21) (20..0=>X))
 									addsp => addsp,
 									--ignores 2 LSb of immediate in instruction, because sp is word address, processor deals with byte addresses
-									imm => instruction(PROGRAM_STACK_LEVELS_LOG2+1 downto 2),--imm > 0: deletes vars, imm < 0: reserves space for vars
+									imm => instruction(PROGRAM_STACK_LEVELS_LOG2+2 downto 2),--imm(L) > 0: deletes vars, imm(L) < 0: reserves space for vars
 									stack_in => read_data_1,-- word to be pushed
 									sp => sp(PROGRAM_STACK_LEVELS_LOG2+1 downto 2),-- points to last stacked item (address of a 32-bit word)
 									stack_out => program_stack_out,--data retrieved from stack
@@ -448,6 +464,8 @@ begin
 	port map(
 		CLK=>CLK_IN,
 		rst=>rst,
+		---------------------------------
+		--memory-mapped itfc monitoring--
 		rs=>rs,
 		full_ADDR_ram=>full_ADDR_ram,--BYTE ADDRESS
 		lw=>memRead,
@@ -457,9 +475,20 @@ begin
 		ret=>ret,
 		irq=>irq,
 		iret=>iret,
-		ready_stack=> open,--'0' will freeze cpu
-		oor=>stack_fault--'1' address is out of range
+		oor=>mm_stack_oor,--'1' address is out of range
+		---------------------------------
+		----stack specific monitoring----
+		sp => sp(PROGRAM_STACK_LEVELS_LOG2+1 downto 2),--stack pointer, WORD address
+		push => push,
+		pop => pop,
+		addsp => addsp,
+		imm => instruction(PROGRAM_STACK_LEVELS_LOG2+2 downto 2),--imm(L) > 0: deletes vars, imm(L) < 0: reserves space for vars
+		ovf => mm_stack_ovf,--'1': stack overflow
+		unf => mm_stack_unf,--'1': stack underflow
+		--------------------
+		ready_stack=> open--'0' will freeze cpu
 	);
+	mm_stack_fault <= mm_stack_oor or mm_stack_ovf or mm_stack_unf;
   
 	fp_stack_pop <= ret or iret;
 	fp_stack_push<= call or callr or irq;

@@ -25,7 +25,7 @@ port (CLK: in std_logic;--active edge: rising_edge, there MUST be a falling_edge
 		pop: in std_logic;
 		push: in std_logic;
 		addsp: in std_logic;--sp <- sp + imm
-		imm: in std_logic_vector(L-1 downto 0);--imm > 0: deletes vars, imm < 0: reserves space for vars
+		imm: in std_logic_vector(L downto 0);--imm(L) > 0: deletes vars, imm(L) < 0: reserves space for vars
 		stack_in: in std_logic_vector(31 downto 0);-- word to be pushed
 		sp: buffer std_logic_vector(L-1 downto 0);-- points to last stacked item (address of a 32-bit word)
 		stack_out: out std_logic_vector(31 downto 0);--data retrieved from stack
@@ -74,6 +74,7 @@ constant USE_TDP_RAM: boolean := true;
 
 --signal empty: std_logic;
 --signal full: std_logic;
+signal sp_sum_extended: std_logic_vector(L downto 0);-- bit L is for overflow/underflow
 
 --signals used only when a single port ram is used
 signal	mem_d:	std_logic_vector(31 downto 0);-- data to be written by memory-mapped interface
@@ -91,6 +92,8 @@ signal	stack_addr:std_logic_vector(L-1 downto 0);-- address to be written by mem
 signal	read_pop_ready: std_logic;--this is used only for stack reading/popping
 	begin
 	
+	sp_sum_extended <= ('0' & sp) + imm;-- immediate is sign-extended
+	
 	sp_update: process(CLK,rst,pop,push,addsp,imm,ready)
 	begin
 		if(rst='1')then
@@ -102,7 +105,7 @@ signal	read_pop_ready: std_logic;--this is used only for stack reading/popping
 			elsif(push='1' and ready='1')then
 				sp <= sp - 1;
 			elsif(addsp='1')then
-				sp <= sp + imm;-- immediate is sign-extended
+				sp <= sp_sum_extended(L-1 downto 0);
 			end if;
 		end if;
 	end process;

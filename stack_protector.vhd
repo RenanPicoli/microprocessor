@@ -12,8 +12,10 @@ entity stack_protector is
   port(
 		CLK:in std_logic;--processor clock
 		rst: in std_logic;
+		---------------------------------
+		--memory-mapped itfc monitoring--
 		rs: in std_logic_vector(4 downto 0);
-		full_ADDR_ram: in std_logic_vector(31 downto 0);--BYTE ADDRESS
+		full_ADDR_ram: in std_logic_vector(31 downto 0);--BYTE ADDRESS, addr_stack
 		lw: in std_logic;
 		sw: in std_logic;
 		ldfp: in std_logic;
@@ -21,8 +23,18 @@ entity stack_protector is
 		ret: in std_logic;
 		irq: in std_logic;
 		iret: in std_logic;
-		ready_stack: out std_logic;--'0' will freeze cpu
-		oor: out std_logic--'1' address is out of range
+		oor: out std_logic;--'1' address is out of range
+		---------------------------------
+		----stack specific monitoring----
+		sp: in std_logic_vector(L-1 downto 0);--stack pointer, WORD address
+		push: in std_logic;
+		pop: in std_logic;
+		addsp: in std_logic;
+		imm: in std_logic_vector(L downto 0);--imm(L) > 0: deletes vars, imm(L) < 0: reserves space for vars
+		ovf: out std_logic;--'1': stack overflow
+		unf: out std_logic;--'1': stack underflow
+		--------------------
+		ready_stack: out std_logic--'0' will freeze cpu
 );
 end entity;
 
@@ -31,9 +43,10 @@ architecture bhv of stack_protector is
 --NO EDAPLAYGROUND, precisei substituir L pelo valor numérico para compilar
 signal sck_lower_limit: std_logic_vector(31 downto 0):=(31 downto L+2=>'1',L+1 downto 0=>'0');
 
-signal pop: std_logic;
-signal push: std_logic;
-signal sp: std_logic_vector(L-1 downto 0);
+signal lr_stack_pop: std_logic;
+signal lr_stack_push: std_logic;
+signal stack_empty: std_logic;
+signal stack_full: std_logic;
 signal read_pop_ready: std_logic;--this is used only for stack reading/popping
 
 --MEMORY-MAPPED INTERFACE
@@ -57,41 +70,38 @@ signal gpr_stack_out: std_logic_vector(5 downto 0);
 signal ADDR_difference: std_logic_vector(31 downto 0);
 signal ADDR_ram_oor: std_logic;--ADDR_ram is out of stack boundaries
 
+signal addsp_ovf: std_logic;-- indicates overflow when incrementing sp
+signal addsp_unf: std_logic;-- indicates overflow when decrementing sp
+signal sp_imm_sum: std_logic_vector(L downto 0);-- aditional bit for detecting overflow/underflow
+signal stack_almost_full: std_logic_vector(L-1 downto 0);
+
+--preserving signals during synthesis for debugging
+attribute preserve_for_debug : boolean;
+attribute preserve_for_debug of oor: signal is true;
+attribute preserve_for_debug of ovf: signal is true;
+attribute preserve_for_debug of unf: signal is true;
+
 	begin
 	
-	pop <= ret or iret;
-	push <= call or irq;	
+	lr_stack_pop <= ret or iret;
+	lr_stack_push <= call or irq;	
 	gpr_stack_in <= (others=>'0');
-
-	sp_update: process(CLK,rst,pop,push,ready_stack)
+    
+	-----------------read_pop_ready----------------------
+	process(CLK,RST,lr_stack_pop,rden_stack,pop)
 	begin
-		if(rst='1')then
-			sp <= (others=>'0');--sp=xffffffff means stack with one element, x00000000-1=xffffffff
-		elsif(rising_edge(CLK))then--there must be a falling_edge even when recovering from a cache miss
-			--only one of these inputs can be asserted in one cycle
-			if(pop='1' and ready_stack='1')then
-				sp <= sp + 1;
-			elsif(push='1' and ready_stack='1')then
-				sp <= sp - 1;
+		if(RST='1')then
+			read_pop_ready <= '0';
+		elsif(rising_edge(CLK))then
+			if(read_pop_ready='0' and (rden_stack='1' or lr_stack_pop='1' or pop='1'))then
+				read_pop_ready <= '1';
+			else
+				read_pop_ready <= '0';
 			end if;
 		end if;
 	end process;
-    
-		-----------------read_pop_ready----------------------
-		process(CLK,RST,pop,rden_stack)
-		begin
-			if(RST='1')then
-				read_pop_ready <= '0';
-			elsif(rising_edge(CLK))then
-				if(read_pop_ready='0' and (rden_stack='1' or pop='1'))then
-					read_pop_ready <= '1';
-				else
-					read_pop_ready <= '0';
-				end if;
-			end if;
-		end process;
-		
-		ready_stack <= '1' when (wren_stack='1' or push='1') else read_pop_ready;
+	
+	ready_stack <= read_pop_ready when (rden_stack='1' or lr_stack_pop='1' or pop='1') else '1';
 	
 	wren_stack <= ldfp;
 	addr_stack <= sp;
@@ -121,7 +131,43 @@ signal ADDR_ram_oor: std_logic;--ADDR_ram is out of stack boundaries
 	ADDR_ram_oor <= ADDR_difference(31);
 	oor <= '1' when ((lw='1' or sw='1') and gpr_valid='1' and rs=gpr and ADDR_ram_oor='1')
 			else '0';
+	
+	-----------------stack_empty----------------------
+	process(CLK,RST,sp,push,pop,ready_stack)
+	begin
+		if(RST='1')then
+			stack_empty <= '1';
+		elsif(rising_edge(CLK) and ready_stack='1')then
+			if(push='1')then
+				stack_empty <= '0';
+			elsif(sp=(L-1 downto 0=>'1') and pop='1')then
+				stack_empty <= '1';
+			end if;
+		end if;
+	end process;
+	
+	-----------------stack_full----------------------
+	stack_almost_full <= (L-1 downto 1=>'0',0=>'1');
+	process(CLK,RST,sp,push,pop,ready_stack,stack_almost_full)
+	begin
+		if(RST='1')then
+			stack_full <= '0';
+		elsif(rising_edge(CLK) and ready_stack='1')then
+			if((sp=stack_almost_full) and (push='1'))then
+				stack_full <= '1';
+			elsif(pop='1')then
+				stack_full <= '0';
+			end if;
+		end if;
+	end process;
+	
+	sp_imm_sum <= sp + imm;
+	--imm(L)='0' means incrementing sp
+	addsp_ovf <= '1' when (imm(L)='0' and sp_imm_sum(L)='1') else '0';
+	--imm(L)='1' means decrementing sp
+	addsp_unf <= '1' when (imm(L)='1' and sp_imm_sum(L)='1') else '0';
 
-	--TODO:	signal error conditions: address out of bounds, sp incremented/decremented beyond limits
-	--			popping empty stack, pushing to full stack
+	--TODO:	signal error conditions: sp incremented/decremented beyond limits
+	ovf <= '1' when ((push='1' and stack_full='1') or (addsp='1' and addsp_ovf='1')) else '0';
+	unf <= '1' when ((pop='1' and stack_empty='1') or (addsp='1' and addsp_unf='1')) else '0';
 end bhv;
