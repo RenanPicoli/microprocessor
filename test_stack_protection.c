@@ -8,7 +8,8 @@ int main(void){
 	float float_arr[]={1.0f,1.7e-3f,-1240.0f};	
 	filter_control(0);//disables filter
 	
-	ADDSP(x"F000");// addsp -4096
+	//ADDSP(x"F000");// addsp -4096
+	ADDSP(x"0038");// addsp 56
 	
 	//intentionally ommited the instruction memory write
 	//and 7-seg write
