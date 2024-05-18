@@ -5,11 +5,17 @@
 
 //main loop
 int main(void){
-	float float_arr[]={1.0f,1.7e-3f,-1240.0f};	
+	//popping empty stack	
+	__asm("\
+	pop r1;\n\t\
+	pop r2;\n\t\
+	pop r3;\n\t\
+	");/*
+	float float_arr[]={1.0f,1.7e-3f,-1240.0f};
 	filter_control(0);//disables filter
-	
+
 	//ADDSP(x"F000");// addsp -4096
-	ADDSP(x"0038");// addsp 56
+	//ADDSP(x"0038");// addsp 56
 	
 	//intentionally ommited the instruction memory write
 	//and 7-seg write
@@ -20,7 +26,7 @@ int main(void){
 	lcd_print_float(float_arr[2]);
 	
 	filter_control(1);//enables filter
-	
+	*/
     while(1){
         HALT();
     }
