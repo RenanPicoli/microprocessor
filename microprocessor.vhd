@@ -236,6 +236,8 @@ signal mm_stack_oor: std_logic;
 signal mm_stack_ovf: std_logic;
 signal mm_stack_unf: std_logic;
 signal mm_stack_fault: std_logic;
+signal mm_stack_CLK: std_logic;
+signal mm_stack_CLK_en: std_logic;
 
 --signals driven by control unit
 signal regDst: std_logic_vector(1 downto 0);
@@ -424,12 +426,27 @@ begin
 										D => pc_in,
 										Q => pc_out);
 	
+	mm_stack_CLK_en_p: process(rst,CLK_IN,mm_stack_fault)
+	begin
+		if(rst='1')then
+			mm_stack_CLK_en <= '1';
+		elsif(falling_edge(CLK_IN))then
+			if(mm_stack_fault='1')then
+				mm_stack_CLK_en <= '0';
+			else
+				mm_stack_CLK_en <= '1';
+			end if;
+		end if;
+	end process;
+	
+	mm_stack_CLK <= CLK_IN and mm_stack_CLK_en;
 	--mapped on last 2^L word addresses (0xffffffff-2^L+1)-0xffffffff (bit 9='1'=> stack,bit 9='0'=>external ram)
 	program_stack: mm_stack
 						generic map (L => PROGRAM_STACK_LEVELS_LOG2)
 						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
 						--during the cycle of valid instruction (i_cache_ready='1')
-						port map(CLK => CLK_IN,--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
+						port map(CLK => mm_stack_CLK,--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
+															  --stack clock will be frozen only when a stack fault occurs
 									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
 									ready => ready_stack,
 									--STACK INTERFACE
