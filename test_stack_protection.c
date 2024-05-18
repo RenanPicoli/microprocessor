@@ -5,12 +5,22 @@
 
 //main loop
 int main(void){
-	//popping empty stack	
-	__asm("\
-	pop r1;\n\t\
-	pop r2;\n\t\
-	pop r3;\n\t\
-	");/*
+/*
+       //popping empty stack   
+       __asm("\
+       pop r1;\n\t\
+       pop r2;\n\t\
+       pop r3;\n\t\
+       ");
+*/
+
+	//pushing to stack until is filled and underflows
+	for(int i=0;;i++){
+		__asm("\
+		push r3;\n\t\
+		");
+	}
+	/*
 	float float_arr[]={1.0f,1.7e-3f,-1240.0f};
 	filter_control(0);//disables filter
 
