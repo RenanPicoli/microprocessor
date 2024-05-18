@@ -169,5 +169,6 @@ attribute preserve_for_debug of unf: signal is true;
 
 	--TODO:	signal error conditions: sp incremented/decremented beyond limits
 	ovf <= '1' when ((push='1' and stack_full='1') or (addsp='1' and addsp_ovf='1')) else '0';
-	unf <= '1' when ((pop='1' and stack_empty='1') or (addsp='1' and addsp_unf='1')) else '0';
+	--checking for stack_empty='0' because SP must be decremented from 0 to 0xffffffff when stack is initialized (stack_empty='1' after reset)
+	unf <= '1' when ((pop='1' and stack_empty='1') or (addsp='1' and addsp_unf='1' and stack_empty='0')) else '0';
 end bhv;
