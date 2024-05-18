@@ -14,7 +14,7 @@ int main(void){
        ");
 */
 
-	//pushing to stack until is filled and underflows
+	//pushing to stack until is filled and overflows
 	for(int i=0;;i++){
 		__asm("\
 		push r3;\n\t\
