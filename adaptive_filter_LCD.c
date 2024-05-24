@@ -112,7 +112,9 @@ void codec_init(){
 
 // handler of IRQ0 (filter_CLK rising_edge)
 void IRQ0_Handler(){
+	//não coloque nada acima de .remove_prologue! Será excluído até o início da função
     __asm(".remove_prologue\n\t");
+    __asm(".interrupt_handler\n\t");
 	//cálculo do step
 	
 	//carrega o produto interno (A e B - 3 e 4) e vmac:B (6) com os xN(2)
@@ -141,7 +143,9 @@ void IRQ0_Handler(){
 
 // handler of IRQ1 (I2C)
 void IRQ1_Handler(){
+	//não coloque nada acima de .remove_prologue! Será excluído até o início da função
     __asm(".remove_prologue\n\t");
+    __asm(".interrupt_handler\n\t");
 	WRITE(I2C_BASE_ADDR+I2C_IRQ_CTRL_OFFSET+IRQ_CTRL_IRQ_PEND_OFFSET,0);
 	IRET();
     __asm(".remove_epilogue\n\t");
@@ -149,7 +153,9 @@ void IRQ1_Handler(){
 
 // handler of IRQ3 (filter_CLK falling_edge)
 void IRQ3_Handler(){
+	//não coloque nada acima de .remove_prologue! Será excluído até o início da função
     __asm(".remove_prologue\n\t");
+    __asm(".interrupt_handler\n\t");
 	static int converged = 0;
 	register word filter_out_w;
 	READ(FILTER_OUTPUT_BASE_ADDR+FILTER_OUTPUT_OFFSET,filter_out_w.i);
@@ -250,7 +256,9 @@ void IRQ3_Handler(){
 
 // handler of IRQ4 (software )
 void IRQ4_Handler(){
+	//não coloque nada acima de .remove_prologue! Será excluído até o início da função
     __asm(".remove_prologue\n\t");
+    __asm(".interrupt_handler\n\t");
 	word tmp;
 	
 	READ(TMP_VECTOR_BASE_ADDR+0*4,tmp.i);
