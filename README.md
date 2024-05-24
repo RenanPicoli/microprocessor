@@ -19,3 +19,8 @@ during the falling edge it will update the register file.
 * I am using Altera DE2-115 board for the tests. 
 
 * For more information, go to the Wiki https://github.com/RenanPicoli/microprocessor/wiki
+
+## branches
+* master: main branch, always use this branch. Instructions are retrieved from a synchronous RAM memory (mini_rom or i-cache).
+* async_SRAM: unused, deleted. Adapted to get instructions of asynchronous SRAM
+* async_SRAM_LCD_by_SW: old branch, unused. This was a branch derived of a deleted branch . async_SRAM_LCD_by_SW would additionally drive the board LCD signals entirely by software.
