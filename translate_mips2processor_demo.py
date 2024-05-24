@@ -14,6 +14,7 @@ leaf_functions=[] # names of functions that do not call other functions
 inv_dict={} # given a line number of a label, returns the function name
 # this dictionary relates a line number with a function for new_instr_vector
 intermediary_inv_dict={}
+interrupt_handler_list=[] # list names of all interrupt handlers
 funct_returned_regs={} # for each function, stores the number of returned regs
 
 available_sections=["text","data","rdata","bss"]
@@ -866,9 +867,22 @@ def post_process(instr_vector):
     for l in instr_vector:
         found_next_label=False
         if(l[-1:]==":"): # is a label
+            # confirms the label is a function
             if l[0:-1] in intermediary_inv_dict.values():
                 last_label_idx = line_cnt
                 #print("Found label:{} at {}\n".format(l,line_cnt))
+        if(l==".interrupt_handler\n"):
+            # this line must be removed or the assembler will fail
+            lines_to_remove.append(line_cnt)
+            #adds the function name to the list of interrupt handlers
+            interrupt_handler_list.append(intermediary_inv_dict[last_label_idx])
+        
+        # now look for ret instructions in interrupt_handlers
+        # change them to iret   
+        if(l.strip().startswith("ret")):
+            funct=intermediary_inv_dict[last_label_idx]
+            if(funct in interrupt_handler_list):
+                instr_vector[line_cnt]="\tiret;\n"
         if(l==".remove_prologue\n"):
             #print("Found remove_prologue at {}".format(line_cnt))
             lines_to_remove.extend(range(last_label_idx+1,line_cnt+1))
@@ -956,6 +970,7 @@ def post_process(instr_vector):
     for i in lines_to_remove:
         #pass
         instr_vector.pop(i)
+        
     #print(instr_vector)
 
 main(sys.argv)
