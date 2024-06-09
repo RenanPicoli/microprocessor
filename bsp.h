@@ -51,6 +51,7 @@
 #define FP32_TO_INT32_IN_OFFSET 		(0x00 << 2)
 #define FP32_TO_INT32_OUT_OFFSET 		(0x01 << 2)
 #define UART_DR_OFFSET					(0x00 << 2)
+#define UART_SR_OFFSET					(0x01 << 2)
 #define IRQ_CTRL_IRQ_PEND_OFFSET		(0x00 << 2)
 #define IRQ_CTRL_IRQ_ACTIVE_OFFSET		(0x01 << 2)
 #define IRQ_CTRL_IRQ_STARTED_OFFSET		(0x02 << 2)
