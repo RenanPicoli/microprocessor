@@ -61,6 +61,9 @@ int main(void){
 	LCD_WRITE_DATA('>');
 	
 	//filter_control(1);//enables filter
+	WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'>');
+	//waits first transmission to finish
+        HALT();
 	
     while(1){
         HALT();
