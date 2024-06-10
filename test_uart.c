@@ -1,11 +1,10 @@
 #include "bsp.h"
 #include "cpu.h"
-#include "wm8731.h"
 #include "lcd.h"
 
 //configures the global interrupt controller
 void GIC_config();
-
+/*
 //condifgures the audio codec
 void codec_init();
 
@@ -20,7 +19,7 @@ void IRQ1_Handler();
 
 // handler of IRQ3 (filter_CLK falling_edge)
 void IRQ3_Handler();
-
+*/
 // handler of IRQ4 (UART)
 void IRQ4_Handler();
 
@@ -30,7 +29,7 @@ void IRQ5_Handler();
 // alias for IRQ5_Handler()
 //void (*lcd_print_task)();
 
-float min(float x, float y);
+//float min(float x, float y);
 
 int has_new_data;//flag to indicate new char arrived
 int received_char;//last char received by UART
@@ -55,13 +54,13 @@ int main(void){
 	
 	}while((i2s_status & 0x80) == 0);
 	
-	codec_init();
+	//codec_init();
 	
 	//intentionally ommited the instruction memory write
 	//and 7-seg write
 	LCD_WRITE_DATA('>');
 	
-	filter_control(1);//enables filter
+	//filter_control(1);//enables filter
 	
     while(1){
         HALT();
@@ -86,7 +85,7 @@ int main(void){
 }
 
 //configures the global interrupt controller
-void GIC_config(){
+void GIC_config(){/*
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+0*4,(int) &IRQ0_Handler-INSTRUCTION_MEMORY_BASE_ADDR);//loads the position 0 of vector with address of IRQ0_Handler
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+0*4,0);//put IRQ0_Handler in priority 0
 	
@@ -95,15 +94,15 @@ void GIC_config(){
 	
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+1*4,(int) &IRQ1_Handler-INSTRUCTION_MEMORY_BASE_ADDR);//loads the position 1 of vector with address of IRQ1_Handler
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+2*4,1);//put IRQ1_Handler in priority 2
-	
+	*/
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+4*4,(int) &IRQ4_Handler-INSTRUCTION_MEMORY_BASE_ADDR);//loads the position 1 of vector with address of IRQ1_Handler
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+31*4,4);//put IRQ4_Handler in priority 31
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+6*4,4);//put IRQ4_Handler in priority 6
 	
 	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_VECTOR_OFFSET+5*4,(int) &IRQ5_Handler-INSTRUCTION_MEMORY_BASE_ADDR);//loads the position 1 of vector with address of IRQ1_Handler
-	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+31*4,4);//put IRQ5_Handler in priority 31
+	WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_PRIORITIES_OFFSET+7*4,4);//put IRQ5_Handler in priority 7
 	return;
 }
-
+/*
 //condifgures the audio codec
 void codec_init(){
 	I2C_Init_typedef i2c;
@@ -239,39 +238,13 @@ void IRQ3_Handler(){
 		converged = 1;
 		//Lê memória de coeficientes do filtro(0) para o tmp_vector (7)
 		LVECR(0,128);
-		/*
-		register word b0 asm ("$1");
-		register word b1 asm ("$2");
-		register word b2 asm ("$3");
-		register word b3 asm ("$4");
-		register word b4 asm ("$1");
-		register word b5 asm ("$2");
-		register word b6 asm ("$3");
-		register word b7 asm ("$4");
-		__asm("\tlw [$0 + 0] %0;\n\t"::"r"(b0));
-		__asm("\tsw [$0 + 96] %0;\n\t"::"r"(b0));
-		__asm("\tlw [$0 + 4] %0;\n\t"::"r"(b1));
-		__asm("\tsw [$0 + 100] %0;\n\t"::"r"(b1));
-		__asm("\tlw [$0 + 8] %0;\n\t"::"r"(b2));
-		__asm("\tsw [$0 + 104] %0;\n\t"::"r"(b2));
-		__asm("\tlw [$0 + 12] %0;\n\t"::"r"(b3));
-		__asm("\tsw [$0 + 108] %0;\n\t"::"r"(b3));
-		__asm("\tlw [$0 + 16] %0;\n\t"::"r"(b4));
-		__asm("\tsw [$0 + 112] %0;\n\t"::"r"(b4));
-		__asm("\tlw [$0 + 20] %0;\n\t"::"r"(b5));
-		__asm("\tsw [$0 + 116] %0;\n\t"::"r"(b5));
-		__asm("\tlw [$0 + 24] %0;\n\t"::"r"(b6));
-		__asm("\tsw [$0 + 120] %0;\n\t"::"r"(b6));
-		__asm("\tlw [$0 + 28] %0;\n\t"::"r"(b7));
-		__asm("\tsw [$0 + 124] %0;\n\t"::"r"(b7));
-		*/
 		//creates a software interrupt
 		WRITE(IRQ_CTRL_BASE_ADDR+IRQ_CTRL_SW_IRQ_REG_OFFSET,1<<5);
 	}
 	IRET();
     __asm(".remove_epilogue\n\t");
 }
-
+*/
 // handler of IRQ4 (UART)
 void IRQ4_Handler(){
     __asm(".remove_prologue\n\t");
@@ -343,7 +316,7 @@ void IRQ5_Handler(){
 	IRET();
     __asm(".remove_epilogue\n\t");
 }
-
+/*
 float min(float x, float y){
 	word d_w;
 	d_w.f=x-y;
@@ -354,7 +327,7 @@ float min(float x, float y){
 		return y;
 	}
 }
-
+*/
 #include "bsp.c"
 #include "cpu.c"
 #include "lcd.c"
