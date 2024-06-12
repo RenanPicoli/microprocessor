@@ -63,25 +63,26 @@ int main(void){
 	//filter_control(1);//enables filter
 	WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'>');
 	//waits first transmission to finish
-        HALT();
+	HALT();
 	
     while(1){
         HALT();
 		if(has_new_data){
-			//prints received_char in LCD
-			lcd_write_data(received_char);
 			has_new_data=0;
-			//TODO: send acknowledgement to master
-			/*
-			WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'>');
-			HALT();
-			WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'O');
-			HALT();
-			WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'K');
-			HALT();
-			WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'\n');
-			HALT();
-			*/
+			//send acknowledgement to master
+			if(received_char=='\n'){//aka LF
+				WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'>');
+				HALT();
+				WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'O');
+				HALT();
+				WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'K');
+				HALT();
+				WRITE(UART_BASE_ADDR+UART_DR_OFFSET,'\n');
+				HALT();
+			}else{
+				//prints received_char in LCD
+				lcd_write_data(received_char);				
+			}
 		}
     }
     return 0;
