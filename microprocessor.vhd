@@ -21,6 +21,21 @@ port (CLK_IN: in std_logic;
 		irq: in std_logic;--interrupt request
 		iack: out std_logic;--interrupt acknowledgement
 		ISR_addr: in std_logic_vector (31 downto 0);--address for interrupt handler, loaded when irq is asserted, it is valid one clock cycle after the IRQ detection
+		------CPU DEBUG ITFC---------
+        clk_out: out std_logic;--same as CPU clock (might be extended by processor during memory reading/writing)
+        dbg_data_0: inout std_logic_vector(31 downto 0);-- instructions, value for writes, value for reading
+        dbg_data_1: in std_logic_vector(31 downto 0);--address for memory access, register for reg_file access
+		dbg_sr: in std_logic;-- set register enable
+		dbg_gr: in std_logic;-- get register enable
+		dbg_sm: in std_logic;-- set memory enable
+		dbg_gm: in std_logic;-- get memory enable
+		dbg_brk: in std_logic;--instruction break
+		dbg_inj: in std_logic;--inject instruction
+		dbg_nxt: in std_logic;--next instruction
+		dbg_cont: in std_logic;--continue instruction
+		dbg_irq: in std_logic;-- debug irq
+		dbg_iack: out std_logic;--interrupt acknowledgement
+		dbg_next_pc: out std_logic_vector(31 downto 0);-- TODO: monitor PC (pc_in) for breakpoints
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(31 downto 0);--addr é endereço de word
 		CLK_rom: out std_logic;--clock for mini_rom (is like moving a PC register duplicate to i_cache)
@@ -204,6 +219,7 @@ end component;
 signal CLK: std_logic;
 signal CLK_rom_en: std_logic;--enables clock for i_cache
 signal pc_in: 	std_logic_vector (31 downto 0);--next PC value
+signal pc_en: std_logic;
 signal pc_in_no_irq: std_logic_vector (31 downto 0);-- pc_in if there is no IRQin this cycle
 signal pc_out: std_logic_vector (31 downto 0) := (others => '0');
 signal fp_in: 	std_logic_vector (31 downto 0);
@@ -313,18 +329,40 @@ signal alu_clk: std_logic;--alu clock signal
 signal reg_push: std_logic;
 signal reg_pop: std_logic;
 
+signal dbg_nxt_delayed: std_logic;-- dbg_nxt delayed by one CLK_IN period
+signal dbg_gm_extended: std_logic;-- extended if there is a miss or acess to memory not ready
+signal dbg_sm_extended: std_logic;-- extended if there is a miss or acess to memory not ready
+signal dbg_inj_extended: std_logic;-- extended if there is a miss or acess to memory not ready
+
 begin
 
 	ready <= clk_enable;
 	accessing_stack <= rden_stack or wren_stack or push or pop;
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
-				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault)
+	process(rst,CLK_IN,dbg_nxt)
+	begin
+		if(rst='1')then
+			dbg_nxt_delayed <='0';
+		elsif(rising_edge(CLK_IN))then
+			dbg_nxt_delayed <=dbg_nxt;
+		end if;
+	end process;
+	
+	process(rst,halt,irq, i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
+				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault,
+				dbg_irq,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
+				dbg_gm,dbg_gm_extended,dbg_sm,dbg_sm_extended,dbg_inj_extended)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
+			if(dbg_irq='1')then
+				if(dbg_brk='1' or dbg_nxt_delayed='1')then
+					clk_enable <= '0';
+				elsif(dbg_nxt='1' or dbg_cont='1' or dbg_gr='1' or dbg_sr='1')then
+					clk_enable <= '1';
+				end if;
+			elsif(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 				--MUST REMAIN FROZEN UNTIL RESET
 				clk_enable <= '0';
 			elsif((d_cache_ready='0' and accessing_stack='0') or
@@ -332,8 +370,8 @@ begin
 				clk_enable <= '0';
 			--necessary to check if i_cache_ready='1' so that current instruction be executed
 			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
-			elsif(i_cache_ready='1' and halt ='1' and irq='1')then
-				clk_enable <= '1';--irq wakes up processor from halt
+			elsif(i_cache_ready='1' and halt ='1' and (irq='1' or dbg_irq='1'))then
+				clk_enable <= '1';--irq/dbg_irq wakes up processor from halt
 			elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 				clk_enable <= '0';
 			elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
@@ -346,15 +384,23 @@ begin
 		end if;
 	end process;
 	
-	CLK <= CLK_IN and clk_enable;	
+	CLK <= CLK_IN and clk_enable;
 	
 	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
-				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault)
+				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault,
+				dbg_irq,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
+				dbg_gm,dbg_gm_extended,dbg_sm,dbg_sm_extended,dbg_inj_extended)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			CLK_rom_en <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
+			if(dbg_irq='1')then
+				if(dbg_brk='1'or dbg_nxt_delayed='1')then
+					CLK_rom_en <= '0';
+				elsif(dbg_nxt='1' or dbg_cont='1')then
+					CLK_rom_en <= '1';
+				end if;
+			elsif(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 				--MUST REMAIN FROZEN UNTIL RESET
 				CLK_rom_en <= '0';
 			elsif(i_cache_ready='1' and
@@ -420,9 +466,13 @@ begin
 										Q => rv_out);
 	rv_in <= program_stack_out;
 	
+	--PC should not update during i-cache misses or debug instructions to:
+	--inject instruction, get memory, set memory, get register or set register
+	pc_en <= i_cache_ready and (not dbg_gm_extended) and
+				(not dbg_sm_extended) and (not dbg_inj_extended) and (not dbg_sr) and (not dbg_gr);
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
-										ENA => i_cache_ready,
+										ENA => pc_en,
 										D => pc_in,
 										Q => pc_out);
 	
@@ -648,7 +698,9 @@ begin
 					"00" & pc_in(31 downto 2);-- when halt='0' or irq='1' because now mini_rom and i_cache are synchronous
 					
 					
-	instruction <= Q_rom when i_cache_ready='1' else x"FC00_0000";-- FC00_0000 => nop (bubble)
+	instruction <=	dbg_data_0 when dbg_inj_extended='1' else
+					Q_rom when i_cache_ready='1' else
+					x"FC00_0000";-- FC00_0000 => nop (bubble)
 	
 	addressRelative <= instruction(15 downto 0);--valid only on branch instruction
 	addressRelativeSignExtended <= (31 downto 16 => addressRelative(15)) & addressRelative;
