@@ -76,10 +76,10 @@ signal sp_imm_sum: std_logic_vector(L downto 0);-- aditional bit for detecting o
 signal stack_almost_full: std_logic_vector(L-1 downto 0);
 
 --preserving signals during synthesis for debugging
-attribute preserve_for_debug : boolean;
-attribute preserve_for_debug of oor: signal is true;
-attribute preserve_for_debug of ovf: signal is true;
-attribute preserve_for_debug of unf: signal is true;
+attribute preserve : boolean;
+attribute preserve of oor: signal is true;
+attribute preserve of ovf: signal is true;
+attribute preserve of unf: signal is true;
 
 	begin
 	
