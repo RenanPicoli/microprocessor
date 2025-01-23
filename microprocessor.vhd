@@ -330,9 +330,9 @@ signal reg_push: std_logic;
 signal reg_pop: std_logic;
 
 signal dbg_nxt_delayed: std_logic;-- dbg_nxt delayed by one CLK_IN period
-signal dbg_gm_extended: std_logic;-- extended if there is a miss or acess to memory not ready
-signal dbg_sm_extended: std_logic;-- extended if there is a miss or acess to memory not ready
-signal dbg_inj_extended: std_logic;-- extended if there is a miss or acess to memory not ready
+signal dbg_gm_extended: std_logic := '0';-- extended if there is a miss or acess to memory not ready
+signal dbg_sm_extended: std_logic := '0';-- extended if there is a miss or acess to memory not ready
+signal dbg_inj_extended: std_logic := '0';-- extended if there is a miss or acess to memory not ready
 
 begin
 
