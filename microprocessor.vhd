@@ -34,7 +34,7 @@ port (CLK_IN: in std_logic;
 		dbg_nxt: in std_logic;--next instruction
 		dbg_cont: in std_logic;--continue instruction
 		dbg_irq: in std_logic;-- debug irq
-		dbg_iack: out std_logic;--interrupt acknowledgement
+		dbg_iack: out std_logic;--clears stop error/data_received/data_sent flags
 		dbg_next_pc: out std_logic_vector(31 downto 0);-- TODO: monitor PC (pc_in) for breakpoints
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(31 downto 0);--addr é endereço de word
@@ -385,6 +385,7 @@ begin
 	end process;
 	
 	CLK <= CLK_IN and clk_enable;
+	clk_out <= CLK;
 	
 	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
 				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault,
