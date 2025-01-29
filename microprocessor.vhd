@@ -611,7 +611,7 @@ begin
 					rs;--only for mflo, mfhi, ldrv, ldfp
 					
 	dbg_data_0 <= read_data_1 when (dbg_irq='1' and dbg_sr='1') else
-						(others=>'0');
+						(others=>'Z');
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	reg_clk <= CLK;
