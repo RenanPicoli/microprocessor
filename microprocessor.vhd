@@ -605,7 +605,7 @@ begin
 	rd		<= instruction(15 downto 11);
 	shamt	<= instruction(10 downto 6);
 
-	writeLoc <=	dbg_data_1 when (dbg_irq='1' and dbg_sr='1') else
+	writeLoc <=	dbg_data_1(4 downto 0) when (dbg_irq='1' and dbg_sr='1') else
 					rd when regDst="01" else
 					rt when regDst="00" else
 					rs;--only for mflo, mfhi, ldrv, ldfp
