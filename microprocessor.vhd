@@ -22,9 +22,9 @@ port (CLK_IN: in std_logic;
 		iack: out std_logic;--interrupt acknowledgement
 		ISR_addr: in std_logic_vector (31 downto 0);--address for interrupt handler, loaded when irq is asserted, it is valid one clock cycle after the IRQ detection
 		------CPU DEBUG ITFC---------
-        clk_out: out std_logic;--same as CPU clock (might be extended by processor during memory reading/writing)
-        dbg_data_0: inout std_logic_vector(31 downto 0);-- instructions, value for writes, value for reading
-        dbg_data_1: in std_logic_vector(31 downto 0);--address for memory access, register for reg_file access
+		clk_out: out std_logic;--same as CPU clock (might be extended by processor during memory reading/writing)
+		dbg_data_0: inout std_logic_vector(31 downto 0);-- instructions, value for writes, value for reading
+		dbg_data_1: in std_logic_vector(31 downto 0);--address for memory access, register for reg_file access
 		dbg_sr: in std_logic;-- set register enable
 		dbg_gr: in std_logic;-- get register enable
 		dbg_sm: in std_logic;-- set memory enable
