@@ -600,7 +600,7 @@ begin
 									stack_out => lr_stack_out--data retrieved from stack
 							);
 						
-	rs 	<= dbg_data_1 when (dbg_irq='1' and dbg_gr='1') else instruction(25 downto 21);
+	rs 	<= dbg_data_1(4 downto 0) when (dbg_irq='1' and dbg_gr='1') else instruction(25 downto 21);
 	rt 	<= instruction(20 downto 16);
 	rd		<= instruction(15 downto 11);
 	shamt	<= instruction(10 downto 6);
