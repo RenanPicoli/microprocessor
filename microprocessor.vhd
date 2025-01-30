@@ -23,8 +23,9 @@ port (CLK_IN: in std_logic;
 		ISR_addr: in std_logic_vector (31 downto 0);--address for interrupt handler, loaded when irq is asserted, it is valid one clock cycle after the IRQ detection
 		------CPU DEBUG ITFC---------
 		clk_out: out std_logic;--same as CPU clock (might be extended by processor during memory reading/writing)
-		dbg_data_0: inout std_logic_vector(31 downto 0);-- instructions, value for writes, value for reading
-		dbg_data_1: in std_logic_vector(31 downto 0);--address for memory access, register for reg_file access
+		dbg_data_0: in std_logic_vector(31 downto 0);-- instructions, value for writes, value for reading
+		dbg_data_1: in std_logic_vector(31 downto 0);-- address for memory access, register for reg_file access
+		dbg_data_2: out std_logic_vector(31 downto 0);-- values for reading
 		dbg_sr: in std_logic;-- set register enable
 		dbg_gr: in std_logic;-- get register enable
 		dbg_sm: in std_logic;-- set memory enable
@@ -610,8 +611,9 @@ begin
 					rt when regDst="00" else
 					rs;--only for mflo, mfhi, ldrv, ldfp
 					
-	dbg_data_0 <= read_data_1 when (dbg_irq='1' and dbg_sr='1') else
-						(others=>'Z');
+	dbg_data_2 <=	read_data_1 when (dbg_irq='1' and dbg_gr='1') else
+						data_memory_output when (dbg_irq='1' and dbg_gm='1') else
+						(others=>'0');
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	reg_clk <= CLK;
