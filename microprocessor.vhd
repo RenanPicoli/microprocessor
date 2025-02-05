@@ -341,11 +341,11 @@ begin
 	accessing_stack <= rden_stack or wren_stack or push or pop;
 	
 	--dbg_next is delayed by one clock cycle
-	process(rst,CLK_IN,dbg_nxt)
+	process(rst,CLK_IN,CLK,dbg_nxt)
 	begin
 		if(rst='1')then
 			dbg_nxt_delayed <='0';
-		elsif(rising_edge(CLK_IN))then
+		elsif(rising_edge(CLK))then
 			dbg_nxt_delayed <=dbg_nxt;
 		end if;
 	end process;
@@ -401,11 +401,14 @@ begin
 			CLK_rom_en <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
 			if(dbg_irq='1')then
-				if(dbg_brk='1'or dbg_nxt_delayed='1')then
+				if(dbg_brk='1')then
 					CLK_rom_en <= '0';
 				elsif(dbg_nxt='1' or dbg_cont='1')then
 					CLK_rom_en <= '1';
 				end if;
+			--next cycle after dbg_next is asserted, the clock must frozen again 
+			elsif(dbg_nxt_delayed='1')then				
+				CLK_rom_en <= '0';
 			elsif(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 				--MUST REMAIN FROZEN UNTIL RESET
 				CLK_rom_en <= '0';
@@ -707,7 +710,8 @@ begin
 				pc_in_no_irq;
 				
 --	ADDR_rom <= pc_out(7 downto 0);
-	ADDR_rom <= "00" & pc_out(31 downto 2) when halt='1' and irq='0'else-- i_cache keeps running and need to repeat halt instruction
+	ADDR_rom <= "00" & pc_in(31 downto 2) when dbg_irq='1' and (dbg_nxt='1' or dbg_cont='1') else
+					"00" & pc_out(31 downto 2) when halt='1' and irq='0'else-- i_cache keeps running and need to repeat halt instruction
 					"00" & pc_in(31 downto 2);-- when halt='0' or irq='1' because now mini_rom and i_cache are synchronous
 					
 					
