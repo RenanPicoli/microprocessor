@@ -272,6 +272,9 @@ signal lvecr: std_logic;
 signal aluSrc: std_logic_vector(1 downto 0);
 signal regWrite: std_logic;
 
+--regwrite comming from instruction or set_register debug cmd
+signal regWrite_or_dbg_sr: std_logic;
+
 signal writeLoc: std_logic_vector (4  downto 0);
 signal reg_write_data: std_logic_vector (31  downto 0);--data to be written to register file
 signal mem_write_data: std_logic_vector (31  downto 0);--data to be written to data memory
@@ -622,6 +625,7 @@ begin
 	reg_clk <= CLK;
 	reg_pop <= ret or iret;--automatically restores context
 	reg_push<= call or callr or irq;--automatically saves context
+	regWrite_or_dbg_sr <= regWrite or (dbg_sr and dbg_irq);--regwrite from code or dbg_sr='1'
 	register_file: reg_file generic map (L => STACK_LEVELS_LOG2)
 									port map (	CLK => reg_clk,									
 													stack_CLK=> CLK_IN,--if a miss occurs, there will be no falling_edge(CLK) during the cycle of valid instruction
@@ -632,7 +636,7 @@ begin
 													read_reg_2 => rt,
 													write_reg  => writeLoc,
 													write_data => reg_write_data,
-													regWrite => regWrite,
+													regWrite => regWrite_or_dbg_sr,
 													read_data_1 => read_data_1,
 													read_data_2 => read_data_2
 											);
