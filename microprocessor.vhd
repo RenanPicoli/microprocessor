@@ -772,7 +772,8 @@ begin
 							lui_immediate when lui='1' else
 							program_stack_out;--when pop='1'
 						
-	mem_write_data <= read_data_2 when mem_data_src='1' else
+	mem_write_data <=	dbg_data_0 when (dbg_irq_extended='1' and dbg_sm_extended='1') else
+							read_data_2 when mem_data_src='1' else
 							fpu_result;
 												
 	pc_incremented <= (pc_out+4);
