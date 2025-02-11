@@ -337,6 +337,11 @@ signal dbg_nxt_delayed: std_logic;-- dbg_nxt delayed by one CLK_IN period
 signal dbg_gm_extended: std_logic := '0';-- extended if there is a miss or acess to memory not ready
 signal dbg_sm_extended: std_logic := '0';-- extended if there is a miss or acess to memory not ready
 signal dbg_inj_extended: std_logic := '0';-- extended if there is a miss or acess to memory not ready
+signal dbg_irq_extended: std_logic := '0';-- extended if there is a miss or acess to memory not ready
+
+signal dbg_irq_extended_del: std_logic;
+signal dbg_gm_extended_del: std_logic;
+signal dbg_sm_extended_del: std_logic;
 
 begin
 
@@ -353,6 +358,76 @@ begin
 		end if;
 	end process;
 	
+	--dbg_gm is delayed by one clock cycle, might be extended during d-cache miss
+	process(rst,CLK_IN,CLK,dbg_gm)
+	begin
+		if(rst='1')then
+			dbg_gm_extended <='0';
+		elsif(rising_edge(CLK))then
+			dbg_gm_extended <=dbg_gm;
+		end if;
+	end process;
+	
+	--dbg_sm is delayed by one clock cycle, might be extended during d-cache miss
+	process(rst,CLK_IN,CLK,dbg_sm)
+	begin
+		if(rst='1')then
+			dbg_sm_extended <='0';
+		elsif(rising_edge(CLK))then
+			dbg_sm_extended <=dbg_sm;
+		end if;
+	end process;
+	
+	--dbg_sm is delayed by one clock cycle, might be extended during d-cache miss
+	process(rst,CLK_IN,CLK,dbg_inj)
+	begin
+		if(rst='1')then
+			dbg_inj_extended <='0';
+		elsif(rising_edge(CLK))then
+			dbg_inj_extended <=dbg_inj;
+		end if;
+	end process;
+	
+	--dbg_irq is delayed by one clock cycle, might be extended during d-cache miss
+	process(rst,CLK_IN,CLK,dbg_irq)
+	begin
+		if(rst='1')then
+			dbg_irq_extended <='0';
+		elsif(rising_edge(CLK))then
+			dbg_irq_extended <=dbg_irq;
+		end if;
+	end process;
+	
+	--dbg_gm is delayed by one clock cycle, might be extended during d-cache miss
+	process(rst,CLK_IN,dbg_gm)
+	begin
+		if(rst='1')then
+			dbg_gm_extended_del <='0';
+		elsif(rising_edge(CLK_IN))then
+			dbg_gm_extended_del <=dbg_gm_extended;
+		end if;
+	end process;
+	
+	--dbg_sm is delayed by one clock cycle, might be extended during d-cache miss
+	process(rst,CLK_IN,dbg_sm_extended)
+	begin
+		if(rst='1')then
+			dbg_sm_extended_del <='0';
+		elsif(rising_edge(CLK_IN))then
+			dbg_sm_extended_del <=dbg_sm_extended;
+		end if;
+	end process;
+	
+	--dbg_irq is delayed by one clock cycle, might be extended during d-cache miss
+	process(rst,CLK_IN,dbg_irq_extended)
+	begin
+		if(rst='1')then
+			dbg_irq_extended_del <='0';
+		elsif(rising_edge(CLK_IN))then
+			dbg_irq_extended_del <=dbg_irq_extended;
+		end if;
+	end process;
+	
 	process(rst,halt,irq, i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
 				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault,
 				dbg_irq,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
@@ -364,11 +439,17 @@ begin
 			if(dbg_irq='1')then
 				if(dbg_brk='1')then
 					clk_enable <= '0';
-				elsif(dbg_nxt='1' or dbg_cont='1' or dbg_gr='1' or dbg_sr='1')then
+				elsif(dbg_nxt='1' or dbg_cont='1' or dbg_gr='1' or dbg_sr='1' or dbg_gm='1' or dbg_sm='1' or dbg_inj='1')then
 					clk_enable <= '1';
 				end if;
-			--next cycle after dbg_next is asserted, the clock must frozen again 
-			elsif(dbg_nxt_delayed='1')then				
+			--next cycle after dbg_next or dbg_inj is asserted, the clock must frozen again 
+			elsif(dbg_nxt_delayed='1' or dbg_inj_extended='1')then				
+				clk_enable <= '0';
+			--these signals start the 2nd clcok after dbg_gm/dbg_sm
+			elsif(dbg_irq_extended= '1' and (dbg_gm_extended='1' or dbg_sm_extended='1') and d_cache_ready='1')then
+				clk_enable <= '1';
+			--these signals cause the 2nd clock after dbg_gm/dbg_sm to stop
+			elsif(dbg_irq_extended_del='1' and (dbg_gm_extended_del='1' or dbg_sm_extended_del='1'))then
 				clk_enable <= '0';
 			elsif(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 				--MUST REMAIN FROZEN UNTIL RESET
@@ -480,8 +561,8 @@ begin
 	
 	--PC should not update during i-cache misses or debug instructions to:
 	--inject instruction, get memory, set memory, get register or set register
-	pc_en <= i_cache_ready and (not dbg_gm_extended) and
-				(not dbg_sm_extended) and (not dbg_inj_extended) and (not dbg_sr) and (not dbg_gr);
+	pc_en <= i_cache_ready and (not dbg_gm_extended) and (not dbg_gm)  and
+				(not dbg_sm) and (not dbg_sm_extended) and (not dbg_inj) and (not dbg_sr) and (not dbg_gr);
 	PC: d_flip_flop port map (	CLK => CLK,
 										RST => rst,
 										ENA => pc_en,
@@ -531,10 +612,10 @@ begin
 	sp(31 downto PROGRAM_STACK_LEVELS_LOG2+2) <= (others=>'1');--converte para a faixa de enderecos destinada a program_stack
 
 	addr_stack <= (31 downto PROGRAM_STACK_LEVELS_LOG2=>'0') & full_ADDR_ram(PROGRAM_STACK_LEVELS_LOG2+1 downto 2);
-	wren_stack <= '1' when (memWrite='1' and 
+	wren_stack <= '1' when ((memWrite='1' or (dbg_irq_extended='1' and dbg_sm_extended='1')) and 
 						full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1'))
 						else '0';--ADDR_ram(N)='1' imply stack (ADDR_ram is generated by ALU)
-	rden_stack <= '1' when (memRead='1' and 
+	rden_stack <= '1' when ((memRead='1' or (dbg_irq_extended='1' and dbg_gm_extended='1')) and 
 						full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1'))
 						else '0';--ADDR_ram(N)='1' imply stack (ADDR_ram is generated by ALU)
 
@@ -618,7 +699,7 @@ begin
 					rs;--only for mflo, mfhi, ldrv, ldfp
 					
 	dbg_data_2 <=	read_data_1 when (dbg_irq='1' and dbg_gr='1') else
-						data_memory_output when (dbg_irq='1' and dbg_gm='1') else
+						data_memory_output when (dbg_irq_extended='1' and dbg_gm_extended='1') else
 						(others=>'0');
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
@@ -664,16 +745,16 @@ begin
 													result	=> fpu_result
 												);
 	fpu_flags(31 downto 3) <= (others=>'0');
-								
-	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NA MEMÓRIA NA BORDA DE DESCIDA
-	full_ADDR_ram <= read_data_1 + addressRelativeSignExtended;--byte address
+
+	full_ADDR_ram <=	dbg_data_1 when (dbg_irq_extended='1' and (dbg_sm_extended='1' or dbg_gm_extended='1')) else
+							read_data_1 + addressRelativeSignExtended;--byte address
 	ADDR_ram <= "00" & full_ADDR_ram(31 downto 2);--WORD ADDRESS
 	
 	write_data_ram <= mem_write_data;
-	rden_ram <= '1' when memRead='1' and
+	rden_ram <= '1' when (memRead='1' or (dbg_irq_extended='1' and dbg_gm_extended='1')) and
 					full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)/=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1')
 					else '0';--ADDR_ram(N)='1' would imply stack (ADDR_ram is generated by ALU)
-	wren_ram <= '1' when memWrite='1' and
+	wren_ram <= '1' when (memWrite='1' or (dbg_irq_extended='1' and dbg_sm_extended='1')) and
 					full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)/=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1')
 					else '0';--ADDR_ram(N)='1' would imply stack (ADDR_ram is generated by ALU)
 	vmac_en <= vmac;
@@ -719,7 +800,7 @@ begin
 					"00" & pc_in(31 downto 2);-- when halt='0' or irq='1' because now mini_rom and i_cache are synchronous
 					
 					
-	instruction <=	dbg_data_0 when dbg_inj_extended='1' else
+	instruction <=	dbg_data_0 when dbg_inj='1' else
 					Q_rom when i_cache_ready='1' else
 					x"FC00_0000";-- FC00_0000 => nop (bubble)
 	
