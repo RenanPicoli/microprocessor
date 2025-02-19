@@ -36,7 +36,7 @@ port (CLK_IN: in std_logic;
 		dbg_cont: in std_logic;--continue instruction
 		dbg_irq: in std_logic;-- debug irq
 		dbg_iack: out std_logic;--clears stop error/data_received/data_sent flags
-		dbg_next_pc: out std_logic_vector(31 downto 0);-- TODO: monitor PC (pc_in) for breakpoints
+		dbg_next_pc: out std_logic_vector(31 downto 0);-- monitor PC (pc_in) for breakpoints
 		-----ROM----------
 		ADDR_rom: out std_logic_vector(31 downto 0);--addr é endereço de word
 		CLK_rom: out std_logic;--clock for mini_rom (is like moving a PC register duplicate to i_cache)
@@ -342,13 +342,15 @@ signal dbg_irq_extended: std_logic := '0';-- extended if there is a miss or aces
 signal dbg_irq_extended_del: std_logic;
 signal dbg_gm_extended_del: std_logic;
 signal dbg_sm_extended_del: std_logic;
+signal debugging: std_logic;
+
 
 begin
 
 	ready <= clk_enable;
 	accessing_stack <= rden_stack or wren_stack or push or pop;
 	
-	--dbg_next is delayed by one clock cycle
+	--dbg_nxt is delayed by one clock cycle
 	process(rst,CLK_IN,CLK,dbg_nxt,dbg_irq,dbg_brk,dbg_cont,dbg_gm_extended,dbg_sm_extended)
 	begin
 		if(rst='1')then
@@ -434,7 +436,7 @@ begin
 	
 	process(rst,halt,irq, i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
 				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault,
-				dbg_irq,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
+				dbg_irq,debugging,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
 				dbg_gm,dbg_gm_extended,dbg_sm,dbg_sm_extended,dbg_inj_extended)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
@@ -443,36 +445,64 @@ begin
 			if(dbg_irq='1')then
 				if(dbg_brk='1')then
 					clk_enable <= '0';
-				elsif(dbg_nxt='1' or dbg_cont='1' or dbg_gr='1' or dbg_sr='1' or dbg_gm='1' or dbg_sm='1' or dbg_inj='1')then
+				elsif(dbg_nxt='1' or dbg_cont='1' or ((dbg_gr='1' or dbg_sr='1' or dbg_gm='1' or dbg_sm='1' or dbg_inj='1') and debugging='1'))then
 					clk_enable <= '1';
 				end if;
-			--these signals start the 2nd clock after dbg_gm/dbg_sm
-			elsif(dbg_irq_extended= '1' and (dbg_gm_extended='1' or dbg_sm_extended='1') and d_cache_ready='1')then
-				clk_enable <= '1';
-			--next cycle after dbg_next or dbg_inj is asserted, the clock must frozen again 
-			elsif(dbg_nxt_delayed='1' or dbg_inj_extended='1')then				
-				clk_enable <= '0';
-			--these signals cause the 2nd clock after dbg_gm/dbg_sm to stop
-			elsif(dbg_irq_extended_del='1' and (dbg_gm_extended_del='1' or dbg_sm_extended_del='1'))then
-				clk_enable <= '0';
-			elsif(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
-				--MUST REMAIN FROZEN UNTIL RESET
-				clk_enable <= '0';
-			elsif((d_cache_ready='0' and accessing_stack='0') or
-				(ready_stack='0' and accessing_stack='1'))then
-				clk_enable <= '0';
-			--necessary to check if i_cache_ready='1' so that current instruction be executed
-			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
-			elsif(i_cache_ready='1' and halt ='1' and (irq='1' or dbg_irq='1'))then
-				clk_enable <= '1';--irq/dbg_irq wakes up processor from halt
-			elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
-				clk_enable <= '0';
-			elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
-				clk_enable <= '1';
-			elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
-				clk_enable <= '0';
-			else--if(i_cache_ready='0' or d_cache_ready='0')then
-				clk_enable <= '0';
+			elsif(debugging='1')then
+				--these signals start the 2nd clock after dbg_gm/dbg_sm
+				if(dbg_irq_extended= '1' and (dbg_gm_extended='1' or dbg_sm_extended='1') and d_cache_ready='1')then
+					clk_enable <= '1';
+				--next cycle after dbg_nxt or dbg_inj is asserted, the clock must frozen again 
+				elsif(dbg_nxt_delayed='1' or dbg_inj_extended='1')then				
+					clk_enable <= '0';
+--				--these signals cause the 2nd clock after dbg_gm/dbg_sm to stop
+--				elsif(dbg_irq_extended_del='1' and (dbg_gm_extended_del='1' or dbg_sm_extended_del='1'))then
+--					clk_enable <= '0';
+
+				--these events occur only if you access memory through dbg_sm/gm or inject instruction
+				elsif((dbg_sm='1' or dbg_sm_extended='1') or (dbg_gm='1' or dbg_gm_extended='1') or (dbg_inj='1' or dbg_inj_extended='1'))then
+					if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
+						--MUST REMAIN FROZEN UNTIL RESET
+						clk_enable <= '0';
+					elsif((d_cache_ready='0' and accessing_stack='0') or
+						(ready_stack='0' and accessing_stack='1'))then--access memory not ready
+						clk_enable <= '0';
+					--new IRQs are disabled in debugging mode
+	--				elsif(i_cache_ready='1' and halt ='1' and irq='1')then
+	--					clk_enable <= '1';--irq/dbg_irq wakes up processor from halt
+					elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
+						clk_enable <= '0';
+					elsif((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1'))then
+						clk_enable <= '1';
+					elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then--context switch (call)
+						clk_enable <= '0';
+					elsif(dbg_sm='0' and dbg_gm='0' and dbg_inj='0')then--default for debugging is clock stopped
+						clk_enable <= '0';
+					
+					end if;
+				else--default for debugging is clock stopped
+					clk_enable <= '0';
+				end if;
+			else--if not debugging
+				if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
+					--MUST REMAIN FROZEN UNTIL RESET
+					clk_enable <= '0';
+				elsif((d_cache_ready='0' and accessing_stack='0') or
+					(ready_stack='0' and accessing_stack='1'))then
+					clk_enable <= '0';
+				--necessary to check if i_cache_ready='1' so that current instruction be executed
+				--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
+				elsif(i_cache_ready='1' and halt ='1' and irq='1')then
+					clk_enable <= '1';--irq/dbg_irq wakes up processor from halt
+				elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
+					clk_enable <= '0';
+				elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
+					clk_enable <= '1';
+				elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
+					clk_enable <= '0';
+				else--if(i_cache_ready='0' or d_cache_ready='0')then
+					clk_enable <= '0';
+				end if;
 			end if;
 		end if;
 	end process;
@@ -480,44 +510,61 @@ begin
 	CLK <= CLK_IN and clk_enable;
 	clk_out <= CLK;
 	
+	process(rst,CLK_IN,dbg_irq,dbg_brk,dbg_cont)
+	begin
+		if(RST='1')then
+			debugging <='0';
+		elsif(rising_edge(CLK_IN))then
+			if(dbg_brk='1')then
+				debugging <= '1';
+			elsif(dbg_cont='1')then
+				debugging <= '0';
+			end if;
+		end if;
+	end process;
+	
 	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
 				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault,
-				dbg_irq,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
+				dbg_irq,debugging,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
 				dbg_gm,dbg_gm_extended,dbg_sm,dbg_sm_extended,dbg_inj_extended)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			CLK_rom_en <= '1';
 		elsif(falling_edge(CLK_IN))then--i_cache_ready,halt,irq are stable @ falling_edge(CLK_IN)
-			if(dbg_irq='1')then
+			if(dbg_irq='1' or debugging='1')then
 				if(dbg_brk='1')then
 					CLK_rom_en <= '0';
 				elsif(dbg_nxt='1' or dbg_cont='1')then
 					CLK_rom_en <= '1';
+				--next cycle after dbg_nxt is asserted, the clock must frozen again 
+				elsif(dbg_nxt_delayed='1')then				
+					CLK_rom_en <= '0';
+				end if;				
+			else--if not debugging
+
+				if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
+					--MUST REMAIN FROZEN UNTIL RESET
+					CLK_rom_en <= '0';
+				elsif(i_cache_ready='1' and
+					((d_cache_ready='0' and accessing_stack='0') or
+					(ready_stack='0' and accessing_stack='1')))then--miss apenas no d_cache, esperar o dado para continuar o programa
+					CLK_rom_en <= '0';
+				--necessary to check if i_cache_ready='1' so that current instruction be executed
+				--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
+				elsif(i_cache_ready='1' and halt ='1' and irq='1')then
+					CLK_rom_en <= '1';--irq wakes up processor from halt
+				elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
+					CLK_rom_en <= '0';
+				elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
+					CLK_rom_en <= '1';
+				elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
+					CLK_rom_en <= '0';
+				elsif(i_cache_ready='0')then--miss no i_cache, continuar o CLK_rom para buscar a instruction
+					CLK_rom_en <= '1';
+	--			else--miss apenas no d_cache, esperar o dado para continuar o programa
+	--				CLK_rom_en <= '0';
 				end if;
-			--next cycle after dbg_next is asserted, the clock must frozen again 
-			elsif(dbg_nxt_delayed='1')then				
-				CLK_rom_en <= '0';
-			elsif(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
-				--MUST REMAIN FROZEN UNTIL RESET
-				CLK_rom_en <= '0';
-			elsif(i_cache_ready='1' and
-				((d_cache_ready='0' and accessing_stack='0') or
-				(ready_stack='0' and accessing_stack='1')))then--miss apenas no d_cache, esperar o dado para continuar o programa
-				CLK_rom_en <= '0';
-			--necessary to check if i_cache_ready='1' so that current instruction be executed
-			--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
-			elsif(i_cache_ready='1' and halt ='1' and irq='1')then
-				CLK_rom_en <= '1';--irq wakes up processor from halt
-			elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
-				CLK_rom_en <= '0';
-			elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
-				CLK_rom_en <= '1';
-			elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
-				CLK_rom_en <= '0';
-			elsif(i_cache_ready='0')then--miss no i_cache, continuar o CLK_rom para buscar a instruction
-				CLK_rom_en <= '1';
---			else--miss apenas no d_cache, esperar o dado para continuar o programa
---				CLK_rom_en <= '0';
+			
 			end if;
 		end if;
 	end process;
@@ -701,6 +748,7 @@ begin
 	dbg_data_2 <=	read_data_1 when (dbg_irq='1' and dbg_gr='1') else
 						data_memory_output when (dbg_irq_extended='1' and dbg_gm_extended='1') else
 						(others=>'0');
+	dbg_next_pc <= pc_in;
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	reg_clk <= CLK;
