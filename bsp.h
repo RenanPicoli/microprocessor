@@ -17,11 +17,12 @@
 #define CONVERTED_OUTPUT_BASE_ADDR		(0x73 << 2)
 #define DISPLAY_7SEGS_BASE_ADDR			(0x74 << 2)
 #define LCD_CTRL_BASE_ADDR				(0x75 << 2)
-#define FP32_TO_INT32_BASE_ADDR				(0x76 << 2)
+#define FP32_TO_INT32_BASE_ADDR			(0x76 << 2)
 #define UART_BASE_ADDR					(0x78 << 2)
 #define IRQ_CTRL_BASE_ADDR				(0x80 << 2)
-#define TMP_VECTOR_BASE_ADDR	(0x100 << 2)
+#define TMP_VECTOR_BASE_ADDR	        (0x100 << 2)
 #define INSTRUCTION_MEMORY_BASE_ADDR	(0x800 << 2)
+#define SDRAM_BASE_ADDR                 (0x2000000 << 2)
 #define PROGRAM_STACK_BASE_ADDR			0xFFFFF000
 
 //peripheral offsets
@@ -47,7 +48,7 @@
 #define FILTER_CTRL_STATUS_OFFSET 		(0x00 << 2)
 #define CONVERTED_OUTPUT_OFFSET 		(0x00 << 2)
 #define DISPLAY_7SEGS_OFFSET 			(0x00 << 2)
-#define LCD_CTRL_OFFSET 			(0x00 << 2)
+#define LCD_CTRL_OFFSET 			    (0x00 << 2)
 #define FP32_TO_INT32_IN_OFFSET 		(0x00 << 2)
 #define FP32_TO_INT32_OUT_OFFSET 		(0x01 << 2)
 #define UART_DR_OFFSET					(0x00 << 2)
@@ -61,8 +62,9 @@
 #define IRQ_CTRL_IRQ_MASK_OFFSET		(0x06 << 2)
 #define IRQ_CTRL_VECTOR_OFFSET			(0x20 << 2)
 #define IRQ_CTRL_PRIORITIES_OFFSET		(0x40 << 2)
-#define TMP_VECTOR_OFFSET			(0x00 << 2)
+#define TMP_VECTOR_OFFSET			    (0x00 << 2)
 #define INSTRUCTION_MEMORY_OFFSET		(0x00 << 2)
+#define SDRAM_OFFSET		            (0x00 << 2)
 #define PROGRAM_STACK_OFFSET			(0x00 << 2)
 
 //I2C support
