@@ -412,7 +412,7 @@ def main(argv):
             if not hi_lo_used:
               new_instr = frmt_str.format(opcode,arg[2],arg[1],int(arg[3]) if int(arg[3])>=0 else 2**16+int(arg[3]))
             else:
-              frmt_str="\{} {} {} {};"
+              frmt_str="\t{} {} {} {};"
               new_instr = frmt_str.format(opcode,arg[2],arg[1],arg[3])
           
     
@@ -748,7 +748,7 @@ def main(argv):
     if(re.match(pattern,of_lines[i]) is not None):
         #print("regex matched!\n")
         offset=-1
-        result = re.search('\((.*?)\)', of_lines[i])
+        result = re.search(r'\((.*?)\)', of_lines[i])
         label=result.group(1)
         for j in range(len(of_lines)):
           # ignores labels, functions and directives started by dot
@@ -774,7 +774,7 @@ def main(argv):
       
   # register renaming ($x -> rx)
   for i in range(len(of_lines)): # iterates over lines of intermediary file
-    of_lines[i] = re.sub("\${1}(?=\d)", "r", of_lines[i])
+    of_lines[i] = re.sub(r"\${1}(?=\d)", "r", of_lines[i])
     
   # replaces section names
   for i in reversed(range(len(of_lines))): # iterates over lines of intermediary file
