@@ -33,11 +33,12 @@ float min(float x, float y);
 int main(void){
 	int arr[176];//will store the string
     int val;
-    int ptr = SDRAM_BASE_ADDR;
+    int *ptr = SDRAM_BASE_ADDR;
     int idx = 0;
     do
     {
-        val = read_w(ptr);//value read from SDRAM
+        //since ptr was defined as int* and is a byte address, we must cast it to int before using read_w(int)
+        val = read_w((int) ptr);//value read from SDRAM
 		if(idx == 0){
 			print_7segs(val);//prints the first word on SDRAM to 7-segs display
 		}
@@ -48,9 +49,9 @@ int main(void){
         arr[idx+2]= (val & 0x00FF0000) >> 16;
         arr[idx+3]= (val & 0xFF000000) >> 24;
         idx = idx + 4;
-        ptr++;
+		ptr++;//since ptr is int*, ptr is being incremented by 4
     // } while (val != 0);
-    } while (idx < 176);
+    } while (idx < 176);//SDRAM is not always cleared on powerup, not guaranteed to find a '\0'
     
     
 	GIC_config();
@@ -75,12 +76,18 @@ int main(void){
 
     //writes the string read from SDRAM to LCD
     idx = 0;
+	int ticks = 0;
     do
     {
-        lcd_write_data(arr[idx]);//or use the macro version
-        idx++;
+		if(ticks = 9){//this slows slows down lcd printing by 10 times
+			lcd_write_data(arr[idx]);//or use the macro version
+			idx++;
+			ticks = 0;
+		}else{
+			ticks++;
+		}
     // } while (arr[idx] != 0);
-    } while (idx < 32);
+    } while (idx < 32);//SDRAM is not always cleared on powerup, not guaranteed to find a '\0'
 	
 	filter_control(1);//enables filter
 	
