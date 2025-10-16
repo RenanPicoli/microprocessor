@@ -748,7 +748,7 @@ begin
 	dbg_data_2 <=	read_data_1 when (dbg_irq='1' and dbg_gr='1') else
 						data_memory_output when (dbg_irq_extended='1' and dbg_gm_extended='1') else
 						(others=>'0');
-	dbg_next_pc <= pc_in;
+	dbg_next_pc <= pc_in;--byte address
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	reg_clk <= CLK;
