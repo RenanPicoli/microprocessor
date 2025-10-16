@@ -38,15 +38,19 @@ int main(void){
     do
     {
         val = read_w(ptr);//value read from SDRAM
+		if(idx == 0){
+			print_7segs(val);//prints the first word on SDRAM to 7-segs display
+		}
         //at this point the read value comprises 4 chars (an 32-bit integer)
         //we must "explode" this value
-        arr[idx]=val >> 24;//apparently most significant nibble is the first char
-        arr[idx+1]= (val && 0x00FF0000) >> 16;
-        arr[idx+2]= (val && 0x0000FF00) >> 8;
-        arr[idx+3]= (val && 0x000000FF);
+        arr[idx]  = (val & 0x000000FF);//apparently least significant nibble is the first char
+        arr[idx+1]= (val & 0x0000FF00) >> 8;
+        arr[idx+2]= (val & 0x00FF0000) >> 16;
+        arr[idx+3]= (val & 0xFF000000) >> 24;
         idx = idx + 4;
         ptr++;
-    } while (val != 0);
+    // } while (val != 0);
+    } while (idx < 176);
     
     
 	GIC_config();
@@ -68,14 +72,15 @@ int main(void){
 	}while((i2s_status & 0x80) == 0);
 	
 	codec_init();
-	
+
     //writes the string read from SDRAM to LCD
     idx = 0;
     do
     {
-        lcd_write_data(arr[idx]);
+        lcd_write_data(arr[idx]);//or use the macro version
         idx++;
-    } while (arr[idx] != 0);
+    // } while (arr[idx] != 0);
+    } while (idx < 32);
 	
 	filter_control(1);//enables filter
 	
