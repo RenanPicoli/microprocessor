@@ -19,6 +19,8 @@
 #define LCD_CTRL_BASE_ADDR				(0x75 << 2)
 #define FP32_TO_INT32_BASE_ADDR			(0x76 << 2)
 #define UART_BASE_ADDR					(0x78 << 2)
+#define DMA_BASE_ADDR					(0x7A << 2)
+#define VGA_BASE_ADDR					(0x7E << 2)
 #define IRQ_CTRL_BASE_ADDR				(0x80 << 2)
 #define TMP_VECTOR_BASE_ADDR	        (0x100 << 2)
 #define INSTRUCTION_MEMORY_BASE_ADDR	(0x800 << 2)
@@ -53,6 +55,12 @@
 #define FP32_TO_INT32_OUT_OFFSET 		(0x01 << 2)
 #define UART_DR_OFFSET					(0x00 << 2)
 #define UART_SR_OFFSET					(0x01 << 2)
+#define DMA_SRCADDR_OFFSET				(0x00 << 2)
+#define DMA_DSTADDR_OFFSET				(0x01 << 2)
+#define DMA_LEN_OFFSET					(0x02 << 2)
+#define DMA_CR_OFFSET					(0x03 << 2)
+#define VGA_DR_OFFSET					(0x00 << 2)
+#define VGA_CR_OFFSET					(0x01 << 2)
 #define IRQ_CTRL_IRQ_PEND_OFFSET		(0x00 << 2)
 #define IRQ_CTRL_IRQ_ACTIVE_OFFSET		(0x01 << 2)
 #define IRQ_CTRL_IRQ_STARTED_OFFSET		(0x02 << 2)
@@ -114,6 +122,23 @@ typedef struct{
 
 #define I2S_EN 1<<0
 
+
+//DMA support
+typedef struct{
+    int num_xfers;//number of transfers to be made
+    int src_addr;//byte address of first element to be copied
+    int dst_addr;//byte address of first position where to start copying
+    int sinc_select;//selects if source address must be incremented
+    int dinc_select;//selects if destination address must be incremented
+}DMA_Init_typedef;
+
+#define DMA_START 1<<0
+#define DMA_FINISHED_MASK 1<<1
+#define DMA_SINC_ENABLE 1<<2
+#define DMA_SINC_DISABLE 0<<2
+#define DMA_DINC_ENABLE 1<<3
+#define DMA_DINC_DISABLE 0<<3
+
 //function prototypes
 void print_7segs(int n);
 void write_w(int addr,int n);
@@ -139,5 +164,9 @@ void I2C_Transmit(int addr,int data);
 
 void I2S_Init(I2S_Init_typedef* i2sinit);
 void I2S_Transmit(int addr,int data);
+
+void DMA_start();
+void DMA_Init(DMA_Init_typedef* dmainit);
+void DMA_Init_and_Start(DMA_Init_typedef* dmainit);
 
 #endif

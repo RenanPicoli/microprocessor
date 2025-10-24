@@ -198,3 +198,32 @@ void I2S_Transmit(int addr,int data){
     write_w(I2S_BASE_ADDR+I2S_CR_OFFSET,cfg);//starts transmission, no IRQ generated
     return;
 }
+
+//starts a DMA transfer previously configured
+void DMA_start(){
+	int cfg = read_w(DMA_BASE_ADDR+DMA_CR_OFFSET);
+	cfg |= DMA_START;
+	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//converts byte address to word address
+	return;
+}
+
+//configures a DMA transfer BUT do not start it
+void DMA_Init(DMA_Init_typedef* dmainit){
+	write_w(DMA_BASE_ADDR+DMA_SRCADDR_OFFSET,(dmainit->src_addr)>>2);//converts byte address to word address
+	write_w(DMA_BASE_ADDR+DMA_DSTADDR_OFFSET,(dmainit->dst_addr)>>2);//converts byte address to word address
+	write_w(DMA_BASE_ADDR+DMA_LEN_OFFSET,dmainit->num_xfers);//converts byte address to word address
+	int cfg = dmainit->sinc_select|dmainit->dinc_select;//value for CR register
+	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//converts byte address to word address
+	return;
+}
+
+
+//configures a DMA transfer AND start it
+void DMA_Init_and_Start(DMA_Init_typedef* dmainit){
+	write_w(DMA_BASE_ADDR+DMA_SRCADDR_OFFSET,(dmainit->src_addr)>>2);//converts byte address to word address
+	write_w(DMA_BASE_ADDR+DMA_DSTADDR_OFFSET,(dmainit->dst_addr)>>2);//converts byte address to word address
+	write_w(DMA_BASE_ADDR+DMA_LEN_OFFSET,dmainit->num_xfers);//converts byte address to word address
+	int cfg = dmainit->sinc_select|dmainit->dinc_select|DMA_START;//value for CR register
+	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//converts byte address to word address
+	return;
+}
