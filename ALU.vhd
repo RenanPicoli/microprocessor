@@ -135,7 +135,7 @@ begin
 							imul_res when (Sel="1011") else--imul
 							(others=>'X');
 
-    process(A,B,Sel,lsb,product,hi_out,lo_out,CLK)
+    process(A,B,Sel,lsb,product,hi_out,lo_out,CLK,shifted_A)
     begin
     
 	-- use case statement to achieve 
