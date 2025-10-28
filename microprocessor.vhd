@@ -434,7 +434,7 @@ begin
 		end if;
 	end process;
 	
-	process(rst,halt,irq, i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
+	process(rst,halt,irq, i_cache_ready,d_cache_ready,ready_stack,accessing_stack,memRead,memWrite,
 				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault,
 				dbg_irq,debugging,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
 				dbg_gm,dbg_gm_extended,dbg_sm,dbg_sm_extended,dbg_inj_extended)
@@ -464,15 +464,15 @@ begin
 					if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 						--MUST REMAIN FROZEN UNTIL RESET
 						clk_enable <= '0';
-					elsif((d_cache_ready='0' and accessing_stack='0') or
-						(ready_stack='0' and accessing_stack='1'))then--access memory not ready
+					elsif(((d_cache_ready='0' and accessing_stack='0') or
+						(ready_stack='0' and accessing_stack='1')) and (memWrite='1' or memRead='1')) then--access memory not ready
 						clk_enable <= '0';
 					--new IRQs are disabled in debugging mode
 	--				elsif(i_cache_ready='1' and halt ='1' and irq='1')then
 	--					clk_enable <= '1';--irq/dbg_irq wakes up processor from halt
 					elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 						clk_enable <= '0';
-					elsif((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1'))then
+					elsif(((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')) and (memWrite='1' or memRead='1'))then
 						clk_enable <= '1';
 					elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then--context switch (call)
 						clk_enable <= '0';
@@ -487,7 +487,7 @@ begin
 				if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 					--MUST REMAIN FROZEN UNTIL RESET
 					clk_enable <= '0';
-				elsif((d_cache_ready='0' and accessing_stack='0') or
+				elsif((d_cache_ready='0' and (memWrite='1' or memRead='1') and accessing_stack='0') or
 					(ready_stack='0' and accessing_stack='1'))then
 					clk_enable <= '0';
 				--necessary to check if i_cache_ready='1' so that current instruction be executed
@@ -496,12 +496,16 @@ begin
 					clk_enable <= '1';--irq/dbg_irq wakes up processor from halt
 				elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 					clk_enable <= '0';
-				elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
+				elsif(i_cache_ready='1' and (((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')) and (memWrite='1' or memRead='1')))then
 					clk_enable <= '1';
 				elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
 					clk_enable <= '0';
-				else--if(i_cache_ready='0' or d_cache_ready='0')then
+				elsif(lr_stack_ready='1' and (lr_stack_pop='1' or lr_stack_push='1'))then
+					clk_enable <= '1';
+				elsif(i_cache_ready='0')then
 					clk_enable <= '0';
+				elsif(i_cache_ready='1')then
+					clk_enable <= '1';
 				end if;
 			end if;
 		end if;
@@ -523,7 +527,7 @@ begin
 		end if;
 	end process;
 	
-	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,
+	process(rst,halt,irq,i_cache_ready,d_cache_ready,ready_stack,accessing_stack,memRead,memWrite,
 				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault,
 				dbg_irq,debugging,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
 				dbg_gm,dbg_gm_extended,dbg_sm,dbg_sm_extended,dbg_inj_extended)
@@ -546,7 +550,7 @@ begin
 					--MUST REMAIN FROZEN UNTIL RESET
 					CLK_rom_en <= '0';
 				elsif(i_cache_ready='1' and
-					((d_cache_ready='0' and accessing_stack='0') or
+					((d_cache_ready='0' and (memRead='1' or memWrite='1') and accessing_stack='0') or
 					(ready_stack='0' and accessing_stack='1')))then--miss apenas no d_cache, esperar o dado para continuar o programa
 					CLK_rom_en <= '0';
 				--necessary to check if i_cache_ready='1' so that current instruction be executed
@@ -555,10 +559,12 @@ begin
 					CLK_rom_en <= '1';--irq wakes up processor from halt
 				elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 					CLK_rom_en <= '0';
-				elsif(i_cache_ready='1' and ((d_cache_ready='1' and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
+				elsif(i_cache_ready='1' and ((d_cache_ready='1' and (memRead='1' or memWrite='1') and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
 					CLK_rom_en <= '1';
 				elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
 					CLK_rom_en <= '0';
+				elsif(lr_stack_ready='1' and (lr_stack_pop='1' or lr_stack_push='1'))then
+					CLK_rom_en <= '1';
 				elsif(i_cache_ready='0')then--miss no i_cache, continuar o CLK_rom para buscar a instruction
 					CLK_rom_en <= '1';
 	--			else--miss apenas no d_cache, esperar o dado para continuar o programa
