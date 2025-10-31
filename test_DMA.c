@@ -14,7 +14,7 @@ int main(void){
 	DMA_Init_typedef dma_init;
     dma_init.num_xfers = 0x4D;//length of the text in bytes
     dma_init.src_addr = SDRAM_BASE_ADDR;
-    dma_init.dst_addr = SDRAM_BASE_ADDR+(0x50<<2);
+    dma_init.dst_addr = SDRAM_BASE_ADDR+(0x28<<2);
     dma_init.dinc_select = DMA_DINC_ENABLE;
     dma_init.sinc_select = DMA_SINC_ENABLE;
     
