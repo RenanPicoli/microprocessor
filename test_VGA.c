@@ -22,6 +22,11 @@ int main(void){
 
 	GIC_config();
 	
+    //configure VGA controller
+    //no direct blanking
+    //no sync on green
+    WRITE(VGA_BASE_ADDR+VGA_CR_OFFSET,0x2);
+
     DMA_start();
 	
     while(1){
