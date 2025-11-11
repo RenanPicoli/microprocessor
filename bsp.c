@@ -13,13 +13,13 @@ void print_7segs(int n){
 }
 
 //writes integer n to address addr
-//r1 stores the value, r4 stores the address
+//r3 stores the value, r4 stores the address
 void write_w(int addr,int n){
 	__asm(".remove_prologue\n\t\
 	ldfp r2;\n\t\
-	lw [r2+4] r1;\n\t\
+	lw [r2+4] r3;\n\t\
 	lw [r2+0] r4;\n\t\
-	sw [r4+0] r1;\n\t\
+	sw [r4+0] r3;\n\t\
 	ret;\n\t\
 	.remove_epilogue\n\t");
 }
@@ -213,7 +213,7 @@ void DMA_Init(DMA_Init_typedef* dmainit){
 	write_w(DMA_BASE_ADDR+DMA_DSTADDR_OFFSET,(dmainit->dst_addr)>>2);//converts byte address to word address
 	write_w(DMA_BASE_ADDR+DMA_LEN_OFFSET,dmainit->num_xfers);//converts byte address to word address
 	int cfg = dmainit->sinc_select|dmainit->dinc_select;//value for CR register
-	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//converts byte address to word address
+	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//writes to CR (but do not start)
 	return;
 }
 
@@ -224,6 +224,6 @@ void DMA_Init_and_Start(DMA_Init_typedef* dmainit){
 	write_w(DMA_BASE_ADDR+DMA_DSTADDR_OFFSET,(dmainit->dst_addr)>>2);//converts byte address to word address
 	write_w(DMA_BASE_ADDR+DMA_LEN_OFFSET,dmainit->num_xfers);//converts byte address to word address
 	int cfg = dmainit->sinc_select|dmainit->dinc_select|DMA_START;//value for CR register
-	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//converts byte address to word address
+	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//writes to CR (including start bit)
 	return;
 }
