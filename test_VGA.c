@@ -17,7 +17,7 @@ int main(void){
     dma_init.dst_addr = VGA_BASE_ADDR+VGA_DR_OFFSET;
     dma_init.dinc_select = DMA_DINC_DISABLE;//writes to the fixed position in VGA
     dma_init.sinc_select = DMA_SINC_DISABLE;//reads always the first position in SDRAM (fills with single color)
-    
+    dma_init.src_lat_select = DMA_SRC_LAT_2;//source memory (SDRAM) has 2 clocks of latency (only for reading)
     DMA_Init(&dma_init);
 
 	GIC_config();
@@ -25,7 +25,7 @@ int main(void){
     //configure VGA controller
     //no direct blanking
     //no sync on green
-    WRITE(VGA_BASE_ADDR+VGA_CR_OFFSET,0x2);
+    WRITE(VGA_BASE_ADDR+VGA_CR_OFFSET,0x3);
 
     DMA_start();
 	
