@@ -130,6 +130,7 @@ typedef struct{
     int dst_addr;//byte address of first position where to start copying
     int sinc_select;//selects if source address must be incremented
     int dinc_select;//selects if destination address must be incremented
+    int src_lat_select;//selects soruce memory latency (only for reading)
 }DMA_Init_typedef;
 
 #define DMA_START 1<<0
@@ -138,6 +139,10 @@ typedef struct{
 #define DMA_SINC_DISABLE 0<<2
 #define DMA_DINC_ENABLE 1<<3
 #define DMA_DINC_DISABLE 0<<3
+#define DMA_SRC_LAT_0 0<<4
+#define DMA_SRC_LAT_1 1<<4 
+#define DMA_SRC_LAT_2 2<<4 
+#define DMA_SRC_LAT_3 3<<4 
 
 //function prototypes
 void print_7segs(int n);
