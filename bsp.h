@@ -131,6 +131,7 @@ typedef struct{
     int sinc_select;//selects if source address must be incremented
     int dinc_select;//selects if destination address must be incremented
     int src_lat_select;//selects soruce memory latency (only for reading)
+    int autostart_select;//selects if DMA will start another transfer automatically when finished
 }DMA_Init_typedef;
 
 #define DMA_START 1<<0
@@ -142,7 +143,9 @@ typedef struct{
 #define DMA_SRC_LAT_0 0<<4
 #define DMA_SRC_LAT_1 1<<4 
 #define DMA_SRC_LAT_2 2<<4 
-#define DMA_SRC_LAT_3 3<<4 
+#define DMA_SRC_LAT_3 3<<4
+#define DMA_AUTOSTART_DISABLE 0<<6
+#define DMA_AUTOSTART_ENABLE 1<<6
 
 //function prototypes
 void print_7segs(int n);

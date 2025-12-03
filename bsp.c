@@ -212,7 +212,7 @@ void DMA_Init(DMA_Init_typedef* dmainit){
 	write_w(DMA_BASE_ADDR+DMA_SRCADDR_OFFSET,(dmainit->src_addr)>>2);//converts byte address to word address
 	write_w(DMA_BASE_ADDR+DMA_DSTADDR_OFFSET,(dmainit->dst_addr)>>2);//converts byte address to word address
 	write_w(DMA_BASE_ADDR+DMA_LEN_OFFSET,dmainit->num_xfers);//converts byte address to word address
-	int cfg = dmainit->sinc_select|dmainit->dinc_select|dmainit->src_lat_select;//value for CR register
+	int cfg = dmainit->sinc_select|dmainit->dinc_select|dmainit->src_lat_select|dmainit->autostart_select;//value for CR register
 	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//writes to CR (but do not start)
 	return;
 }
@@ -223,7 +223,7 @@ void DMA_Init_and_Start(DMA_Init_typedef* dmainit){
 	write_w(DMA_BASE_ADDR+DMA_SRCADDR_OFFSET,(dmainit->src_addr)>>2);//converts byte address to word address
 	write_w(DMA_BASE_ADDR+DMA_DSTADDR_OFFSET,(dmainit->dst_addr)>>2);//converts byte address to word address
 	write_w(DMA_BASE_ADDR+DMA_LEN_OFFSET,dmainit->num_xfers);//converts byte address to word address
-	int cfg = dmainit->sinc_select|dmainit->dinc_select|DMA_START;//value for CR register
+	int cfg = dmainit->sinc_select|dmainit->dinc_select|dmainit->src_lat_select|dmainit->autostart_select|DMA_START;//value for CR register
 	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//writes to CR (including start bit)
 	return;
 }

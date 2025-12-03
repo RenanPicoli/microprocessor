@@ -18,6 +18,7 @@ int main(void){
     dma_init.dinc_select = DMA_DINC_DISABLE;//writes to the fixed position in VGA
     dma_init.sinc_select = DMA_SINC_DISABLE;//reads always the first position in SDRAM (fills with single color)
     dma_init.src_lat_select = DMA_SRC_LAT_2;//source memory (SDRAM) has 2 clocks of latency (only for reading)
+    dma_init.autostart_select = DMA_AUTOSTART_ENABLE;//will repeat tranfer after finishing
     DMA_Init(&dma_init);
 
 	GIC_config();
@@ -50,8 +51,8 @@ void GIC_config(){
 void IRQ5_Handler(){
     __asm(".remove_prologue\n\t");
 
-    //start again transfer
-	DMA_start();
+    //start again transfer automatically
+	//DMA_start();
 
 	IRET();
     __asm(".remove_epilogue\n\t");
