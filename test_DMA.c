@@ -12,11 +12,13 @@ void IRQ5_Handler();
 //main loop
 int main(void){
 	DMA_Init_typedef dma_init;
-    dma_init.num_xfers = 0x4D;//length of the text in bytes
+    dma_init.num_xfers = 0x6f4;//length of the text in bytes
     dma_init.src_addr = SDRAM_BASE_ADDR;
-    dma_init.dst_addr = SDRAM_BASE_ADDR+(0x28<<2);
+    dma_init.dst_addr = SDRAM_BASE_ADDR+(0x800<<2);// left shift converts word address to byte address
     dma_init.dinc_select = DMA_DINC_ENABLE;
     dma_init.sinc_select = DMA_SINC_ENABLE;
+    dma_init.src_lat_select = DMA_SRC_LAT_2;//source memory (SDRAM) has 2 clocks of latency (only for reading)
+    dma_init.autostart_select = DMA_AUTOSTART_DISABLE;
     
     DMA_Init(&dma_init);
 
