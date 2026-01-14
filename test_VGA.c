@@ -18,7 +18,7 @@ int main(void){
     dma_init.dinc_select = DMA_DINC_DISABLE;//writes to the fixed position in VGA
     // dma_init.sinc_select = DMA_SINC_DISABLE;//reads always the first position in SDRAM (fills with single color)
     dma_init.sinc_select = DMA_SINC_ENABLE;// enables increment of address in SDRAM (loads an entire image)
-    dma_init.src_lat_select = DMA_SRC_LAT_2;//source memory (SDRAM) has 2 clocks of latency (only for reading)
+    dma_init.src_lat_select = DMA_SRC_LAT_3;//source memory (SDRAM) has 2 clocks of latency (only for reading) + 1 of DMA
     dma_init.autostart_select = DMA_AUTOSTART_ENABLE;//will repeat tranfer after finishing
     DMA_Init(&dma_init);
 
