@@ -177,4 +177,24 @@ void DMA_start();
 void DMA_Init(DMA_Init_typedef* dmainit);
 void DMA_Init_and_Start(DMA_Init_typedef* dmainit);
 
+#define VGA_WIDTH  640
+#define VGA_HEIGHT 480
+typedef unsigned int  uint32_t;
+typedef signed int    int32_t;
+
+void VGA_draw_line(uint32_t *fb,
+               int x0, int y0,
+               int x1, int y1,
+               uint32_t color);
+
+void VGA_draw_rect(uint32_t *fb,
+               int x, int y,
+               int w, int h,
+               uint32_t color);
+
+void VGA_fill_rect(uint32_t *fb,
+               int x, int y,
+               int w, int h,
+               uint32_t color);
+
 #endif

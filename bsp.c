@@ -227,3 +227,75 @@ void DMA_Init_and_Start(DMA_Init_typedef* dmainit){
 	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//writes to CR (including start bit)
 	return;
 }
+
+void VGA_draw_line(uint32_t *fb,
+               int x0, int y0,
+               int x1, int y1,
+               uint32_t color)
+{
+    int dx = (x1 > x0) ? (x1 - x0) : (x0 - x1);
+    int dy = (y1 > y0) ? (y1 - y0) : (y0 - y1);
+
+    int sx = (x0 < x1) ? 1 : -1;
+    int sy = (y0 < y1) ? 1 : -1;
+
+    int err = dx - dy;
+
+    while (1)
+    {
+        VGA_put_pixel(fb, x0, y0, color);
+
+        if (x0 == x1 && y0 == y1)
+            break;
+
+        int e2 = err << 1;
+
+        if (e2 > -dy)
+        {
+            err -= dy;
+            x0 += sx;
+        }
+
+        if (e2 < dx)
+        {
+            err += dx;
+            y0 += sy;
+        }
+    }
+}
+
+void VGA_draw_rect(uint32_t *fb,
+               int x,
+               int y,
+               int w,
+               int h,
+               uint32_t color)
+{
+    VGA_draw_line(fb, x,     y,     x + w - 1, y,         color);
+    VGA_draw_line(fb, x,     y,     x,         y + h - 1, color);
+    VGA_draw_line(fb, x + w - 1, y,     x + w - 1, y + h - 1, color);
+    VGA_draw_line(fb, x,     y + h - 1, x + w - 1, y + h - 1, color);
+}
+
+void VGA_fill_rect(uint32_t *fb,
+               int x,
+               int y,
+               int w,
+               int h,
+               uint32_t color)
+{
+    int x_end = x + w;
+    int y_end = y + h;
+
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    if (x_end > VGA_WIDTH)  x_end = VGA_WIDTH;
+    if (y_end > VGA_HEIGHT) y_end = VGA_HEIGHT;
+
+    for (int j = y; j < y_end; j++)
+    {
+        uint32_t *row = &fb[j * VGA_WIDTH + x];
+        for (int i = x; i < x_end; i++)
+            *row++ = color;
+    }
+}
