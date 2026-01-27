@@ -670,7 +670,10 @@ def main(argv):
       if item != "":
         result_flat.append(item+"\n")
   of_lines=result_flat
-        
+
+  # in MIPS convention, the return value is placed at $2 (also use $3 for 64 bit value)
+  # in my processor, there a special register RV, ldrv $2 loads $2 with the return value
+  # there is no support for returning wider values
   for i in range(len(of_lines)):
     if(of_lines[i].strip().startswith("ret")):
       push_cnt=0
@@ -687,9 +690,10 @@ def main(argv):
             break
         elif of_lines[j].strip().startswith("push") and push_cnt_enable:
           push_cnt=push_cnt+1
-        elif "call" in of_lines[j] and push_cnt_enable:# accounts for 'call' and 'callr'
-          #of_lines[i] = of_lines[i]+"found call!\n"
-          push_cnt_enable=False
+          push_cnt_enable=False # only 1 register in returned values is supported 
+        # elif "call" in of_lines[j] and push_cnt_enable:# accounts for 'call' and 'callr'
+        #   #of_lines[i] = of_lines[i]+"found call!\n"
+        #   push_cnt_enable=False
       
   for i in range(len(of_lines)): # iterates over lines of intermediary file
     if(of_lines[i].startswith("\tcall")):# accounts for 'call' and 'callr'
@@ -724,6 +728,7 @@ def main(argv):
           push_cnt=push_cnt+1
         else:
           break
+      print(f'{callee}:\n\tPushed regs={push_cnt}\n\tReturned regs={funct_returned_regs[callee]}')
       of_lines[i] = of_lines[i]+"\taddsp x\"{:04X}\";\n".format(4*(push_cnt+funct_returned_regs[callee]))# accounts for the returned value(s)
       #of_lines[i] = of_lines[i]+"\taddsp x\"{:04X}\";\n{}\n".format(push_cnt+funct_returned_regs[callee],funct_returned_regs[callee]) # accounts for the returned value(s)
       
