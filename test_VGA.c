@@ -37,6 +37,8 @@ int main(void){
 
     demo((uint32_t *)SDRAM_BASE_ADDR);
 
+    VGA_start();
+
     DMA_start();
 	
     while(1){
@@ -85,13 +87,13 @@ void demo(uint32_t *fb)
     // VGA_fill_rect(fb, 0, 0, VGA_WIDTH, VGA_HEIGHT, 0x00000000);
 
     // Retângulo cheio
-    // VGA_fill_rect(fb, 320, 240, 160, 80, 0x002CFF05);//neon-green
+    VGA_fill_rect(fb, 320, 240, 160, 80, 0x002CFF05);//neon-green
 
     // Contorno
-    // VGA_draw_rect(fb, 320, 240, 160, 80, 0x000000FF);//blue
+    VGA_draw_rect(fb, 320, 240, 160, 80, 0x000000FF);//blue
 
     // Linhas cruzadas
-    VGA_draw_line(fb, 0, 0, 639, 479, 0x00FF0000);//red
+    // VGA_draw_line(fb, 0, 0, 639, 479, 0x00FF0000);//red
     // VGA_draw_line(fb, 639, 0, 0, 479, 0x000000FF);//green
 }
 

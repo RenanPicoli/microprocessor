@@ -299,3 +299,12 @@ void VGA_fill_rect(uint32_t *fb,
             *row++ = color;
     }
 }
+
+void VGA_start(){
+	int cr;
+	READ(VGA_BASE_ADDR+VGA_CR_OFFSET, cr);
+	cr |= 1<<4;
+	
+    WRITE(VGA_BASE_ADDR+VGA_CR_OFFSET, cr);
+	return;
+}

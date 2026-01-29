@@ -197,4 +197,6 @@ void VGA_fill_rect(uint32_t *fb,
                int w, int h,
                uint32_t color);
 
+void VGA_start();
+
 #endif
