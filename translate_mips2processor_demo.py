@@ -32,17 +32,17 @@ aliases={
 }
 
 #TODO: remove this improvised solution
-INSTRUCTION_MEMORY_BASE_ADDR=0x2000 # byte address
+INSTRUCTION_MEMORY_BASE_ADDR=0x20000 # byte address
 
 def main(argv):
   if(len(argv)!=2):
-    print("Uso: %s FILE\n" % argv[0]);
+    print("Uso: %s FILE\n" % argv[0])
     sys.exit(1)
 
   try:
 	  of=open("./main.i","wt") # opens a text file for write
   except:
-    print("Erro ao criar o arquivo de saída!\n");
+    print("Erro ao criar o arquivo de saída!\n")
     sys.exit(1)
 
   try:
@@ -51,7 +51,7 @@ def main(argv):
     print("Erro ao ler o arquivo %s\n" % argv[1])
     sys.exit(2)
 
-  print("Parsing %s\n" % argv[1]);
+  print("Parsing %s\n" % argv[1])
 
   translation_enable = True # this flag is used to prevent translation of user coded assembly (between #APP and #NO_APP)
   
@@ -132,16 +132,25 @@ def main(argv):
         # adds to label dictionary
         labels_dict.update({line[0:-1]:""})
         continue
-    elif(curr_section=="bss"):
-      words = line.split()      
-      if(words[0].startswith(".space") and len(words)==2): # size declaration
-        new_instr="x"
-        for i in range(int(words[1])):
-          new_instr = new_instr+"00"
-        new_instr = new_instr+";"
+      elif(words[0].startswith(".space") and len(words)==2): # size declaration in bytes
+        new_instr=""
+        for i in range(int(words[1])//4):# creates zeroed 32-bit words
+          new_instr = new_instr+"x00000000;\n"
         print(line + "-> " + new_instr)
         #of.write(new_instr+"\n")
-        bss_vector.extend((new_instr).split("\n"))
+        rdata_vector.extend((new_instr).split("\n")) # if new_instr ends in \n, rdata_vector will end in an empty string
+        rdata_vector.pop() # removes empty string (at final position) that cause program crash
+        continue
+    elif(curr_section=="bss"):
+      words = line.split()      
+      if(words[0].startswith(".space") and len(words)==2): # size declaration in bytes
+        new_instr=""
+        for i in range(int(words[1])//4): # creates zeroed 32-bit words
+          new_instr = new_instr+"x00000000;\n"
+        print(line + "-> " + new_instr)
+        #of.write(new_instr+"\n")
+        bss_vector.extend((new_instr).split("\n")) # if new_instr ends in \n, rdata_vector will end in an empty string
+        bss_vector.pop() # removes empty string (at final position) that cause program crash
         continue
       elif(line[-1]==":" and len(words)==1): # LABEL
         new_instr=line
@@ -159,15 +168,15 @@ def main(argv):
         # adds to label dictionary
         labels_dict.update({new_instr[0:-1]:""})
         continue
-      elif(words[0].startswith(".comm") and len(words)==2): # size decalration
-        words=words[1].split(",")
-        new_instr="x"
-        for i in range(int(words[1])):
-          new_instr = new_instr+"00"
-        new_instr = new_instr+";"
+      elif(words[0].startswith(".comm") and len(words)==2): # size declaration in bytes
+        words=words[1].split(",") # actually, number of bytes
+        new_instr=""
+        for i in range(int(words[1])//4): # creates zeroed 32-bit words
+          new_instr = new_instr+"x00000000;\n"
         print(line + "-> " + new_instr)
         #of.write(new_instr+"\n")
-        bss_vector.extend((new_instr).split("\n"))
+        bss_vector.extend((new_instr).split("\n")) # if new_instr ends in \n, rdata_vector will end in an empty string
+        bss_vector.pop() # removes empty string (at final position) that cause program crash
         continue
       
     # elif(curr_section=="text")
@@ -433,7 +442,12 @@ def main(argv):
             for r in used_arg_regs:
               new_instr = new_instr+"\tpush {};\n".format(r)
             # offset of instruction memory (will added by assembler) must be removed
-            new_instr = new_instr + "\tsubi {} {} x\"{:04X}\";\n".format(arg[1],arg[1],INSTRUCTION_MEMORY_BASE_ADDR)
+            value = INSTRUCTION_MEMORY_BASE_ADDR
+            # since the INSTRUCTION_MEMORY_BASE_ADDR might be too long to fit in the subi SIGNED immediate, we split it into 7FFF chunks
+            while value > 0:
+                chunk = min(value, 0x7FFF)
+                new_instr += "\tsubi {} {} x\"{:04X}\";\n".format(arg[1], arg[1], chunk)
+                value -= chunk
             frmt_str="\tcallr {};"
             new_instr = new_instr + frmt_str.format(arg[1])
             ## já fiz o push dos registradores usados, posso limpar a lista
@@ -450,7 +464,12 @@ def main(argv):
               new_instr = new_instr + frmt_str.format(arg[1])
             else: # arg[1] is a register, equivalent to jalr
               # offset of instruction memory (will added by assembler) must be removed
-              new_instr = new_instr + "\tsubi {} {} x\"{:04X}\";\n".format(arg[1],arg[1],INSTRUCTION_MEMORY_BASE_ADDR)
+              value = INSTRUCTION_MEMORY_BASE_ADDR
+              # since the INSTRUCTION_MEMORY_BASE_ADDR might be too long to fit in the subi SIGNED immediate, we split it into 7FFF chunks
+              while value > 0:
+                  chunk = min(value, 0x7FFF)
+                  new_instr += "\tsubi {} {} x\"{:04X}\";\n".format(arg[1], arg[1], chunk)
+                  value -= chunk
               frmt_str="\tcallr {};"
               new_instr = new_instr + frmt_str.format(arg[1])
             ## já fiz o push dos registradores usados, posso limpar a lista
@@ -539,10 +558,16 @@ def main(argv):
               new_instr=frmt_str.format(opcode,arg[1],int(arg[2]) if int(arg[2])>=0 else 2**16+int(arg[2]))
     
         elif(opcode=="la"):
-          #immediate is always a label
-          frmt_str="\tlui {} %hi({});\n\tori {} {} %lo({});"
-          new_instr=frmt_str.format(arg[1],arg[2],arg[1],arg[1],arg[2])
-        
+          # immediate arg[2] is always a label OR label+byte_offset
+          if "+" in arg[2]:# there is an byte offset inside arg[2]
+            arr = arg[2].split("+")
+            arg.pop(2) # remove arg[2]
+            arg.extend(arr)
+            frmt_str="\tlui {} %hi({});\n\tori {} {} %lo({});\n\taddi {} {} x\"{:04X}\";"
+            new_instr=frmt_str.format(arg[1],arg[2],arg[1],arg[1],arg[2],arg[1],arg[1],int(arg[3]))
+          else:
+            frmt_str="\tlui {} %hi({});\n\tori {} {} %lo({});"
+            new_instr=frmt_str.format(arg[1],arg[2],arg[1],arg[1],arg[2])        
         
         # there are 2 variants of the instructions below in MIPS
         # sll rd rs rt: rd <= rs << rt (aka sllv)
@@ -627,14 +652,14 @@ def main(argv):
   try:
 	  of=open("./main.i","rt") # opens a text file for reading
   except:
-    print("Erro ao ler o arquivo intermediário!\n");
+    print("Erro ao ler o arquivo intermediário!\n")
     sys.exit(2)
 
   # opens final file, in writing mode
   try:
 	  ff=open("./main.s","wt") # opens a text file for writing
   except:
-    print("Erro ao criar o arquivo final!\n");
+    print("Erro ao criar o arquivo final!\n")
     sys.exit(3)
 
   l=list(labels_dict.keys()) # get a list of dictionary keys
