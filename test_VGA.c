@@ -2,6 +2,7 @@
 #include "cpu.h"
 #include "wm8731.h"
 #include "lcd.h"
+#include "ascii_points.h"
 
 //configures the global interrupt controller
 void GIC_config();
@@ -69,18 +70,43 @@ void IRQ5_Handler(){
     __asm(".remove_epilogue\n\t");
 }
 
-void VGA_put_pixel(uint32_t *fb,
-                             int x, int y,
-                             uint32_t color)
-{
-    if (x < 0 || x >= VGA_WIDTH ||
-        y < 0 || y >= VGA_HEIGHT)
-        return;
-    fb[y * VGA_WIDTH + x] = color;
+void print_vga(){
+    // uint32_t row0[]={0,0,0,0xfffff,0xfffff,0,0,0};
+    // uint32_t row1[]={0,0,0,0xfffff,0xfffff,0xfffff,0,0};
+    // uint32_t row2[]={0,0,0xfffff,0xfffff,0,0,0xfffff,0};
+    // uint32_t row3[]={0,0xfffff,0xfffff,0xfffff,0xfffff,0xfffff,0xfffff,0xfffff};
+    // uint32_t row4[]={0,0xfffff,0xfffff,0xfffff,0xfffff,0xfffff,0xfffff,0xfffff};
+    // uint32_t row5[]={0,0xfffff,0xfffff,0,0,0,0xfffff,0xfffff};
+    // uint32_t row6[]={0,0xfffff,0xfffff,0,0,0,0xfffff,0xfffff};
+    // uint32_t row7[]={0,0xfffff,0xfffff,0,0,0,0xfffff,0xfffff};
+    
+    uint32_t* fb = (uint32_t *)SDRAM_BASE_ADDR;
+    int base_x=300;
+    int base_y=70;
+    //print letter 'A'
+    // for (int i=0;i<8;i++){
+    //     VGA_put_pixel(fb,x+i,y+0,row0[i]);
+    //     VGA_put_pixel(fb,x+i,y+1,row1[i]);
+    //     VGA_put_pixel(fb,x+i,y+2,row2[i]);
+    //     VGA_put_pixel(fb,x+i,y+3,row3[i]);
+    //     VGA_put_pixel(fb,x+i,y+4,row4[i]);
+    //     VGA_put_pixel(fb,x+i,y+5,row5[i]);
+    //     VGA_put_pixel(fb,x+i,y+6,row6[i]);
+    //     VGA_put_pixel(fb,x+i,y+7,row7[i]);
+    // }
+
+    const Glyph *g = ascii_get_glyph('A');
+    for (int i = 0; i < g->count; i++){
+        VGA_put_pixel((uint32_t*)fb,base_x+g->points[i].x,base_y+g->points[i].y,(uint32_t)0x00ff0000);
+    }
+
+
+    return;
 }
 
 void demo(uint32_t *fb)
 {
+    print_vga();
     //  VGA_put_pixel(fb, 320, 240, 0x002CFF05);//neon-green
 
     // Limpa a tela
@@ -101,3 +127,4 @@ void demo(uint32_t *fb)
 #include "bsp.c"
 #include "cpu.c"
 #include "lcd.c"
+#include "ascii_points.c"
