@@ -1,10 +1,11 @@
 #ifndef LCD_HD44780_COMMANDS_H
-#define LCD_HD44780_COMMANDS_H
-
-//#include <stdint.h>
+    #define LCD_HD44780_COMMANDS_H
+#endif // LCD_HD44780_COMMANDS_H
 
 //includes word type
-#include "cpu.h"
+#ifndef CPU_H
+    #include "cpu.h"
+#endif
 
 //macros para evitar trocas de contexto excessivas
 #define LCD_WRITE_COMMAND(command) WRITE(LCD_CTRL_BASE_ADDR + LCD_CTRL_OFFSET, command);
@@ -98,5 +99,3 @@ void lcd_print(unsigned int* str);
 void lcd_print_reg(unsigned int reg_value);
 void lcd_print_float(float value);
 unsigned int lcd_read_data();
-
-#endif // LCD_HD44780_COMMANDS_H

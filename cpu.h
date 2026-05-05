@@ -1,16 +1,16 @@
 #ifndef CPU_H
-#define CPU_H
+	#define CPU_H
+#endif
+
+#ifndef STDINT_H
+	#include "stdint.h"
+#endif
 
 enum registers {r0=0, r1, r2, r3, r4, r5, r6, r7, r8, r9,\
 				r10, r11, r12, r13, r14, r15, r16, r17, r18, r19,\
 				r20, r21, r22, r23, r24, r25, r26, r27, r28, r29,\
 				r30, r31};
 
-//useful when you need to treat a float as integer (based on its encoding)
-typedef union {
-  int i;
-  float f;
- } word;
 
 //macros
 
@@ -74,4 +74,3 @@ float __floatsisf (int x);
 //will call uint2float (my implementation)
 float __floatunsisf (unsigned int x);
 
-#endif

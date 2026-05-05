@@ -1,5 +1,9 @@
-#include "lcd.h"
-#include "bsp.h"
+#ifndef LCD_HD44780_COMMANDS_H
+    #include "lcd.h"
+#endif
+#ifndef BSP_H
+    #include "bsp.h"
+#endif
 
 // Implementações das funções
 void lcd_write_command(unsigned int command) {

@@ -1,4 +1,6 @@
-#include "cpu.h"
+#ifndef CPU_H
+	#include "cpu.h"
+#endif
 
 int one_hot(int n){
   return (1<<n);
