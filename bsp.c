@@ -1,4 +1,6 @@
-#include "bsp.h"
+#ifndef BSP_H
+	#include "bsp.h"
+#endif
 
 void print_7segs(int n){
 	__asm(".remove_prologue\n\t\
@@ -228,6 +230,16 @@ void DMA_Init_and_Start(DMA_Init_typedef* dmainit){
 	return;
 }
 
+void VGA_put_pixel(uint32_t *fb,
+                             int x, int y,
+                             uint32_t color)
+{
+    if (x < 0 || x >= VGA_WIDTH ||
+        y < 0 || y >= VGA_HEIGHT)
+        return;
+    fb[y * VGA_WIDTH + x] = color;
+}
+
 void VGA_draw_line(uint32_t *fb,
                int x0, int y0,
                int x1, int y1,
@@ -297,6 +309,7 @@ void VGA_fill_rect(uint32_t *fb,
         uint32_t *row = &fb[j * VGA_WIDTH + x];
         for (int i = x; i < x_end; i++)
             *row++ = color;
+			// VGA_put_pixel(fb, i, j, color);
     }
 }
 

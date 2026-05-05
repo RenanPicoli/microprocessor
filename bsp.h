@@ -1,6 +1,14 @@
 #ifndef BSP_H
-#define BSP_H
+    #define BSP_H
+#endif
 
+// #ifndef CPU_H
+//     #include "cpu.h"
+// #endif
+
+#ifndef STDINT_H
+	#include "stdint.h"
+#endif
 //constants
 
 //peripheral base addresses
@@ -179,9 +187,11 @@ void DMA_Init_and_Start(DMA_Init_typedef* dmainit);
 
 #define VGA_WIDTH  640
 #define VGA_HEIGHT 480
-typedef unsigned int  uint32_t;
-typedef signed int    int32_t;
 
+void VGA_put_pixel(uint32_t *fb,
+               int x, int y,
+               uint32_t color);
+                             
 void VGA_draw_line(uint32_t *fb,
                int x0, int y0,
                int x1, int y1,
@@ -198,5 +208,3 @@ void VGA_fill_rect(uint32_t *fb,
                uint32_t color);
 
 void VGA_start();
-
-#endif
