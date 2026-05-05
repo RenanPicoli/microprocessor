@@ -33,7 +33,7 @@
 #define MAX_STR_LENGTH 200
 
 // byte address
-#define INSTRUCTION_MEMORY_BASE_ADDR 0x2000
+#define INSTRUCTION_MEMORY_BASE_ADDR 0x20000
 
 //for the opcode dictionary
 typedef struct
