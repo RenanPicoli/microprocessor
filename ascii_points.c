@@ -2,37 +2,6 @@
     #include "ascii_points.h"
 #endif
 
-/* Fonte bitmap 8x12 (apenas alguns caracteres exemplo) */
-/* Cada caractere tem 12 bytes (1 byte por linha) */
-static const uint32_t font_bitmap[ASCII_COUNT][FONT_HEIGHT] = {
-    /* SPACE (32) */
-    [0] = {
-        0x00,0x00,0x00,0x00,0x00,0x00,
-        0x00,0x00,0x00,0x00,0x00,0x00
-    },
-
-    /* '!' (33) */
-    // [1] = {
-    //     0x18,0x18,0x18,0x18,0x18,0x18,
-    //     0x18,0x00,0x18,0x18,0x00,0x00
-    // },
-
-    /* 'A' (65) */
-    [65 - ASCII_FIRST] = {
-        0x18,
-        0x24,
-        0x24,
-        0x42,
-        0x42,
-        0x7E,
-        0x42,
-        0x42,
-        0x42,
-        0x00,
-        0x00,
-        0x00
-    },
-};
 
 #define MAX_POINTS (FONT_WIDTH * FONT_HEIGHT)
 
@@ -52,29 +21,32 @@ static void ascii_init(void)
 {
     if (initialized) return;
 
+    // itera sobre os caracteres c
     for (int register c = 0; c < ASCII_COUNT; c++)
     {
+        //count e a quantidade de pixels coloridos para esse char
         uint32_t register count = 0;
-
+        // itera sobre as linhas y do char
         for (int register y = 0; y < FONT_HEIGHT; y++)
         {
             uint32_t register row = font_bitmap[c][y];
-
+            //itera sobre as colunas x do char
             for (int register x = 0; x < FONT_WIDTH; x++)
             {
-                if (row & (1 << (7 - x)))
+                if (row & (1 << (7 - x)))// testa se a posicao (x,y) e colorida
                 {
+                    // acrescenta ao final de glyph_points o ponto (x,y)
                     glyph_points[c][count].x = x;
                     glyph_points[c][count].y = y;
                     count++;
                 }
             }
         }
-
+        // atualiza glyphs: numero de pontos seguido de ponteiro para a "lista" de pontos
         glyphs[c].count = count;
         glyphs[c].points = glyph_points[c];
     }
-
+    // atualiza initialized para nao ter de repetir esse processo
     initialized = 1;
 }
 

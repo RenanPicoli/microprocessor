@@ -12,6 +12,39 @@
 #define ASCII_LAST  126
 #define ASCII_COUNT (ASCII_LAST - ASCII_FIRST + 1)
 
+
+/* Fonte bitmap 8x12 (apenas alguns caracteres exemplo) */
+/* Cada caractere tem 12 bytes (1 byte por linha) */
+static const uint32_t font_bitmap[ASCII_COUNT][FONT_HEIGHT] = {
+    /* SPACE (32) */
+    [0] = {
+        0x00,0x00,0x00,0x00,0x00,0x00,
+        0x00,0x00,0x00,0x00,0x00,0x00
+    },
+
+    /* '!' (33) */
+    // [1] = {
+    //     0x18,0x18,0x18,0x18,0x18,0x18,
+    //     0x18,0x00,0x18,0x18,0x00,0x00
+    // },
+
+    /* 'A' (65) */
+    [65 - ASCII_FIRST] = {
+        0x18,
+        0x24,
+        0x24,
+        0x42,
+        0x42,
+        0x7E,
+        0x42,
+        0x42,
+        0x42,
+        0x00,
+        0x00,
+        0x00
+    },
+};
+
 typedef struct {
     uint32_t x;
     uint32_t y;
