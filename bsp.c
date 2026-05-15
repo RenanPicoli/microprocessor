@@ -227,6 +227,7 @@ void DMA_Init_and_Start(DMA_Init_typedef* dmainit){
 	write_w(DMA_BASE_ADDR+DMA_LEN_OFFSET,dmainit->num_xfers);//converts byte address to word address
 	int cfg = dmainit->sinc_select|dmainit->dinc_select|dmainit->src_lat_select|dmainit->autostart_select|DMA_START;//value for CR register
 	write_w(DMA_BASE_ADDR+DMA_CR_OFFSET,cfg);//writes to CR (including start bit)
+	HALT(); //cpu sleeps until IRQ (DMA transfer finished)
 	return;
 }
 
