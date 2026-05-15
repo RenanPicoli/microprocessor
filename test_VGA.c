@@ -98,22 +98,23 @@ void print_vga(){
     char c = 'A';
     
     // iterates over rows of region to be drawn
-    for (int y=base_y; y < base_y+FONT_HEIGHT; y++){
+    for (int register y CUSTOM_ASM(r16) =base_y; y < base_y+FONT_HEIGHT; y++){
         //fill mini_ram cache with a row (8 pixels) where the char will be drawn, uses DMA
         //byte address of row start
         dma_init.src_addr = (uint32_t) fb + (y * VGA_WIDTH * sizeof(uint32_t)) + (sizeof(uint32_t) * base_x);
         dma_init.dst_addr = CACHE_BASE_ADDR + CACHE_OFFSET;
         DMA_Init_and_Start(&dma_init);
-        HALT(); //cpu sleeps until IRQ (DMA transfer finished)
+        // HALT(); //cpu sleeps until IRQ (DMA transfer finished)
+        
+        uint32_t register row CUSTOM_ASM(r19) = font_bitmap[c - ASCII_FIRST][y - base_y];//single row of font_bitmaps, bit 1 corresponds to drawn pixel
 
         //iterate over pixels on mini_ram replacing with font_color where necessary; j is the column number
         // j: 0 1 ... 7 (pixel number)
         // i: 7 6 ... 0 (bit index of mask)
-        for (int j=0;j<FONT_WIDTH;j++){
-            uint32_t pixel = read_w(CACHE_BASE_ADDR + j*sizeof(uint32_t));//original pixel
-            uint32_t row = font_bitmap[c - ASCII_FIRST][y - base_y];//single row of font_bitmaps, bit 1 corresponds to drawn pixel
-            uint32_t bit_j = row & (1 << (FONT_WIDTH - 1 - j));// non-zero only if column j of this row belongs to character
-            uint32_t mask = (bit_j == 0) ? 0x00000000 : 0xffffffff;// 11...1 only if column j of this row belongs to character
+        for (int register j CUSTOM_ASM(r17) =0;j<FONT_WIDTH;j++){
+            uint32_t register pixel  CUSTOM_ASM(r18) = read_w(CACHE_BASE_ADDR + j*sizeof(uint32_t));//original pixel
+            uint32_t register bit_j = row & (1 << (FONT_WIDTH - 1 - j));// non-zero only if column j of this row belongs to character
+            uint32_t register mask CUSTOM_ASM(r20) = (bit_j == 0) ? 0x00000000 : 0xffffffff;// 11...1 only if column j of this row belongs to character
             pixel = (pixel & (~mask)) | (font_color & mask);// new pixel
             write_w(CACHE_BASE_ADDR + j*sizeof(uint32_t), pixel);// store new pixel to mini_ram cache
         }
@@ -123,7 +124,7 @@ void print_vga(){
         //byte address of row start
         dma_init.dst_addr = (uint32_t) fb + (y * VGA_WIDTH * sizeof(uint32_t)) + (sizeof(uint32_t) * base_x);
         DMA_Init_and_Start(&dma_init);
-        HALT(); //cpu sleeps until IRQ (DMA transfer finished)
+        // HALT(); //cpu sleeps until IRQ (DMA transfer finished)
     }
     // const Glyph *g = ascii_get_glyph('A');
     // for (int i = 0; i < g->count; i++){
