@@ -74,3 +74,40 @@ float __floatsisf (int x);
 //will call uint2float (my implementation)
 float __floatunsisf (unsigned int x);
 
+// Syntax: CUSTOM_ASM(rX) -> asm("$X")
+// assigns variable to register rX
+#define CUSTOM_ASM(reg) asm(reg##_TO_MIPS)
+
+// Custom CPU register conversion to MIPS registers
+#define r0_TO_MIPS  "$0"
+#define r1_TO_MIPS  "$1"
+#define r2_TO_MIPS  "$2"
+#define r3_TO_MIPS  "$3"
+#define r4_TO_MIPS  "$4"
+#define r5_TO_MIPS  "$5"
+#define r6_TO_MIPS  "$6"
+#define r7_TO_MIPS  "$7"
+#define r8_TO_MIPS  "$8"
+#define r9_TO_MIPS  "$9"
+#define r10_TO_MIPS "$10"
+#define r11_TO_MIPS "$11"
+#define r12_TO_MIPS "$12"
+#define r13_TO_MIPS "$13"
+#define r14_TO_MIPS "$14"
+#define r15_TO_MIPS "$15"
+#define r16_TO_MIPS "$16"
+#define r17_TO_MIPS "$17"
+#define r18_TO_MIPS "$18"
+#define r19_TO_MIPS "$19"
+#define r20_TO_MIPS "$20"
+#define r21_TO_MIPS "$21"
+#define r22_TO_MIPS "$22"
+#define r23_TO_MIPS "$23"
+#define r24_TO_MIPS "$24"
+#define r25_TO_MIPS "$25"
+#define r26_TO_MIPS "$26"
+#define r27_TO_MIPS "$27"
+#define r28_TO_MIPS "$28"
+#define r29_TO_MIPS "$29"
+#define r30_TO_MIPS "$30"
+#define r31_TO_MIPS "$31"
