@@ -31,7 +31,7 @@
 #define VGA_BASE_ADDR					(0x7E << 2)
 #define IRQ_CTRL_BASE_ADDR				(0x80 << 2)
 #define TMP_VECTOR_BASE_ADDR	        (0x100 << 2)
-#define INSTRUCTION_MEMORY_BASE_ADDR	(0x800 << 2)
+#define INSTRUCTION_MEMORY_BASE_ADDR	(0x8000 << 2)
 #define SDRAM_BASE_ADDR                 (0x2000000 << 2)
 #define PROGRAM_STACK_BASE_ADDR			0xFFFFF000
 
