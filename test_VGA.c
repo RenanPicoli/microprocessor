@@ -23,14 +23,15 @@ int main(void){
     WRITE(VGA_BASE_ADDR+VGA_CR_OFFSET,0x3);
 
     //draws over image on framebuffer, prints characters
-    demo((uint32_t *)SDRAM_BASE_ADDR);
+    uint32_t* fb = (uint32_t *)(SDRAM_BASE_ADDR + sizeof(uint32_t) * VGA_HEIGHT * VGA_WIDTH);
+    demo(fb);
 
     DMA_Init_typedef dma_init;
 
     // configures DMA for continuously transmitting the framebufer to VGA
     dma_init.num_xfers = VGA_WIDTH * VGA_HEIGHT;//length of the image in pixels (each pixel is stored as a 32-bit word)
 
-    dma_init.src_addr = SDRAM_BASE_ADDR;
+    dma_init.src_addr = (int) fb;
     dma_init.dst_addr = VGA_BASE_ADDR + VGA_DR_OFFSET;
 
     dma_init.dinc_select = DMA_DINC_DISABLE;//writes to the fixed position in VGA
@@ -74,9 +75,8 @@ void IRQ5_Handler(){
     __asm(".remove_epilogue\n\t");
 }
 
-void print_vga(){
-    
-    uint32_t* fb = (uint32_t *)SDRAM_BASE_ADDR;
+//fb is the working framebuffer in SDRAM
+void print_vga(uint32_t* fb){
     int base_x=300;
     int base_y=70;
     uint32_t font_color = (uint32_t)0x00ff0000;
@@ -106,7 +106,8 @@ void print_vga(){
         DMA_Init_and_Start(&dma_init);
         // HALT(); //cpu sleeps until IRQ (DMA transfer finished)
         
-        uint32_t register row CUSTOM_ASM(r19) = font_bitmap[c - ASCII_FIRST][y - base_y];//single row of font_bitmaps, bit 1 corresponds to drawn pixel
+        uint32_t register row CUSTOM_ASM(r19) = font_bitmap[c - ASCII_FIRST][y - base_y];//single row of font_bitmap, bit 1 corresponds to drawn pixel
+        row = 0x40;//override for debug
 
         //iterate over pixels on mini_ram replacing with font_color where necessary; j is the column number
         // j: 0 1 ... 7 (pixel number)
@@ -137,7 +138,25 @@ void print_vga(){
 
 void demo(uint32_t *fb)
 {
-    print_vga();
+	DMA_Init_typedef dma_init;
+
+    //configures DMA to perform single transfer at startup
+    //copies image from  SDRAM first 640x480 words to the next 640x480 words (framebuffer)
+    dma_init.num_xfers = VGA_WIDTH * VGA_HEIGHT;//length of the image in pixels (each pixel is stored as a 32-bit word)
+
+    dma_init.src_addr = SDRAM_BASE_ADDR;//read-only image in SDRAM
+    
+    dma_init.dst_addr = (int) fb;
+
+    dma_init.dinc_select = DMA_DINC_ENABLE;//increments destination address (SDRAM framebuffer)
+    dma_init.sinc_select = DMA_SINC_ENABLE;//increment source address (SDRAM read-only region)
+
+    dma_init.src_lat_select = DMA_SRC_LAT_3;//source memory (SDRAM) has 2 clock of latency (only for reading) + 1 of DMA
+    dma_init.autostart_select = DMA_AUTOSTART_DISABLE;//performs single transfer
+    
+    DMA_Init_and_Start(&dma_init);
+
+    print_vga(fb);
     //  VGA_put_pixel(fb, 320, 240, 0x002CFF05);//neon-green
 
     // Limpa a tela
