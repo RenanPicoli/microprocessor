@@ -91,7 +91,7 @@ void print_vga(uint32_t* fb){
     dma_init.dinc_select = DMA_DINC_ENABLE;//increments destination address (SDRAM framebuffer)
     dma_init.sinc_select = DMA_SINC_ENABLE;//increment source address (glyph stored in mini_ram)
 
-    dma_init.src_lat_select = DMA_SRC_LAT_1;//source memory (mini_ram registers) has 0 clock of latency (only for reading) + 1 of DMA
+    dma_init.src_lat_select = DMA_SRC_LAT_3;//source memory (SDRAM) has 2 clock of latency (only for reading) + 1 of DMA
 
     dma_init.autostart_select = DMA_AUTOSTART_DISABLE;//performs single transfer
     //prints letter 'A'
