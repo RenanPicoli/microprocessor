@@ -107,7 +107,7 @@ void print_vga(uint32_t* fb){
         // HALT(); //cpu sleeps until IRQ (DMA transfer finished)
         
         uint32_t register row CUSTOM_ASM(r19) = font_bitmap[c - ASCII_FIRST][y - base_y];//single row of font_bitmap, bit 1 corresponds to drawn pixel
-        row = 0x10;//override for debug
+        // row = 0x10;//override for debug
 
         //iterate over pixels on mini_ram replacing with font_color where necessary; j is the column number
         // j: 0 1 ... 7 (pixel number)
