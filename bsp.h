@@ -152,8 +152,12 @@ typedef struct{
 #define DMA_SRC_LAT_1 1<<4 
 #define DMA_SRC_LAT_2 2<<4 
 #define DMA_SRC_LAT_3 3<<4
-#define DMA_AUTOSTART_DISABLE 0<<6
-#define DMA_AUTOSTART_ENABLE 1<<6
+#define DMA_SRC_LAT_4 4<<4
+#define DMA_SRC_LAT_5 5<<4
+#define DMA_SRC_LAT_6 6<<4
+#define DMA_SRC_LAT_7 7<<4
+#define DMA_AUTOSTART_DISABLE 0<<7
+#define DMA_AUTOSTART_ENABLE 1<<7
 
 //function prototypes
 void print_7segs(int n);
