@@ -11,11 +11,12 @@ use ieee.std_logic_unsigned.all;
 
 entity d_flip_flop is
 
-port(	D:	in std_logic_vector(31 downto 0);
+generic (N: natural := 32);--data width
+port(	D:	in std_logic_vector(N-1 downto 0);
 		RST:	in std_logic;--asynchronous reset
 		ENA:	in std_logic:='1';--enables writes
 		CLK:	in std_logic;
-		Q:	out std_logic_vector(31 downto 0)  
+		Q:	out std_logic_vector(N-1 downto 0)  
 );
 
 end d_flip_flop;
