@@ -59,11 +59,12 @@ end entity;
 architecture proc of microprocessor is
 
 component d_flip_flop
-	port (D:	in std_logic_vector(31 downto 0);
+	generic (N: natural := 32);--data width
+	port (D:	in std_logic_vector(N-1 downto 0);
 			rst:	in std_logic;--synchronous reset
 			ENA:	in std_logic:='1';--enables writes
 			CLK:in std_logic;
-			Q:	out std_logic_vector(31 downto 0)  
+			Q:	out std_logic_vector(N-1 downto 0)  
 			);
 end component;
 
@@ -281,6 +282,8 @@ signal mem_write_data: std_logic_vector (31  downto 0);--data to be written to d
 signal aluOp2: std_logic_vector (31  downto 0);
 signal read_data_1: std_logic_vector (31 downto 0);--from register_file
 signal read_data_2: std_logic_vector (31 downto 0);--from register_file
+signal read_data_1_fwd: std_logic_vector (31 downto 0);--from register_file
+signal read_data_2_fwd: std_logic_vector (31 downto 0);--from register_file
 signal alu_result: std_logic_vector (31 downto 0);
 signal fpu_result: std_logic_vector (31 downto 0);
 
@@ -305,7 +308,7 @@ signal addressRelativeSignExtended: std_logic_vector (31 downto 0);--addressRela
 signal addressRelativeZeroExtended: std_logic_vector (31 downto 0);--addressRelative after zero extension
 signal lui_immediate: std_logic_vector (31 downto 0);--addressRelative after sll 16
 
-signal data_memory_output: std_logic_vector (31 downto 0);
+signal data_memory_output_mw: std_logic_vector (31 downto 0);
 signal special_values: std_logic_vector (31 downto 0);
 signal instruction: std_logic_vector (31 downto 0);--next instruction to execute
 signal alu_flags: eflags;--flags da ALU
@@ -316,6 +319,24 @@ signal branch_address: std_logic_vector (31 downto 0);--(addressRelativeSignExte
 signal branch_or_next: std_logic;--branch and ZF
 signal jump_address	: std_logic_vector(31 downto 0);--pc_out(31 downto 28) & addressAbsolute & "00"
 signal full_ADDR_ram: std_logic_vector (31 downto 0);
+
+-- DE-MW registered versions of signals
+signal memRead_mw: std_logic;
+signal memWrite_mw: std_logic;
+signal writeLoc_mw : std_logic_vector (4 downto 0);
+signal dbg_data_0_mw : std_logic_vector (31 downto 0);
+signal alu_result_mw : std_logic_vector (31 downto 0);
+signal fpu_result_mw : std_logic_vector (31 downto 0);
+signal special_values_mw : std_logic_vector (31 downto 0);
+signal regWrite_or_dbg_sr_mw : std_logic;
+signal full_ADDR_ram_mw: std_logic_vector (31 downto 0);
+signal mem_write_data_mw : std_logic_vector (31 downto 0);
+signal push_mw : std_logic;
+signal pop_mw : std_logic;
+signal addsp_mw : std_logic;
+signal instruction_mw : std_logic_vector (31 downto 0);
+signal read_data_1_mw : std_logic_vector (31 downto 0);
+signal reg_data_src_mw : std_logic_vector(1 downto 0);
 
 signal ldfp: std_logic;
 signal ldrv: std_logic;
@@ -634,43 +655,6 @@ begin
 			end if;
 		end if;
 	end process;
-	
-	mm_stack_CLK <= CLK_IN and mm_stack_CLK_en;
-	--mapped on last 2^L word addresses (0xffffffff-2^L+1)-0xffffffff (bit 9='1'=> stack,bit 9='0'=>external ram)
-	program_stack: mm_stack
-						generic map (L => PROGRAM_STACK_LEVELS_LOG2)
-						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
-						--during the cycle of valid instruction (i_cache_ready='1')
-						port map(CLK => mm_stack_CLK,--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
-															  --stack clock will be frozen only when a stack fault occurs
-									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
-									ready => ready_stack,
-									--STACK INTERFACE
-									pop => pop,--(pop: opcode(31..26) rs(25..21) (20..0=>X))
-									push => push,--for argument passing (push: opcode(31..26) rs(25..21) (20..0=>X))
-									addsp => addsp,
-									--ignores 2 LSb of immediate in instruction, because sp is word address, processor deals with byte addresses
-									imm => instruction(PROGRAM_STACK_LEVELS_LOG2+2 downto 2),--imm(L) > 0: deletes vars, imm(L) < 0: reserves space for vars
-									stack_in => read_data_1,-- word to be pushed
-									sp => sp(PROGRAM_STACK_LEVELS_LOG2+1 downto 2),-- points to last stacked item (address of a 32-bit word)
-									stack_out => program_stack_out,--data retrieved from stack
-									--MEMORY-MAPPED INTERFACE
-									D => mem_write_data,-- data to be written by memory-mapped interface
-									WREN => wren_stack,--write enable for memory-mapped interface
-									RDEN => rden_stack,
-									ADDR => addr_stack(PROGRAM_STACK_LEVELS_LOG2-1 downto 0),-- address to be written by memory-mapped interface
-									Q    => Q_stack-- data output for memory-mapped interface
-							);
-	sp(1 downto 0) <= "00";
-	sp(31 downto PROGRAM_STACK_LEVELS_LOG2+2) <= (others=>'1');--converte para a faixa de enderecos destinada a program_stack
-
-	addr_stack <= (31 downto PROGRAM_STACK_LEVELS_LOG2=>'0') & full_ADDR_ram(PROGRAM_STACK_LEVELS_LOG2+1 downto 2);
-	wren_stack <= '1' when (((memWrite='1' and (dbg_nxt_delayed='0' or dbg_nxt='1' or dbg_inj='1')) or (dbg_irq_extended='1' and dbg_sm_extended='1')) and 
-						full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1'))
-						else '0';--ADDR_ram(N)='1' imply stack (ADDR_ram is generated by ALU)
-	rden_stack <= '1' when ((memRead='1' or (dbg_irq_extended='1' and dbg_gm_extended='1')) and 
-						full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1'))
-						else '0';--ADDR_ram(N)='1' imply stack (ADDR_ram is generated by ALU)
 
 	sck_pu: stack_protector
 	generic map(L=>PROGRAM_STACK_LEVELS_LOG2)--log2 of number of stored words
@@ -680,9 +664,9 @@ begin
 		---------------------------------
 		--memory-mapped itfc monitoring--
 		rs=>rs,
-		full_ADDR_ram=>full_ADDR_ram,--BYTE ADDRESS
-		lw=>memRead,
-		sw=>memWrite,
+		full_ADDR_ram=>full_ADDR_ram_mw,--BYTE ADDRESS
+		lw=>memRead_mw,
+		sw=>memWrite_mw,
 		ldfp=>ldfp,
 		call=>call or callr,
 		ret=>ret,
@@ -740,6 +724,19 @@ begin
 									sp => open,-- points to last stacked item (address of a 32-bit word)
 									stack_out => lr_stack_out--data retrieved from stack
 							);
+
+	----------------------------------------------------------------
+	-- Forwarding unit
+	-- if a register is written in MW stage, and it is read in DE stage by the next instruction,
+	-- then the value must be forwarded to DE stage
+	----------------------------------------------------------------
+	read_data_1_fwd <= reg_write_data_mw when (writeLoc_mw=rs and regWrite_or_dbg_sr_mw='1') else read_data_1;
+	read_data_2_fwd <= reg_write_data_mw when (writeLoc_mw=rt and regWrite_or_dbg_sr_mw='1') else read_data_2;
+
+	----------------------------------------------------------------
+	-- DE  stage
+	-- instruction Decode, register access and Execute ALU/FPU operations
+	----------------------------------------------------------------
 						
 	rs 	<= dbg_data_1(4 downto 0) when (dbg_irq='1' and dbg_gr='1') else instruction(25 downto 21);
 	rt 	<= instruction(20 downto 16);
@@ -752,7 +749,7 @@ begin
 					rs;--only for mflo, mfhi, ldrv, ldfp
 					
 	dbg_data_2 <=	read_data_1 when (dbg_irq='1' and dbg_gr='1') else
-						data_memory_output when (dbg_irq_extended='1' and dbg_gm_extended='1') else
+						data_memory_output_mw when (dbg_irq_extended='1' and dbg_gm_extended='1') else
 						(others=>'0');
 	dbg_next_pc <= pc_in;--byte address
 
@@ -770,15 +767,15 @@ begin
 													read_reg_1 => rs,
 													read_reg_2 => rt,
 													write_reg  => writeLoc,
-													write_data => reg_write_data,
+													write_data => reg_write_data_mw,--data to be written to register file comes from MW stage
 													regWrite => regWrite_or_dbg_sr,
 													read_data_1 => read_data_1,
 													read_data_2 => read_data_2
 											);
 											
-	shamt_or_rt <= read_data_2(4 downto 0) when (shift_src='1') else shamt;--rt for sllv/srlv/srav, for shrl/shll/shra is shamt
+	shamt_or_rt <= read_data_2_fwd(4 downto 0) when (shift_src='1') else shamt;--rt for sllv/srlv/srav, for shrl/shll/shra is shamt
 	alu_clk <= CLK;
-	arith_logic_unity: alu port map ( 	A => read_data_1,
+	arith_logic_unity: alu port map ( 	A => read_data_1_fwd,
 													B => aluOp2,
 													shamt => shamt_or_rt,--shamt for ALU comes from shamt field or from read_data_2(4:0) (rt)
 													sel => aluControl,
@@ -790,8 +787,8 @@ begin
 													Res => alu_result
 												);
 												
-	floating_point_unity: fpu port map (A => read_data_1,
-													B => read_data_2,
+	floating_point_unity: fpu port map (A => read_data_1_fwd,
+													B => read_data_2_fwd,
 													op=> fpuControl,
 													divideByZero => fpu_flags(0),
 													overflow	=> fpu_flags(1),
@@ -801,33 +798,16 @@ begin
 	fpu_flags(31 downto 3) <= (others=>'0');
 
 	full_ADDR_ram <=	dbg_data_1 when (dbg_irq_extended='1' and (dbg_sm_extended='1' or dbg_gm_extended='1')) else
-							read_data_1 + addressRelativeSignExtended;--byte address
-	ADDR_ram <= "00" & full_ADDR_ram(31 downto 2);--WORD ADDRESS
-	
-	write_data_ram <= mem_write_data;
-	rden_ram <= '1' when (memRead='1' or (dbg_irq_extended='1' and dbg_gm_extended='1')) and
-					full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)/=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1')
-					else '0';--ADDR_ram(N)='1' would imply stack (ADDR_ram is generated by ALU)
-	wren_ram <= '1' when ((memWrite='1' and (dbg_nxt_delayed='0' or dbg_nxt='1' or dbg_inj='1')) or (dbg_irq_extended='1' and dbg_sm_extended='1')) and
-					full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)/=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1')
-					else '0';--ADDR_ram(N)='1' would imply stack (ADDR_ram is generated by ALU)
+							read_data_1_fwd + addressRelativeSignExtended;--byte address
 	vmac_en <= vmac;
-	data_memory_output	<= Q_ram when full_ADDR_ram(31 downto PROGRAM_STACK_LEVELS_LOG2+2)/=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1')
-									else Q_stack;--ADDR_ram(N)='1' would imply stack (ADDR_ram is generated by ALU)
-									
-	--for register write
-	reg_write_data <= dbg_data_0 when (dbg_irq='1' and dbg_sr='1') else
-							data_memory_output when reg_data_src="01" else
-							alu_result when reg_data_src="00" else
-							fpu_result when reg_data_src="10" else
-							special_values;
+
 	special_values <= fp_out when ldfp='1' else
 							rv_out when ldrv='1' else
 							lui_immediate when lui='1' else
 							program_stack_out;--when pop='1'
 						
 	mem_write_data <=	dbg_data_0 when (dbg_irq_extended='1' and dbg_sm_extended='1') else
-							read_data_2 when mem_data_src='1' else
+							read_data_2_fwd when mem_data_src='1' else
 							fpu_result;
 												
 	pc_incremented <= (pc_out+4);
@@ -841,7 +821,7 @@ begin
 						jump_address when (jump='1') else--next pc_out if not reset
 						branch_address when (branch_or_next='1') else
 						pc_out(31 downto 28) & instruction(25 downto 0) & "00" when (call='1') else-- call: opcode(31..26) func_WORD_addr(25..0)
-						read_data_1 when (callr='1') else
+						read_data_1_fwd when (callr='1') else
 						lr_out when (ret='1' or iret='1') else
 						pc_incremented;
 				
@@ -866,7 +846,7 @@ begin
 	
 	aluOp2 <= 	addressRelativeSignExtended when aluSrc="01" else
 					addressRelativeZeroExtended when aluSrc="10" else
-					read_data_2;--aluSrc="00"
+					read_data_2_fwd;--aluSrc="00"
 										
 	control: control_unit port map (	instruction => instruction,
 												regDst => regDst,
@@ -902,11 +882,102 @@ begin
 
 	wren_lvec <= lvec or lvecr;
 	lvec_src <= 	instruction(10 downto 8) when lvec='1' else
-					read_data_1(2 downto 0) when lvecr='1' else
+					read_data_1_fwd(2 downto 0) when lvecr='1' else
 					(others=>'0');
 	lvec_dst_mask <= instruction(7 downto 0) when lvec='1' else
-					read_data_2(7 downto 0) when lvecr='1' else
+					read_data_2_fwd(7 downto 0) when lvecr='1' else
 					(others=>'0');
 
-end proc;
 
+	-----------------------------------------------------------------
+	-- DE-MW pipeline registers
+	-- DE-MW pipeline registers are updated on rising edge of CLK)
+	-----------------------------------------------------------------
+	de_mw_pipeline_in <= memRead & memWrite & writeLoc & dbg_data_0 & alu_result & fpu_result & special_values & regWrite_or_dbg_sr & full_ADDR_ram & mem_write_data & push & pop & addsp & instruction & read_data_1_fwd & reg_data_src;
+
+	memRead_mw 				<= de_mw_pipeline_out(295);
+	memWrite_mw 			<= de_mw_pipeline_out(294);
+	writeLoc_mw 			<= de_mw_pipeline_out(293 downto 262);
+	dbg_data_0_mw			<= de_mw_pipeline_out(261 downto 230);
+	alu_result_mw 			<= de_mw_pipeline_out(229 downto 198);
+	fpu_result_mw			<= de_mw_pipeline_out(197 downto 166);
+	special_values_mw		<= de_mw_pipeline_out(165 downto 134);
+	regWrite_or_dbg_sr_mw	<= de_mw_pipeline_out(133);
+	full_ADDR_ram_mw 		<= de_mw_pipeline_out(132 downto 101);
+	mem_write_data_mw 		<= de_mw_pipeline_out(100 downto 69);
+	push_mw 				<= de_mw_pipeline_out(68);
+	pop_mw 					<= de_mw_pipeline_out(67);
+	addsp_mw 				<= de_mw_pipeline_out(66);
+	instruction_mw 			<= de_mw_pipeline_out(65 downto 34);
+	read_data_1_mw 			<= de_mw_pipeline_out(33 downto 2);
+	reg_data_src_mw 		<= de_mw_pipeline_out(1 downto 0);
+	de_mw_pipeline_registers: d_flip_flop 
+								generic map (N => 296)
+								port map (CLK => CLK,
+										RST => rst,
+										ENA => '1',
+										D => de_mw_pipeline_in,
+										Q => de_mw_pipeline_out);
+
+	----------------------------------------------------------------
+	-- MW  stage
+	-- Memory access and register Writeback
+	----------------------------------------------------------------
+	
+	ADDR_ram <= "00" & full_ADDR_ram_mw(31 downto 2);--WORD ADDRESS
+	
+	write_data_ram <= mem_write_data_mw;
+	rden_ram <= '1' when (memRead_mw='1' or (dbg_irq_extended='1' and dbg_gm_extended='1')) and
+					full_ADDR_ram_mw(31 downto PROGRAM_STACK_LEVELS_LOG2+2)/=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1')
+					else '0';--ADDR_ram(N)='1' would imply stack (ADDR_ram is generated by ALU)
+	wren_ram <= '1' when ((memWrite_mw='1' and (dbg_nxt_delayed='0' or dbg_nxt='1' or dbg_inj='1')) or (dbg_irq_extended='1' and dbg_sm_extended='1')) and
+					full_ADDR_ram_mw(31 downto PROGRAM_STACK_LEVELS_LOG2+2)/=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1')
+					else '0';--ADDR_ram(N)='1' would imply stack (ADDR_ram is generated by ALU)
+
+	mm_stack_CLK <= CLK_IN and mm_stack_CLK_en;
+	--mapped on last 2^L word addresses (0xffffffff-2^L+1)-0xffffffff (bit 9='1'=> stack,bit 9='0'=>external ram)
+	program_stack: mm_stack
+						generic map (L => PROGRAM_STACK_LEVELS_LOG2)
+						--USING CLK_IN because if a miss occurs, there will be no falling_edge(CLK)
+						--during the cycle of valid instruction (i_cache_ready='1')
+						port map(CLK => mm_stack_CLK,--active edge: rising_edge, there MUST be a falling_edge even when recovering from a cache miss
+															  --stack clock will be frozen only when a stack fault occurs
+									rst => rst,-- active high asynchronous reset (should be deasserted at rising_edge)
+									ready => ready_stack,
+									--STACK INTERFACE
+									pop => pop_mw,--(pop: opcode(31..26) rs(25..21) (20..0=>X))
+									push => push_mw,--for argument passing (push: opcode(31..26) rs(25..21) (20..0=>X))
+									addsp => addsp_mw,
+									--ignores 2 LSb of immediate in instruction, because sp is word address, processor deals with byte addresses
+									imm => instruction_mw(PROGRAM_STACK_LEVELS_LOG2+2 downto 2),--imm(L) > 0: deletes vars, imm(L) < 0: reserves space for vars
+									stack_in => read_data_1_mw,-- word to be pushed
+									sp => sp(PROGRAM_STACK_LEVELS_LOG2+1 downto 2),-- points to last stacked item (address of a 32-bit word)
+									stack_out => program_stack_out,--data retrieved from stack
+									--MEMORY-MAPPED INTERFACE
+									D => mem_write_data_mw,-- data to be written by memory-mapped interface
+									WREN => wren_stack,--write enable for memory-mapped interface
+									RDEN => rden_stack,
+									ADDR => addr_stack(PROGRAM_STACK_LEVELS_LOG2-1 downto 0),-- address to be written by memory-mapped interface
+									Q    => Q_stack-- data output for memory-mapped interface
+							);
+	sp(1 downto 0) <= "00";
+	sp(31 downto PROGRAM_STACK_LEVELS_LOG2+2) <= (others=>'1');--converte para a faixa de enderecos destinada a program_stack
+
+	addr_stack <= (31 downto PROGRAM_STACK_LEVELS_LOG2=>'0') & full_ADDR_ram_mw(PROGRAM_STACK_LEVELS_LOG2+1 downto 2);
+	wren_stack <= '1' when (((memWrite_mw='1' and (dbg_nxt_delayed='0' or dbg_nxt='1' or dbg_inj='1')) or (dbg_irq_extended='1' and dbg_sm_extended='1')) and 
+						full_ADDR_ram_mw(31 downto PROGRAM_STACK_LEVELS_LOG2+2)=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1'))
+						else '0';--ADDR_ram(N)='1' imply stack (ADDR_ram is generated by ALU)
+	rden_stack <= '1' when ((memRead_mw='1' or (dbg_irq_extended='1' and dbg_gm_extended='1')) and 
+						full_ADDR_ram_mw(31 downto PROGRAM_STACK_LEVELS_LOG2+2)=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1'))
+						else '0';--ADDR_ram(N)='1' imply stack (ADDR_ram is generated by ALU)
+
+	data_memory_output_mw	<= Q_ram when full_ADDR_ram_mw(31 downto PROGRAM_STACK_LEVELS_LOG2+2)/=(31 downto PROGRAM_STACK_LEVELS_LOG2+2=>'1')
+									else Q_stack;--ADDR_ram(N)='1' would imply stack (ADDR_ram is generated by ALU)			
+
+	--for register write
+	reg_write_data_mw	<= dbg_data_0_mw when (dbg_irq='1' and dbg_sr='1') else
+						data_memory_output_mw when reg_data_src="01" else
+						alu_result_mw when reg_data_src="00" else
+						fpu_result_mw when reg_data_src="10" else
+						special_values_mw;
+end proc;
