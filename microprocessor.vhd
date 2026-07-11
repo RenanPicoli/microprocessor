@@ -337,6 +337,9 @@ signal addsp_mw : std_logic;
 signal instruction_mw : std_logic_vector (31 downto 0);
 signal read_data_1_mw : std_logic_vector (31 downto 0);
 signal reg_data_src_mw : std_logic_vector(1 downto 0);
+signal reg_write_data_mw: std_logic_vector (31  downto 0);--data to be written to register file
+signal de_mw_pipeline_in: std_logic_vector(268 downto 0);
+signal de_mw_pipeline_out: std_logic_vector(268 downto 0);
 
 signal ldfp: std_logic;
 signal ldrv: std_logic;
@@ -895,9 +898,9 @@ begin
 	-----------------------------------------------------------------
 	de_mw_pipeline_in <= memRead & memWrite & writeLoc & dbg_data_0 & alu_result & fpu_result & special_values & regWrite_or_dbg_sr & full_ADDR_ram & mem_write_data & push & pop & addsp & instruction & read_data_1_fwd & reg_data_src;
 
-	memRead_mw 				<= de_mw_pipeline_out(295);
-	memWrite_mw 			<= de_mw_pipeline_out(294);
-	writeLoc_mw 			<= de_mw_pipeline_out(293 downto 262);
+	memRead_mw 				<= de_mw_pipeline_out(268);
+	memWrite_mw 			<= de_mw_pipeline_out(267);
+	writeLoc_mw 			<= de_mw_pipeline_out(266 downto 262);
 	dbg_data_0_mw			<= de_mw_pipeline_out(261 downto 230);
 	alu_result_mw 			<= de_mw_pipeline_out(229 downto 198);
 	fpu_result_mw			<= de_mw_pipeline_out(197 downto 166);
@@ -912,7 +915,7 @@ begin
 	read_data_1_mw 			<= de_mw_pipeline_out(33 downto 2);
 	reg_data_src_mw 		<= de_mw_pipeline_out(1 downto 0);
 	de_mw_pipeline_registers: d_flip_flop 
-								generic map (N => 296)
+								generic map (N => 269)
 								port map (CLK => CLK,
 										RST => rst,
 										ENA => '1',
