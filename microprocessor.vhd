@@ -757,7 +757,8 @@ begin
 	dbg_next_pc <= pc_in;--byte address
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
-	reg_clk <= CLK;
+	-- reg_clk <= CLK;
+	reg_clk <= CLK or CLK_mw;
 	reg_pop <= ret or iret;--automatically restores context
 	reg_push<= call or callr or irq;--automatically saves context
 	regWrite_or_dbg_sr <= (regWrite and (not dbg_nxt_delayed or dbg_nxt or dbg_inj)) or (dbg_sr and dbg_irq);--regwrite from code or dbg_sr='1'
@@ -769,9 +770,9 @@ begin
 													push => reg_push,
 													read_reg_1 => rs,
 													read_reg_2 => rt,
-													write_reg  => writeLoc,
+													write_reg  => writeLoc_mw,
 													write_data => reg_write_data_mw,--data to be written to register file comes from MW stage
-													regWrite => regWrite_or_dbg_sr,
+													regWrite => regWrite_or_dbg_sr_mw,
 													read_data_1 => read_data_1,
 													read_data_2 => read_data_2
 											);
