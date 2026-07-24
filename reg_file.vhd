@@ -18,7 +18,7 @@ use work.my_types.all;
 
 entity reg_file is
 	generic (L: natural);--log2 of number of stack levels (one stack for each register)
-	port (CLK: in std_logic;
+	port (CLK: in std_logic;--if made of true registers, CLK is used only for writing, if RAM is inferred, CLK is used for writing and reading
 			stack_CLK: in std_logic;--if a miss occurs, there will be no falling_edge(CLK) during the cycle of valid instruction
 			RST: in std_logic;
 			pop: in std_logic;--pops from ALL registers stacks
