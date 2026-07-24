@@ -70,7 +70,7 @@ end component;
 
 component reg_file
 	generic (L: natural);--log2 of number of stack levels (one stack for each register)
-	port (CLK: in std_logic;
+	port (CLK: in std_logic;--if made of true registers, CLK is used only for writing, if RAM is inferred, CLK is used for writing and reading
 			stack_CLK: in std_logic;--if a miss occurs, there will be no falling_edge(CLK) during the cycle of valid instruction
 			RST: in std_logic;
 			pop: in std_logic;--pops from ALL registers stacks
@@ -340,6 +340,8 @@ signal reg_data_src_mw : std_logic_vector(1 downto 0);
 signal reg_write_data_mw: std_logic_vector (31  downto 0);--data to be written to register file
 signal de_mw_pipeline_in: std_logic_vector(268 downto 0);
 signal de_mw_pipeline_out: std_logic_vector(268 downto 0);
+signal clk_en_mw: std_logic;
+signal clk_mw: std_logic;
 
 signal ldfp: std_logic;
 signal ldrv: std_logic;
@@ -763,7 +765,7 @@ begin
 	reg_push<= call or callr or irq;--automatically saves context
 	regWrite_or_dbg_sr <= (regWrite and (not dbg_nxt_delayed or dbg_nxt or dbg_inj)) or (dbg_sr and dbg_irq);--regwrite from code or dbg_sr='1'
 	register_file: reg_file generic map (L => STACK_LEVELS_LOG2)
-									port map (	CLK => reg_clk,									
+									port map (	CLK => reg_clk,--if made of true registers, CLK is used only for writing, if RAM is inferred, CLK is used for writing and reading						
 													stack_CLK=> CLK_IN,--if a miss occurs, there will be no falling_edge(CLK) during the cycle of valid instruction
 													RST => rst,
 													pop => reg_pop,
@@ -899,6 +901,7 @@ begin
 	-----------------------------------------------------------------
 	de_mw_pipeline_in <= memRead & memWrite & writeLoc & dbg_data_0 & alu_result & fpu_result & special_values & regWrite_or_dbg_sr & full_ADDR_ram & mem_write_data & push & pop & addsp & instruction & read_data_1_fwd & reg_data_src;
 
+	CLK_MW <= CLK_IN and clk_en_mw;
 	memRead_mw 				<= de_mw_pipeline_out(268);
 	memWrite_mw 			<= de_mw_pipeline_out(267);
 	writeLoc_mw 			<= de_mw_pipeline_out(266 downto 262);
@@ -917,11 +920,24 @@ begin
 	reg_data_src_mw 		<= de_mw_pipeline_out(1 downto 0);
 	de_mw_pipeline_registers: d_flip_flop 
 								generic map (N => 269)
-								port map (CLK => CLK,
+								port map (CLK => CLK_MW,
 										RST => rst,
 										ENA => '1',
 										D => de_mw_pipeline_in,
 										Q => de_mw_pipeline_out);
+	clk_en_mw_p: process(rst,CLK_IN,clk_enable,stall_mw)
+	begin
+		if rst='1' then
+			clk_en_mw <= '0';
+		elsif falling_edge(clk_in) then
+			if stall_mw = '1' then
+				clk_en_mw <= '0';
+				-- clk_en    <= '0';
+			else
+				clk_en_mw <= clk_enable;
+			end if;
+		end if;
+	end process;
 
 	----------------------------------------------------------------
 	-- MW  stage
