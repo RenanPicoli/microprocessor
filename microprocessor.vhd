@@ -341,7 +341,8 @@ signal reg_write_data_mw: std_logic_vector (31  downto 0);--data to be written t
 signal de_mw_pipeline_in: std_logic_vector(268 downto 0);
 signal de_mw_pipeline_out: std_logic_vector(268 downto 0);
 signal clk_en_mw: std_logic;
-signal clk_mw: std_logic;
+signal CLK_MW: std_logic;
+signal stall_mw: std_logic;-- detects if the pipeline is stalled due to a d-cache miss or stack access not ready
 
 signal ldfp: std_logic;
 signal ldrv: std_logic;
@@ -369,7 +370,6 @@ signal dbg_irq_extended_del: std_logic;
 signal dbg_gm_extended_del: std_logic;
 signal dbg_sm_extended_del: std_logic;
 signal debugging: std_logic;
-
 
 begin
 
@@ -463,7 +463,7 @@ begin
 	process(rst,halt,irq, i_cache_ready,d_cache_ready,ready_stack,accessing_stack,memRead,memWrite,
 				CLK_IN,lr_stack_push,lr_stack_pop,lr_stack_ready,mm_stack_fault,
 				dbg_irq,debugging,dbg_brk,dbg_cont,dbg_nxt,dbg_nxt_delayed,dbg_sr,dbg_gr,dbg_inj,
-				dbg_gm,dbg_gm_extended,dbg_sm,dbg_sm_extended,dbg_inj_extended)
+				dbg_gm,dbg_gm_extended,dbg_sm,dbg_sm_extended,dbg_inj_extended,stall_mw)
 	begin--indicates cache is ready or rst => CLK must toggle
 		if(rst='1')then
 			clk_enable <= '1';
@@ -490,8 +490,7 @@ begin
 					if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 						--MUST REMAIN FROZEN UNTIL RESET
 						clk_enable <= '0';
-					elsif(((d_cache_ready='0' and accessing_stack='0') or
-						(ready_stack='0' and accessing_stack='1')) and (memWrite='1' or memRead='1')) then--access memory not ready
+					elsif(stall_mw='1') then--access memory not ready
 						clk_enable <= '0';
 					--new IRQs are disabled in debugging mode
 	--				elsif(i_cache_ready='1' and halt ='1' and irq='1')then
@@ -513,8 +512,7 @@ begin
 				if(mm_stack_fault='1')then--mm_stack_fault='1' implies irrecoverable fault like overflow, invalid stack address
 					--MUST REMAIN FROZEN UNTIL RESET
 					clk_enable <= '0';
-				elsif((d_cache_ready='0' and (memWrite='1' or memRead='1') and accessing_stack='0') or
-					(ready_stack='0' and accessing_stack='1'))then
+				elsif(stall_mw='1')then
 					clk_enable <= '0';
 				--necessary to check if i_cache_ready='1' so that current instruction be executed
 				--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -576,8 +574,7 @@ begin
 					--MUST REMAIN FROZEN UNTIL RESET
 					CLK_rom_en <= '0';
 				elsif(i_cache_ready='1' and
-					((d_cache_ready='0' and (memRead='1' or memWrite='1') and accessing_stack='0') or
-					(ready_stack='0' and accessing_stack='1')))then--miss apenas no d_cache, esperar o dado para continuar o programa
+					(stall_mw='1'))then--miss apenas no d_cache, esperar o dado para continuar o programa
 					CLK_rom_en <= '0';
 				--necessary to check if i_cache_ready='1' so that current instruction be executed
 				--if i_cache_ready='0' and irq='1', interrupt controller must keep IRQ asserted
@@ -760,7 +757,7 @@ begin
 
 	--MINHA ESTRATEGIA É EXECUTAR CÁLCULOS NA SUBIDA DE CLK E GRAVAR NO REGISTRADOR NA BORDA DE DESCIDA
 	-- reg_clk <= CLK;
-	reg_clk <= CLK or CLK_mw;
+	reg_clk <= CLK or CLK_MW;
 	reg_pop <= ret or iret;--automatically restores context
 	reg_push<= call or callr or irq;--automatically saves context
 	regWrite_or_dbg_sr <= (regWrite and (not dbg_nxt_delayed or dbg_nxt or dbg_inj)) or (dbg_sr and dbg_irq);--regwrite from code or dbg_sr='1'
@@ -929,10 +926,10 @@ begin
 	begin
 		if rst='1' then
 			clk_en_mw <= '0';
-		elsif falling_edge(clk_in) then
+		elsif falling_edge(CLK_IN) then
 			if stall_mw = '1' then
 				clk_en_mw <= '0';
-				-- clk_en    <= '0';
+				-- clk_enable	<= '0';
 			else
 				clk_en_mw <= clk_enable;
 			end if;
@@ -1000,4 +997,8 @@ begin
 						alu_result_mw when reg_data_src="00" else
 						fpu_result_mw when reg_data_src="10" else
 						special_values_mw;
+
+	-- detects if the pipeline is stalled due to a d-cache miss or stack access not ready
+	stall_mw <= '1' when ((d_cache_ready='0' and (memWrite_mw='1' or memRead_mw='1') and accessing_stack='0') or
+					(ready_stack='0' and accessing_stack='1')) else '0';
 end proc;
