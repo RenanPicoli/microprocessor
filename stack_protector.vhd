@@ -40,8 +40,19 @@ end entity;
 
 architecture bhv of stack_protector is
 
---NO EDAPLAYGROUND, precisei substituir L pelo valor numérico para compilar
-signal sck_lower_limit: std_logic_vector(31 downto 0):=(31 downto L+2=>'1',L+1 downto 0=>'0');
+--using this function because questasim/EDAPLAYGROUND do not accept EDAPLAYGROUND aggregate (31 downto L+2=>'1',L+1 downto 0=>'0');
+function lower_limit(L : natural)
+    return std_logic_vector is
+
+    variable v : std_logic_vector(31 downto 0);
+begin
+
+    v := (others => '1');
+    v(L+1 downto 0) := (others => '0');
+    return v;
+
+end;
+signal sck_lower_limit : std_logic_vector(31 downto 0) := lower_limit(L);
 
 signal lr_stack_pop: std_logic;
 signal lr_stack_push: std_logic;
@@ -147,7 +158,7 @@ attribute preserve of unf: signal is true;
 	end process;
 	
 	-----------------stack_full----------------------
-	stack_almost_full <= (L-1 downto 1=>'0',0=>'1');
+	stack_almost_full <= std_logic_vector(to_unsigned(1, L));
 	process(CLK,RST,sp,push,pop,ready_stack,stack_almost_full)
 	begin
 		if(RST='1')then
