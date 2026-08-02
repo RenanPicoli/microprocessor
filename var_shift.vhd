@@ -45,7 +45,7 @@ begin
 	
 	shifts: for i in -2**(S-1) to 2**(S-1)-1 generate
 		--if the argument of srl operator is negative, performs a left shift
-		possible_outputs(i) <=	to_stdlogicvector(to_bitvector(arith_extended_input) srl ((N - O) - i)) when shift_mode='1';--shift right arithmetic
+		possible_outputs(i) <=	to_stdlogicvector(to_bitvector(arith_extended_input) srl ((N - O) - i)) when shift_mode='1' else--shift right arithmetic
 								to_stdlogicvector(to_bitvector(logic_extended_input) srl ((N - O) - i));--shift right logic
 	end generate;
 
