@@ -52,8 +52,9 @@ signal	lvec_dst_mask: std_logic_vector(7 downto 0) := (others => '0');
 signal	vmac_en: std_logic := '0';
 signal	Q_ram: std_logic_vector(31 downto 0) := (others => '0');
 
-    type rom_array is array (0 to 1023) of std_logic_vector(31 downto 0);
-    signal rom_mem : rom_array := (others => (others => '0'));
+type rom_array is array (0 to 4095) of std_logic_vector(31 downto 0);
+type byte_file is file of character;
+signal rom_mem : rom_array := (others => (others => '0'));
 
 begin
 
@@ -96,24 +97,55 @@ begin
 		Q_ram => Q_ram
 	);
 
+	-- Load the assembled program image from the binary file into the ROM memory array.
+	-- The file is read as a raw byte stream and reassembled into 32-bit words.
 	ROM_FILE_LOAD: process
-	    file instr_file : text open read_mode is "executable.bin";
-	    variable instr_line : line;
-	    variable instr_word : std_logic_vector(31 downto 0);
+	    file instr_file : byte_file open read_mode is "../../microprocessor/executable.bin";
+	    variable instr_byte : character;
+	    variable instr_word : std_logic_vector(31 downto 0) := (others => '0');
+	    variable byte_idx : integer := 0;
 	    variable addr_idx : integer := 0;
 	begin
 	    wait for 0 ns;
 	    while not endfile(instr_file) loop
-	        readline(instr_file, instr_line);
-	        hread(instr_line, instr_word);
-	        if addr_idx <= rom_mem'high then
-	            rom_mem(addr_idx) <= instr_word;
+	        -- Read one byte from the binary image file.
+	        read(instr_file, instr_byte);
+	        -- Start a new 32-bit word when the first byte of a word is reached.
+	        if byte_idx = 0 then
+	            instr_word := (others => '0');
 	        end if;
-	        addr_idx := addr_idx + 1;
+
+	        -- Assemble the four bytes into one 32-bit instruction word.
+	        case byte_idx is
+	            when 0 =>
+	                instr_word(7 downto 0) := std_logic_vector(to_unsigned(character'pos(instr_byte), 8));
+	            when 1 =>
+	                instr_word(15 downto 8) := std_logic_vector(to_unsigned(character'pos(instr_byte), 8));
+	            when 2 =>
+	                instr_word(23 downto 16) := std_logic_vector(to_unsigned(character'pos(instr_byte), 8));
+	            when 3 =>
+	                -- Store the last byte and write the completed 32-bit word into the ROM array.
+	                instr_word(31 downto 24) := std_logic_vector(to_unsigned(character'pos(instr_byte), 8));
+	                if addr_idx <= rom_mem'high then
+	                    rom_mem(addr_idx) <= instr_word;
+	                end if;
+	                addr_idx := addr_idx + 1;
+	            when others =>
+	                null;
+	        end case;
+
+	    	-- Move to the next byte position within the current 32-bit word.
+	    	if byte_idx = 3 then
+		    byte_idx := 0;
+	    else
+		    byte_idx := byte_idx + 1;
+	    end if;
 	    end loop;
 	    wait;
 	end process ROM_FILE_LOAD;
 
+	-- Read one 32-bit instruction word from the ROM memory array whenever the ROM clock
+	-- rises and present it on Q_rom for the processor to consume.
 	ROM_READ: process(CLK_rom)
 	    variable addr_idx : integer;
 	begin
@@ -126,6 +158,8 @@ begin
 	        end if;
 	    end if;
 	end process ROM_READ;
+	-- i-cache never misses in this testbench, so we can always assert ready for the processor to continue.
+	i_cache_ready <= '1';
 
 	CLOCK: process
 	begin
@@ -135,6 +169,6 @@ begin
 		wait for TIME_DELTA;
 	end process CLOCK;
 	
-	rst <= '1', '0' after 15 ns;
+	rst <= '1', '0' after 600 ns;
 	
 end architecture test;
