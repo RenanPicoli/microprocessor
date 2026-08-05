@@ -160,6 +160,8 @@ begin
 	end process ROM_READ;
 	-- i-cache never misses in this testbench, so we can always assert ready for the processor to continue.
 	i_cache_ready <= '1';
+	-- d-cache never misses in this testbench, so we can always assert ready for the processor to continue.
+	d_cache_ready <= '1';
 
 	CLOCK: process
 	begin
