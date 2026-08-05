@@ -374,7 +374,7 @@ signal debugging: std_logic;
 begin
 
 	ready <= clk_enable;
-	accessing_stack <= rden_stack or wren_stack or push or pop;
+	accessing_stack <= rden_stack or wren_stack or push_mw or pop_mw;--all these signals are activated during MW stage if neeeded
 	
 	--dbg_nxt is delayed by one clock cycle
 	process(rst,CLK_IN,CLK,dbg_nxt,dbg_irq,dbg_brk,dbg_cont,dbg_gm_extended,dbg_sm_extended)
