@@ -1,0 +1,13 @@
+{
+  "signal": [
+    { "name": "CLK_IN", "wave": "p................" },
+    { "name": "CLK_EN", "wave": "h.pl.....nh.pl.nx" },
+    { "name": "CLK", "wave": "pppl......pppl..p" },
+    { "name": "instruction", "wave": "345.......678...9", "data": ["I0","I1","I2","I3","I4","I5","I6"] },
+    { "name": "CLK_EN_MW", "wave": "nh.pl.....nhpl.nx" },
+    { "name": "CLK_MW", "wave": "lpppl......ppl..p" },
+    { "name": "stall_mw", "wave": "0...........10..." },
+    { "name": "instruction_mw", "wave": "x345.......67...8", "data": ["I0","I1","I2","I3","I4","I5","I6"] },
+  ],
+  "config": { "hscale": 2 }
+}
