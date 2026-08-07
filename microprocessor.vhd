@@ -582,7 +582,8 @@ begin
 					CLK_rom_en <= '1';--irq wakes up processor from halt
 				elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 					CLK_rom_en <= '0';
-				elsif(i_cache_ready='1' and ((d_cache_ready='1' and (memRead='1' or memWrite='1') and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
+--				elsif(i_cache_ready='1' and ((d_cache_ready='1' and (memRead='1' or memWrite='1') and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
+				elsif(i_cache_ready='1' and stall_mw='0')then
 					CLK_rom_en <= '1';
 				elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
 					CLK_rom_en <= '0';

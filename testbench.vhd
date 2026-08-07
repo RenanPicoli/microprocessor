@@ -161,7 +161,7 @@ begin
 	-- i-cache never misses in this testbench, so we can always assert ready for the processor to continue.
 	i_cache_ready <= '1';
 	-- d-cache never misses in this testbench, so we can always assert ready for the processor to continue.
-	d_cache_ready <= '1';
+	d_cache_ready <= '1', '0' after 6 us, '1' after 8.25 us;
 
 	CLOCK: process
 	begin
