@@ -924,17 +924,25 @@ begin
 										Q => de_mw_pipeline_out);
 	clk_en_mw_p: process(rst,CLK_IN,clk_enable,stall_mw)
 	begin
-		if rst='1' then
-			clk_en_mw <= '0';
+		if clk_enable='1' and  stall_mw='0' then
+			clk_en_mw <= '1';
 		elsif falling_edge(CLK_IN) then
-			if stall_mw = '1' then
-				clk_en_mw <= '0';
-				-- clk_enable	<= '0';
-			else
-				clk_en_mw <= clk_enable;
-			end if;
+			clk_en_mw	<= '0';
 		end if;
 	end process;
+--	clk_en_mw_p: process(rst,CLK_IN,clk_enable,stall_mw)
+--	begin
+--		if rst='1' then
+--			clk_en_mw <= '0';
+--		elsif falling_edge(CLK_IN) then
+--			if stall_mw = '1' then
+--				clk_en_mw <= '0';
+--				-- clk_enable	<= '0';
+--			else
+--				clk_en_mw <= clk_enable;
+--			end if;
+--		end if;
+--	end process;
 
 	----------------------------------------------------------------
 	-- MW  stage
