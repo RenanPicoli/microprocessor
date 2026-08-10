@@ -37,6 +37,8 @@ signal	dbg_iack: std_logic;
 signal	dbg_next_pc: std_logic_vector(31 downto 0);
 
 signal	ADDR_rom: std_logic_vector(31 downto 0);
+signal	instruction_memory_address: std_logic_vector(31 downto 0);
+signal	req_ADDR_reg: std_logic_vector(31 downto 0);
 signal	CLK_rom: std_logic;
 signal	Q_rom: std_logic_vector(31 downto 0) := (others => '0');
 signal	i_cache_ready: std_logic := '0';
@@ -81,7 +83,7 @@ begin
 		dbg_irq => dbg_irq,
 		dbg_iack => dbg_iack,
 		dbg_next_pc => dbg_next_pc,
-		ADDR_rom => ADDR_rom,
+		ADDR_rom => instruction_memory_address,
 		CLK_rom => CLK_rom,
 		Q_rom => Q_rom,
 		i_cache_ready => i_cache_ready,
@@ -146,22 +148,36 @@ begin
 
 	-- Read one 32-bit instruction word from the ROM memory array whenever the ROM clock
 	-- rises and present it on Q_rom for the processor to consume.
+	
+	--registers address for correct operation of flag req_ready
+	process(CLK_rom,i_cache_ready,RST)
+	begin
+		if(RST='1')then
+			req_ADDR_reg <= (others=>'0');
+		elsif(rising_edge(CLK_rom)) then
+			if(i_cache_ready='1')then
+				req_ADDR_reg <= instruction_memory_address;
+			end if;
+		end if;
+	end process;
+	ADDR_rom <= instruction_memory_address when (i_cache_ready='1') else req_ADDR_reg;
 	ROM_READ: process(CLK_rom)
-	    variable addr_idx : integer;
+	    -- variable addr_idx : integer;
 	begin
 	    if rising_edge(CLK_rom) then
-	        addr_idx := to_integer(unsigned(ADDR_rom));
-	        if addr_idx >= 0 and addr_idx <= rom_mem'high then
-	            Q_rom <= rom_mem(addr_idx);
-	        else
-	            Q_rom <= (others => '0');
-	        end if;
+	        -- addr_idx := to_integer(unsigned(ADDR_rom));
+	        -- if addr_idx >= 0 and addr_idx <= rom_mem'high then
+	            -- Q_rom <= rom_mem(addr_idx);
+	            Q_rom <= rom_mem(to_integer(unsigned(ADDR_rom)));
+	        -- else
+	        --     Q_rom <= (others => '0');
+	        -- end if;
 	    end if;
 	end process ROM_READ;
 	-- i-cache never misses in this testbench, so we can always assert ready for the processor to continue.
-	i_cache_ready <= '1';
+	i_cache_ready <= '1', '0' after 5.751 us, '1' after 8.25 us;
 	-- d-cache never misses in this testbench, so we can always assert ready for the processor to continue.
-	d_cache_ready <= '1', '0' after 6 us, '1' after 8.25 us;
+	d_cache_ready <= '1';
 
 	CLOCK: process
 	begin
