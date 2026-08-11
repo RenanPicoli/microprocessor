@@ -582,14 +582,14 @@ begin
 					CLK_rom_en <= '1';--irq wakes up processor from halt
 				elsif(halt='1')then--halt='1' implies instruction valid (i_cache_ready='1')
 					CLK_rom_en <= '0';
---				elsif(i_cache_ready='1' and ((d_cache_ready='1' and (memRead='1' or memWrite='1') and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
-				elsif(i_cache_ready='1' and stall_mw='0')then
-					CLK_rom_en <= '1';
 				elsif(lr_stack_ready='0' and (lr_stack_pop='1' or lr_stack_push='1'))then
 					CLK_rom_en <= '0';
 				elsif(lr_stack_ready='1' and (lr_stack_pop='1' or lr_stack_push='1'))then
 					CLK_rom_en <= '1';
 				elsif(i_cache_ready='0')then--miss no i_cache, continuar o CLK_rom para buscar a instruction
+					CLK_rom_en <= '1';
+--				elsif(i_cache_ready='1' and ((d_cache_ready='1' and (memRead='1' or memWrite='1') and accessing_stack='0') or (ready_stack='1' and accessing_stack='1')))then
+				elsif(i_cache_ready='1' and stall_mw='0')then
 					CLK_rom_en <= '1';
 	--			else--miss apenas no d_cache, esperar o dado para continuar o programa
 	--				CLK_rom_en <= '0';
@@ -1002,9 +1002,9 @@ begin
 
 	--for register write
 	reg_write_data_mw	<= dbg_data_0_mw when (dbg_irq='1' and dbg_sr='1') else
-						data_memory_output_mw when reg_data_src="01" else
-						alu_result_mw when reg_data_src="00" else
-						fpu_result_mw when reg_data_src="10" else
+						data_memory_output_mw when reg_data_src_mw="01" else
+						alu_result_mw when reg_data_src_mw="00" else
+						fpu_result_mw when reg_data_src_mw="10" else
 						special_values_mw;
 
 	-- detects if the pipeline is stalled due to a d-cache miss or stack access not ready
