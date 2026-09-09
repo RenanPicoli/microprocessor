@@ -17,7 +17,7 @@ int main(void){
     dma_init.dst_addr = SDRAM_BASE_ADDR+(0x800<<2);// left shift converts word address to byte address
     dma_init.dinc_select = DMA_DINC_ENABLE;
     dma_init.sinc_select = DMA_SINC_ENABLE;
-    dma_init.src_lat_select = DMA_SRC_LAT_2;//source memory (SDRAM) has 2 clocks of latency (only for reading)
+	dma_init.src_lat_select = DMA_SRC_LAT_SDRAM_WITH_DMA_PIPELINE;//SDRAM read latency including the registered memory-map output
     dma_init.autostart_select = DMA_AUTOSTART_DISABLE;
     
     DMA_Init(&dma_init);

@@ -38,7 +38,7 @@ int main(void){
     // dma_init.sinc_select = DMA_SINC_DISABLE;//reads always the first position in SDRAM (fills with single color)
     dma_init.sinc_select = DMA_SINC_ENABLE;// enables increment of address in SDRAM (loads an entire image)
 
-    dma_init.src_lat_select = DMA_SRC_LAT_4;//source memory (SDRAM) has 2 clocks of latency (only for reading) + 2 of DMA/arbitration
+    dma_init.src_lat_select = DMA_SRC_LAT_SDRAM_WITH_DMA_PIPELINE;//SDRAM read latency plus DMA/arbitration pipeline
 
     dma_init.autostart_select = DMA_AUTOSTART_ENABLE;//will repeat tranfer after finishing
     DMA_Init(&dma_init);
@@ -91,7 +91,7 @@ void print_vga(uint32_t* fb){
     dma_init.dinc_select = DMA_DINC_ENABLE;//increment destination address (glyph stored in mini_ram)
     dma_init.sinc_select = DMA_SINC_ENABLE;//increment source address (SDRAM framebuffer)
 
-    dma_init.src_lat_select = DMA_SRC_LAT_4;//source memory (SDRAM) has 2 clock of latency (only for reading) + 2 of DMA/arbitration
+    dma_init.src_lat_select = DMA_SRC_LAT_SDRAM_WITH_DMA_PIPELINE;//SDRAM read latency plus DMA/arbitration pipeline
 
     dma_init.autostart_select = DMA_AUTOSTART_DISABLE;//performs single transfer
     //prints letter 'A'
@@ -152,7 +152,7 @@ void demo(uint32_t *fb)
     dma_init.dinc_select = DMA_DINC_ENABLE;//increments destination address (SDRAM framebuffer)
     dma_init.sinc_select = DMA_SINC_ENABLE;//increment source address (SDRAM read-only region)
 
-    dma_init.src_lat_select = DMA_SRC_LAT_4;//source memory (SDRAM) has 2 clock of latency (only for reading) + 2 of DMA/arbitration
+    dma_init.src_lat_select = DMA_SRC_LAT_SDRAM_WITH_DMA_PIPELINE;//SDRAM read latency plus DMA/arbitration pipeline
     dma_init.autostart_select = DMA_AUTOSTART_DISABLE;//performs single transfer
     
     DMA_Init_and_Start(&dma_init);
