@@ -39,6 +39,7 @@ enum registers {r0=0, r1, r2, r3, r4, r5, r6, r7, r8, r9,\
 #define LVECR(x,y) __asm("\tlvecr %0 %1;\n\t" : : "r" (x),"r" (y));
 #define READ(addr,dst) __asm("\tlw [r0 + %1] %0;\n\t" : "=r" (dst) : "i" (addr));
 #define WRITE(addr,value) __asm("\tsw [r0 + %0] %1;\n\t" : : "i" (addr),"r" (value));
+#define NOP() __asm("\tnop;\n\t");
 
 
 #define VMAC() __asm("\tvmac;\n\t");
