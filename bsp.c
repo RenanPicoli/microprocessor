@@ -168,6 +168,10 @@ void filter_control(int cmd){
 	return;
 }
 
+void system_reset(void){
+	write_w(FILTER_CTRL_STATUS_BASE_ADDR+FILTER_CTRL_STATUS_OFFSET,FILTER_CTRL_STATUS_RESET);
+}
+
 //I2C support
 void I2C_Init(I2C_Init_typedef* i2c_init){
     int cfg=i2c_init->num_words|i2c_init->direction;

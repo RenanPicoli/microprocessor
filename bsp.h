@@ -22,6 +22,7 @@
 #define FILTER_OUTPUT_BASE_ADDR 		(0x70 << 2)
 #define DESIRED_RESPONSE_BASE_ADDR 		(0x71 << 2)
 #define FILTER_CTRL_STATUS_BASE_ADDR	(0x72 << 2)
+#define FILTER_CTRL_STATUS_RESET		(1 << 1)
 #define CONVERTED_OUTPUT_BASE_ADDR		(0x73 << 2)
 #define DISPLAY_7SEGS_BASE_ADDR			(0x74 << 2)
 #define LCD_CTRL_BASE_ADDR				(0x75 << 2)
@@ -182,6 +183,7 @@ void linear_transformation(int A_ptr,int m,int v_ptr,int n,int dst_addr);
 //dst_addr is the address for storing the resulting matrix (mxp)
 void matrix_product(int A_ptr,int B_ptr,int m,int n,int p,int dst_addr);
 void filter_control(int cmd);
+void system_reset(void);
 
 void I2C_Init(I2C_Init_typedef* i2c_init);
 void I2C_Transmit(int addr,int data);
