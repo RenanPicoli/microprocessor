@@ -124,18 +124,18 @@ void print_vga(uint32_t* fb){
             write_w(CACHE_BASE_ADDR + j*sizeof(uint32_t), pixel);// store new pixel to mini_ram cache
         }
 
-        // //sends the row back to framebuffer with DMA
-        // dma_init.src_lat_select = DMA_SRC_LAT_0;
-        // dma_init.src_addr = CACHE_BASE_ADDR + CACHE_OFFSET;
-        // //byte address of row start
-        // dma_init.dst_addr = (uint32_t) fb + (y * VGA_WIDTH * sizeof(uint32_t)) + (sizeof(uint32_t) * base_x);
-        // DMA_Init_and_Start(&dma_init);
+        //sends the row back to framebuffer with DMA
+        dma_init.src_lat_select = DMA_SRC_LAT_0;
+        dma_init.src_addr = CACHE_BASE_ADDR + CACHE_OFFSET;
+        //byte address of row start
+        dma_init.dst_addr = (uint32_t) fb + (y * VGA_WIDTH * sizeof(uint32_t)) + (sizeof(uint32_t) * base_x);
+        DMA_Init_and_Start(&dma_init);
 
-        //sends the modified row back to framebuffer WITHOUT DMA
-        for (int j = 0; j < FONT_WIDTH; j++){
-            uint32_t pixel = read_w(CACHE_BASE_ADDR + j*sizeof(uint32_t));//modified pixel
-            write_w((uint32_t) fb + (y * VGA_WIDTH * sizeof(uint32_t)) + (sizeof(uint32_t) * (base_x + j)), pixel);// store new pixel to framebuffer
-        }
+        // //sends the modified row back to framebuffer WITHOUT DMA
+        // for (int j = 0; j < FONT_WIDTH; j++){
+        //     uint32_t pixel = read_w(CACHE_BASE_ADDR + j*sizeof(uint32_t));//modified pixel
+        //     write_w((uint32_t) fb + (y * VGA_WIDTH * sizeof(uint32_t)) + (sizeof(uint32_t) * (base_x + j)), pixel);// store new pixel to framebuffer
+        // }
     }
     // const Glyph *g = ascii_get_glyph('A');
     // for (int i = 0; i < g->count; i++){
